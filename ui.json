@@ -1,0 +1,77 @@
+{
+    "doc": {
+        "help": "Issue tracker.",
+        "usage": [
+            "--help",
+            "--version",
+            "open [--label <label>]... [--milestone <milestone>]... \"<description>\"",
+            "close [--message \"<message>\"] <id>..."
+        ],
+        "examples": [
+            {
+                "line": "open --label bug --label urgent \"Oh noes! The program crashez.\"",
+                "desc": "open new issue with labels \"bug\" and \"urgent\" with given description"
+            }
+        ]
+    },
+    "options": {
+        "global": [
+            {
+                "short": "h",
+                "long": "help",
+                "help": "display help message"
+            },
+            {
+                "short": "v",
+                "long": "verbose",
+                "help": "display verbose output"
+            }
+        ],
+        "local": [
+            {
+                "long": "version",
+                "help": "show version"
+            }
+        ]
+    },
+    "commands": {
+        "open": {
+            "doc": {
+                "help": "Open new issues.",
+                "usage": [
+                    "open [--label <label>]... [--milestone <name>]... \"short description of the issue\""
+                ]
+            },
+            "options": {
+                "local": [
+                    {
+                        "long": "label",
+                        "short": "l",
+                        "arguments": ["str"],
+                        "plural": 1,
+                        "help": "add label to the issue"
+                    },
+                    {
+                        "long": "milestone",
+                        "short": "M",
+                        "arguments": ["str"],
+                        "plural": 1,
+                        "help": "attach the issue to a milestone"
+                    }
+                ]
+            },
+            "operands": {"no": [0, 1]}
+        },
+        "close": {
+            "doc": {
+                "help": "Close opened issues.",
+                "usage": [
+                    "close (<sha1> | <name>)"
+                ]
+            }
+        }
+    },
+    "operands": {
+        "no": [0, 0]
+    }
+}
