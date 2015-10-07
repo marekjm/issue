@@ -4,6 +4,7 @@ import hashlib
 import json
 import os
 import random
+import shutil
 import sys
 
 import clap
@@ -65,10 +66,11 @@ if clap.helper.HelpRunner(ui=ui, program=sys.argv[0]).adjust(options=['-h', '--h
 REPOSITORY_PATH = os.path.expanduser('~/.issue')
 OBJECTS_PATH = os.path.join(REPOSITORY_PATH, 'objects')
 ISSUES_PATH = os.path.join(OBJECTS_PATH, 'issues')
+DROPPED_ISSUES_PATH = os.path.join(OBJECTS_PATH, 'dropped')
 LABELS_PATH = os.path.join(OBJECTS_PATH, 'labels')
 MILESTONES_PATH = os.path.join(OBJECTS_PATH, 'milestones')
 
-for pth in (REPOSITORY_PATH, OBJECTS_PATH, ISSUES_PATH, LABELS_PATH, MILESTONES_PATH):
+for pth in (REPOSITORY_PATH, OBJECTS_PATH, ISSUES_PATH, DROPPED_ISSUES_PATH, LABELS_PATH, MILESTONES_PATH):
     if not os.path.isdir(pth):
         os.mkdir(pth)
 
@@ -91,6 +93,16 @@ def saveIssue(issue_sha1, issue_data):
     issue_file_path = os.path.join(ISSUES_PATH, issue_group, '{0}.json'.format(issue_sha1))
     with open(issue_file_path, 'w') as ofstream:
         ofstream.write(json.dumps(issue_data))
+
+def dropIssue(issue_sha1):
+    issue_group_path = os.path.join(DROPPED_ISSUES_PATH, issue_sha1[:2])
+    if not os.path.isdir(issue_group_path):
+        os.mkdir(issue_group_path)
+
+    issue_file_path = os.path.join(ISSUES_PATH, issue_sha1[:2], '{0}.json'.format(issue_sha1))
+    dropped_issue_file_path = os.path.join(DROPPED_ISSUES_PATH, issue_sha1[:2], '{0}.json'.format(issue_sha1))
+    shutil.copy(issue_file_path, dropped_issue_file_path)
+    os.unlink(issue_file_path)
 
 
 ui = ui.down() # go down a mode
@@ -157,3 +169,7 @@ elif str(ui) == 'ls':
             if not labels_match:
                 continue
         print('{0}: {1}'.format(issue_sha1, issue_data['message']))
+elif str(ui) == 'drop':
+    print(operands)
+    for i in operands:
+        dropIssue(i)

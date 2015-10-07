@@ -116,6 +116,14 @@
                     }
                 ]
             }
+        },
+        "drop": {
+            "doc": {
+                "help": "Drop issues.",
+                "usage": [
+                    "drop (<sha1> | <name>)"
+                ]
+            }
         }
     },
     "operands": {
