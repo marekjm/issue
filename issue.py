@@ -102,11 +102,8 @@ if str(ui) == 'open':
         message = input('issue description: ')
     else:
         message = operands[0]
-    labels = [l[0] for l in ui.get('--label')]
-    milestones = [m[0] for m in ui.get('--milestone')]
-    print(message)
-    print(labels)
-    print(milestones)
+    labels = ([l[0] for l in ui.get('--label')] if '--label' in ui else [])
+    milestones = ([m[0] for m in ui.get('--milestone')] if '--label' in ui else [])
 
     issue_sha1 = '{0}{1}{2}{3}'.format(message, labels, milestones, random.random())
     issue_sha1 = hashlib.sha1(issue_sha1.encode('utf-8')).hexdigest()
