@@ -99,6 +99,13 @@
                         "long": "closed",
                         "conflicts": ["--open"],
                         "help": "list only closed issues"
+                    },
+                    {
+                        "short": "s",
+                        "long": "status",
+                        "arguments": ["str"],
+                        "plural": 1,
+                        "help": "filter by given <status>"
                     }
                 ]
             }
