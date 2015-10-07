@@ -73,6 +73,25 @@ for pth in (REPOSITORY_PATH, OBJECTS_PATH, ISSUES_PATH, LABELS_PATH, MILESTONES_
         os.mkdir(pth)
 
 
+# exception definitions
+class IssueException(Exception):
+    pass
+
+# utility functions
+def getIssue(issue_sha1):
+    issue_group = issue_sha1[:2]
+    issue_file_path = os.path.join(ISSUES_PATH, issue_group, '{0}.json'.format(issue_sha1))
+    issue_data = {}
+    with open(issue_file_path, 'r') as ifstream:
+        issue_data = json.loads(ifstream.read())
+    return issue_data
+
+def saveIssue(issue_sha1, issue_data):
+    issue_group = issue_sha1[:2]
+    issue_file_path = os.path.join(ISSUES_PATH, issue_group, '{0}.json'.format(issue_sha1))
+    with open(issue_file_path, 'w') as ofstream:
+        ofstream.write(json.dumps(issue_data))
+
 
 ui = ui.down() # go down a mode
 operands = ui.operands()
@@ -98,6 +117,7 @@ if str(ui) == 'open':
         'comments': {},
         'labels': labels,
         'milestones': milestones,
+        'status': 'open',
         '_meta': {}
     }
 
@@ -109,11 +129,23 @@ if str(ui) == 'open':
     with open(issue_file_path, 'w') as ofstream:
         ofstream.write(json.dumps(issue_data))
 elif str(ui) == 'close':
-    print()
+    for i in operands:
+        issue_data = getIssue(i)
+        issue_data['status'] = 'closed'
+        saveIssue(i, issue_data)
 elif str(ui) == 'ls':
     groups = os.listdir(ISSUES_PATH)
     issues = []
     for g in groups:
         issues.extend(os.listdir(os.path.join(ISSUES_PATH, g)))
+
+    accepted_statuses = []
+    if '--status' in ui:
+        accepted_statuses = [s[0] for s in ui.get('--status')]
     for i in issues:
-        print(i.split('.', 1)[0])
+        issue_sha1 = i.split('.', 1)[0]
+        issue_data = getIssue(issue_sha1)
+        if '--open' in ui and (issue_data['status'] if 'status' in issue_data else '') not in ('open', ''): continue
+        if '--closed' in ui and (issue_data['status'] if 'status' in issue_data else '') != 'closed': continue
+        if '--status' in ui and (issue_data['status'] if 'status' in issue_data else '') not in accepted_statuses: continue
+        print('{0}: {1}'.format(issue_sha1, issue_data['message']))

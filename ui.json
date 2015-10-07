@@ -68,6 +68,15 @@
                 "usage": [
                     "close (<sha1> | <name>)"
                 ]
+            },
+            "options": {
+                "local": [
+                    {
+                        "short": "i",
+                        "arguments": ["str"],
+                        "help": "issue SHA1 identifier"
+                    }
+                ]
             }
         },
         "ls": {
