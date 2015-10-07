@@ -139,10 +139,21 @@ elif str(ui) == 'ls':
     accepted_statuses = []
     if '--status' in ui:
         accepted_statuses = [s[0] for s in ui.get('--status')]
+    accepted_labels = []
+    if '--label' in ui:
+        accepted_labels = [s[0] for s in ui.get('--label')]
     for i in issues:
         issue_sha1 = i.split('.', 1)[0]
         issue_data = getIssue(issue_sha1)
         if '--open' in ui and (issue_data['status'] if 'status' in issue_data else '') not in ('open', ''): continue
         if '--closed' in ui and (issue_data['status'] if 'status' in issue_data else '') != 'closed': continue
         if '--status' in ui and (issue_data['status'] if 'status' in issue_data else '') not in accepted_statuses: continue
+        if '--label' in ui:
+            labels_match = False
+            for l in (issue_data['labels'] if 'labels' in issue_data else []):
+                if l in accepted_labels:
+                    labels_match = True
+                    break
+            if not labels_match:
+                continue
         print('{0}: {1}'.format(issue_sha1, issue_data['message']))

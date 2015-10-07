@@ -106,6 +106,13 @@
                         "arguments": ["str"],
                         "plural": 1,
                         "help": "filter by given <status>"
+                    },
+                    {
+                        "short": "l",
+                        "long": "label",
+                        "arguments": ["str"],
+                        "plural": 1,
+                        "help": "filter by given <label>"
                     }
                 ]
             }
