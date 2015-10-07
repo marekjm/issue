@@ -92,5 +92,21 @@ if str(ui) == 'open':
     issue_sha1 = '{0}{1}{2}{3}'.format(message, labels, milestones, random.random())
     issue_sha1 = hashlib.sha1(issue_sha1.encode('utf-8')).hexdigest()
     print(issue_sha1)
+
+    issue_data = {
+        'message': message,
+        'comments': {},
+        'labels': labels,
+        'milestones': milestones,
+        '_meta': {}
+    }
+
+    issue_group_path = os.path.join(ISSUES_PATH, issue_sha1[:2])
+    if not os.path.isdir(issue_group_path):
+        os.mkdir(issue_group_path)
+
+    issue_file_path = os.path.join(issue_group_path, '{0}.json'.format(issue_sha1))
+    with open(issue_file_path, 'w') as ofstream:
+        ofstream.write(json.dumps(issue_data))
 elif str(ui) == 'close':
     print()
