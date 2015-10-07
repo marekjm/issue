@@ -69,6 +69,30 @@
                     "close (<sha1> | <name>)"
                 ]
             }
+        },
+        "ls": {
+            "doc": {
+                "help": "List issues.",
+                "usage": [
+                    "ls [--open | --closed]"
+                ]
+            },
+            "options": {
+                "local": [
+                    {
+                        "short": "o",
+                        "long": "open",
+                        "conflicts": ["--closed"],
+                        "help": "list only open issues"
+                    },
+                    {
+                        "short": "c",
+                        "long": "closed",
+                        "conflicts": ["--open"],
+                        "help": "list only closed issues"
+                    }
+                ]
+            }
         }
     },
     "operands": {

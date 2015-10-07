@@ -110,3 +110,10 @@ if str(ui) == 'open':
         ofstream.write(json.dumps(issue_data))
 elif str(ui) == 'close':
     print()
+elif str(ui) == 'ls':
+    groups = os.listdir(ISSUES_PATH)
+    issues = []
+    for g in groups:
+        issues.extend(os.listdir(os.path.join(ISSUES_PATH, g)))
+    for i in issues:
+        print(i.split('.', 1)[0])
