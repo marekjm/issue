@@ -4,8 +4,11 @@ import hashlib
 import json
 import os
 import random
+import re
 import shutil
 import sys
+
+import unidecode
 
 import clap
 
@@ -186,7 +189,7 @@ elif str(ui) == 'drop':
 elif str(ui) == 'slug':
     issue_data = getIssue(operands[0])
     issue_message = issue_data['message']
-    issue_slug = '-'.join(issue_message.lower().replace('/', ' ').split())
+    issue_slug = '-'.join(re.compile('[^ a-z]').sub(' ', unidecode.unidecode(issue_message).lower()).split())
     if '--git' in ui:
         issue_slug = 'issue/{0}'.format(issue_slug)
     if '--format' in ui:
