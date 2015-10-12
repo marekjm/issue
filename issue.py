@@ -174,3 +174,6 @@ elif str(ui) == 'drop':
     print(operands)
     for i in operands:
         dropIssue(i)
+elif str(ui) == 'slug':
+    issue_data = getIssue(operands[0])
+    print(issue_data)

@@ -124,6 +124,14 @@
                     "drop (<sha1> | <name>)"
                 ]
             }
+        },
+        "slug": {
+            "doc": {
+                "help": "Print sluggified issue message.",
+                "usage": [
+                    "slug <sha1>"
+                ]
+            }
         }
     },
     "operands": {
