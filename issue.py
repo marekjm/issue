@@ -146,6 +146,7 @@ elif str(ui) == 'ls':
     groups = os.listdir(ISSUES_PATH)
     issues = []
     for g in groups:
+        if g == 'dropped': continue
         issues.extend(os.listdir(os.path.join(ISSUES_PATH, g)))
 
     accepted_statuses = []
