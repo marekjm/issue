@@ -180,4 +180,6 @@ elif str(ui) == 'slug':
     issue_slug = '-'.join(issue_message.lower().replace('/', ' ').split())
     if '--git' in ui:
         issue_slug = 'issue/{0}'.format(issue_slug)
+    if '--format' in ui:
+        issue_slug = ui.get('--format').format(issue_slug)
     print(issue_slug)

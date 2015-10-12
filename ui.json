@@ -137,7 +137,15 @@
                     {
                         "short": "g",
                         "long": "git",
+                        "conflicts": ["--format"],
                         "help": "format slug in the Git-ready format"
+                    },
+                    {
+                        "short": "f",
+                        "long": "format",
+                        "arguments": ["str"],
+                        "conflicts": ["--git"],
+                        "help": "use custom slug format"
                     }
                 ]
             },
