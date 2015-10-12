@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import datetime
 import hashlib
 import json
 import os
@@ -189,7 +190,6 @@ elif str(ui) == 'ls':
         else:
             print('{0}: {1}'.format(issue_sha1, issue_data['message']))
 elif str(ui) == 'drop':
-    print(operands)
     for i in operands:
         dropIssue(i)
 elif str(ui) == 'slug':
@@ -201,3 +201,29 @@ elif str(ui) == 'slug':
     if '--format' in ui:
         issue_slug = ui.get('--format').format(issue_slug)
     print(issue_slug)
+elif str(ui) == 'comment':
+    issue_sha1 = operands[0]
+    issue_data = getIssue(issue_sha1)
+    issue_comment = operands[1]
+    issue_comment_timestamp = datetime.datetime.now().timestamp()
+    issue_comment_sha1 = hashlib.sha1(str('{0}{1}{2}'.format(issue_sha1, issue_comment_timestamp, issue_comment)).encode('utf-8')).hexdigest()
+    issue_comment_data = {
+        'message': issue_comment,
+        'timestamp': issue_comment_timestamp,
+    }
+    issue_data['comments'][issue_comment_sha1] = issue_comment_data
+    saveIssue(issue_sha1, issue_data)
+elif str(ui) == 'show':
+    issue_sha1 = operands[0]
+    issue_data = getIssue(issue_sha1)
+    issue_comment_thread = dict((issue_data['comments'][key]['timestamp'], key) for key in issue_data['comments'])
+    print('{0}: {1}'.format(issue_sha1, issue_data['message']))
+    print('    milestones: {0}'.format(', '.join(issue_data['milestones'])))
+    print('    labels:     {0}'.format(', '.join(issue_data['labels'])))
+    if issue_comment_thread:
+        print()
+        for timestamp in sorted(issue_comment_thread.keys()):
+            issue_comment = issue_data['comments'][issue_comment_thread[timestamp]]
+            print('%%%% {0}\n'.format(datetime.datetime.fromtimestamp(issue_comment['timestamp'])))
+            print(issue_comment['message'])
+            print()
