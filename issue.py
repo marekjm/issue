@@ -176,4 +176,8 @@ elif str(ui) == 'drop':
         dropIssue(i)
 elif str(ui) == 'slug':
     issue_data = getIssue(operands[0])
-    print(issue_data)
+    issue_message = issue_data['message']
+    issue_slug = '-'.join(issue_message.lower().replace('/', ' ').split())
+    if '--git' in ui:
+        issue_slug = 'issue/{0}'.format(issue_slug)
+    print(issue_slug)

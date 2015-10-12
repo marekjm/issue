@@ -131,6 +131,18 @@
                 "usage": [
                     "slug <sha1>"
                 ]
+            },
+            "options": {
+                "local": [
+                    {
+                        "short": "g",
+                        "long": "git",
+                        "help": "format slug in the Git-ready format"
+                    }
+                ]
+            },
+            "operands": {
+                "no": [1, 1]
             }
         }
     },
