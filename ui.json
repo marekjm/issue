@@ -35,6 +35,23 @@
         ]
     },
     "commands": {
+        "init": {
+            "doc": {
+                "help": "Create new issues repository.",
+                "usage": [
+                    "init [--force]"
+                ]
+            },
+            "options": {
+                "local": [
+                    {
+                        "long": "force",
+                        "short": "f",
+                        "help": "force initialisation of the repository (removes previous repository if one was already initialised)"
+                    }
+                ]
+            }
+        },
         "open": {
             "doc": {
                 "help": "Open new issues.",

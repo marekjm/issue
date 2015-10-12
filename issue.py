@@ -63,16 +63,12 @@ if clap.helper.HelpRunner(ui=ui, program=sys.argv[0]).adjust(options=['-h', '--h
 
 
 # ensure the repository exists
-REPOSITORY_PATH = os.path.expanduser('~/.issue')
+REPOSITORY_PATH = './.issue'
 OBJECTS_PATH = os.path.join(REPOSITORY_PATH, 'objects')
 ISSUES_PATH = os.path.join(OBJECTS_PATH, 'issues')
 DROPPED_ISSUES_PATH = os.path.join(OBJECTS_PATH, 'dropped')
 LABELS_PATH = os.path.join(OBJECTS_PATH, 'labels')
 MILESTONES_PATH = os.path.join(OBJECTS_PATH, 'milestones')
-
-for pth in (REPOSITORY_PATH, OBJECTS_PATH, ISSUES_PATH, DROPPED_ISSUES_PATH, LABELS_PATH, MILESTONES_PATH):
-    if not os.path.isdir(pth):
-        os.mkdir(pth)
 
 
 # exception definitions
@@ -108,7 +104,20 @@ def dropIssue(issue_sha1):
 ui = ui.down() # go down a mode
 operands = ui.operands()
 
-if str(ui) == 'open':
+if str(ui) not in ('init', 'help', '') and not os.path.isdir(REPOSITORY_PATH):
+    print('fatal: not inside issues repository')
+    exit(1)
+
+if str(ui) == 'init':
+    if '--force' in ui and os.path.isdir(REPOSITORY_PATH):
+        shutil.rmtree(REPOSITORY_PATH)
+    if os.path.isdir(REPOSITORY_PATH):
+        print('fatal: repository already exists')
+        exit(1)
+    for pth in (REPOSITORY_PATH, OBJECTS_PATH, ISSUES_PATH, DROPPED_ISSUES_PATH, LABELS_PATH, MILESTONES_PATH):
+        if not os.path.isdir(pth):
+            os.mkdir(pth)
+elif str(ui) == 'open':
     message = ''
     if len(operands) < 1:
         message = input('issue description: ')
