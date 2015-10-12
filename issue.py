@@ -181,7 +181,13 @@ elif str(ui) == 'ls':
                     break
             if not labels_match:
                 continue
-        print('{0}: {1}'.format(issue_sha1, issue_data['message']))
+        if '--details' in ui:
+            print('{0}: {1}'.format(issue_sha1, issue_data['message']))
+            print('    milestones: {0}'.format(', '.join(issue_data['milestones'])))
+            print('    labels:     {0}'.format(', '.join(issue_data['labels'])))
+            print()
+        else:
+            print('{0}: {1}'.format(issue_sha1, issue_data['message']))
 elif str(ui) == 'drop':
     print(operands)
     for i in operands:

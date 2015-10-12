@@ -125,6 +125,11 @@
                         "help": "filter by given <status>"
                     },
                     {
+                        "short": "d",
+                        "long": "details",
+                        "help": "show more details about each issue"
+                    },
+                    {
                         "short": "l",
                         "long": "label",
                         "arguments": ["str"],
