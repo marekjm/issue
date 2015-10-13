@@ -74,6 +74,11 @@
                         "arguments": ["str"],
                         "plural": 1,
                         "help": "attach the issue to a milestone"
+                    },
+                    {
+                        "long": "git",
+                        "short": "g",
+                        "help": "instead of SHA1 of the issue print its Git-ready branch name"
                     }
                 ]
             },

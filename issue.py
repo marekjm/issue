@@ -104,6 +104,9 @@ def dropIssue(issue_sha1):
     shutil.copy(issue_file_path, dropped_issue_file_path)
     os.unlink(issue_file_path)
 
+def sluggify(issue_message):
+    return '-'.join(re.compile('[^ a-z]').sub(' ', unidecode.unidecode(issue_message).lower()).split())
+
 
 ui = ui.down() # go down a mode
 operands = ui.operands()
@@ -132,7 +135,6 @@ elif str(ui) == 'open':
 
     issue_sha1 = '{0}{1}{2}{3}'.format(message, labels, milestones, random.random())
     issue_sha1 = hashlib.sha1(issue_sha1.encode('utf-8')).hexdigest()
-    print(issue_sha1)
 
     issue_data = {
         'message': message,
@@ -150,6 +152,11 @@ elif str(ui) == 'open':
     issue_file_path = os.path.join(issue_group_path, '{0}.json'.format(issue_sha1))
     with open(issue_file_path, 'w') as ofstream:
         ofstream.write(json.dumps(issue_data))
+
+    if '--git' in ui:
+        print('issue/{0}'.format(sluggify(message)))
+    else:
+        print(issue_sha1)
 elif str(ui) == 'close':
     for i in operands:
         issue_data = getIssue(i)
@@ -195,7 +202,7 @@ elif str(ui) == 'drop':
 elif str(ui) == 'slug':
     issue_data = getIssue(operands[0])
     issue_message = issue_data['message']
-    issue_slug = '-'.join(re.compile('[^ a-z]').sub(' ', unidecode.unidecode(issue_message).lower()).split())
+    issue_slug = sluggify(issue_message)
     if '--git' in ui:
         issue_slug = 'issue/{0}'.format(issue_slug)
     if '--format' in ui:
