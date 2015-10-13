@@ -79,13 +79,20 @@ MILESTONES_PATH = os.path.join(OBJECTS_PATH, 'milestones')
 class IssueException(Exception):
     pass
 
+class NotAnIssue(IssueException):
+    pass
+
+
 # utility functions
 def getIssue(issue_sha1):
     issue_group = issue_sha1[:2]
     issue_file_path = os.path.join(ISSUES_PATH, issue_group, '{0}.json'.format(issue_sha1))
     issue_data = {}
-    with open(issue_file_path, 'r') as ifstream:
-        issue_data = json.loads(ifstream.read())
+    try:
+        with open(issue_file_path, 'r') as ifstream:
+            issue_data = json.loads(ifstream.read())
+    except FileNotFoundError as e:
+        raise NotAnIssue(issue_file_path)
     return issue_data
 
 def saveIssue(issue_sha1, issue_data):
@@ -222,7 +229,12 @@ elif str(ui) == 'comment':
     saveIssue(issue_sha1, issue_data)
 elif str(ui) == 'show':
     issue_sha1 = operands[0]
-    issue_data = getIssue(issue_sha1)
+    issue_data = {}
+    try:
+        getIssue(issue_sha1)
+    except NotAnIssue as e:
+        print('fatal: {0} does not identify a valid object'.format(repr(issue_sha1)))
+        exit(1)
     issue_comment_thread = dict((issue_data['comments'][key]['timestamp'], key) for key in issue_data['comments'])
     print('{0}: {1}'.format(issue_sha1, issue_data['message']))
     print('    milestones: {0}'.format(', '.join(issue_data['milestones'])))
