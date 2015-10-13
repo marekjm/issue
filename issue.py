@@ -231,7 +231,7 @@ elif str(ui) == 'show':
     issue_sha1 = operands[0]
     issue_data = {}
     try:
-        getIssue(issue_sha1)
+        issue_data = getIssue(issue_sha1)
     except NotAnIssue as e:
         print('fatal: {0} does not identify a valid object'.format(repr(issue_sha1)))
         exit(1)
