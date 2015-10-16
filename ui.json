@@ -286,6 +286,80 @@
             "operands": {
                 "no": [0, 0]
             }
+        },
+        "remote": {
+            "doc": {
+                "help": "Add remote issues repositories.",
+                "usage": [
+                    "remote set foo user@host.domain:devel/project/.issue"
+                ]
+            },
+            "commands": {
+                "ls": {
+                    "doc": {
+                        "help": "List available remote repositories"
+                    },
+                    "operands": {
+                        "no": [0, 0]
+                    }
+                },
+                "set": {
+                    "doc": {
+                        "help": "Set new URL for an existing repository, or add new repository",
+                        "usage": [
+                            "remote set <name> <url>"
+                        ]
+                    },
+                    "options": {
+                        "local": [
+                            {
+                                "short": "n",
+                                "long": "null",
+                                "help": "insert 'null' value"
+                            },
+                            {
+                                "short": "u",
+                                "long": "unset",
+                                "help": "remove value from config"
+                            }
+                        ]
+                    },
+                    "operands": {
+                        "no": [1, 2]
+                    }
+                },
+                "remove": {
+                    "doc": {
+                        "help": "Remove a remote repository"
+                    },
+                    "operands": {
+                        "no": [1, 1]
+                    }
+                }
+            },
+            "operands": {
+                "no": [0, 0]
+            }
+        },
+        "fetch": {
+            "doc": {
+                "help": "Fetch objects from remote repositories",
+                "usage": [
+                    "fetch [--probe]"
+                ]
+            },
+            "options": {
+                "local": [
+                    {
+                        "short": "p",
+                        "long": "probe",
+                        "help": "only probe the remotes for their state, don't download issue objects"
+                    }
+                ]
+            },
+            "operands": {
+                "no": [0, 0]
+            }
         }
     },
     "operands": {

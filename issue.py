@@ -318,3 +318,20 @@ elif str(ui) == 'config':
             ofstream.write(json.dumps(config_data))
     elif str(ui) == 'dump':
         print((json.dumps(config_data) if '--verbose' not in ui else json.dumps(config_data, sort_keys=True, indent=2)))
+elif str(ui) == 'remote':
+    ui = ui.down()
+    print('remote', end=' ')
+    if str(ui) == 'ls':
+        print('listing')
+    elif str(ui) == 'set':
+        print('setting')
+    elif str(ui) == 'rm':
+        print('removing')
+    else:
+        print()
+elif str(ui) == 'fetch':
+    ui = ui.down()
+    if '--probe' in ui:
+        print('probing remotes for new objects')
+    else:
+        print('fetching new objects')
