@@ -253,6 +253,11 @@
                                 "short": "n",
                                 "long": "null",
                                 "help": "insert 'null' value"
+                            },
+                            {
+                                "short": "u",
+                                "long": "unset",
+                                "help": "remove value from config"
                             }
                         ]
                     },

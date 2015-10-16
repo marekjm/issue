@@ -286,13 +286,21 @@ elif str(ui) == 'config':
             for ck in config_key[:-1]:
                 config_data_part = (config_data_part[ck] if ck in config_data_part else {})
                 config_mod_sequence.append((ck, config_data_part))
-            config_data_part[config_key[-1]] = config_value
+
+            if '--unset' in ui:
+                del config_data_part[config_key[-1]]
+            else:
+                config_data_part[config_key[-1]] = config_value
+
             for ck, mod in config_mod_sequence[1:][::-1]:
                 mod[ck] = config_data_part.copy()
                 config_data_part = mod
             config_data[config_mod_sequence[0][0]] = config_data_part
         else:
-            config_data[config_key] = config_value
+            if '--unset' in ui:
+                del config_data[config_key]
+            else:
+                config_data[config_key] = config_value
 
         with open(config_path, 'w') as ofstream:
             ofstream.write(json.dumps(config_data))
