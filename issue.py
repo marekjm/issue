@@ -271,7 +271,28 @@ elif str(ui) == 'config':
         if '--null' in ui:
             config_value = None
 
-        config_data[config_key] = config_value
+        if '..' in config_key:
+            print('fatal: invalid key: double dot used')
+            exit(1)
+        if config_key.startswith('.') or config_key.endswith('.'):
+            print('fatal: invalid key: starts or begins with dot')
+            exit(1)
+        if '.' in config_key:
+            config_key = config_key.split('.')
+
+        if type(config_key) == list:
+            config_mod_sequence = []
+            config_data_part = config_data
+            for ck in config_key[:-1]:
+                config_data_part = (config_data_part[ck] if ck in config_data_part else {})
+                config_mod_sequence.append((ck, config_data_part))
+            config_data_part[config_key[-1]] = config_value
+            for ck, mod in config_mod_sequence[1:][::-1]:
+                mod[ck] = config_data_part.copy()
+                config_data_part = mod
+            config_data[config_mod_sequence[0][0]] = config_data_part
+        else:
+            config_data[config_key] = config_value
 
         with open(config_path, 'w') as ofstream:
             ofstream.write(json.dumps(config_data))
