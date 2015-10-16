@@ -264,6 +264,15 @@
                     "doc": {
                         "help": "Print configuration to standard output"
                     },
+                    "options": {
+                        "local": [
+                            {
+                                "short": "v",
+                                "long": "verbose",
+                                "help": "generate human-readable JSON"
+                            }
+                        ]
+                    },
                     "operands": {
                         "no": [0, 0]
                     }

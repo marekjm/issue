@@ -276,4 +276,4 @@ elif str(ui) == 'config':
         with open(config_path, 'w') as ofstream:
             ofstream.write(json.dumps(config_data))
     elif str(ui) == 'dump':
-        print(json.dumps(config_data))
+        print((json.dumps(config_data) if '--verbose' not in ui else json.dumps(config_data, sort_keys=True, indent=2)))
