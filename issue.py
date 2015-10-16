@@ -265,4 +265,13 @@ elif str(ui) == 'config':
             config_value = config_data[config_key]
         print((json.dumps({config_key: config_value}) if '--verbose' in ui else (config_value if config_value is not None else 'null')))
     elif str(ui) == 'set':
-        print('setting')
+        operands = ui.operands()
+        config_key = operands[0]
+        config_value = (operands[1] if len(operands) == 2 else '')
+        if '--null' in ui:
+            config_value = None
+
+        config_data[config_key] = config_value
+
+        with open(config_path, 'w') as ofstream:
+            ofstream.write(json.dumps(config_data))
