@@ -259,6 +259,14 @@
                     "operands": {
                         "no": [1, 2]
                     }
+                },
+                "dump": {
+                    "doc": {
+                        "help": "Print configuration to standard output"
+                    },
+                    "operands": {
+                        "no": [0, 0]
+                    }
                 }
             },
             "operands": {
