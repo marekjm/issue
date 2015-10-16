@@ -258,12 +258,27 @@ elif str(ui) == 'config':
 
     if str(ui) == 'get':
         config_key = ui.operands()[0]
-        config_value = None
-        if config_key not in config_data and '--safe' not in ui:
+
+        if '..' in config_key:
+            print('fatal: invalid key: double dot used')
             exit(1)
-        if config_key in config_data:
-            config_value = config_data[config_key]
-        print((json.dumps({config_key: config_value}) if '--verbose' in ui else (config_value if config_value is not None else 'null')))
+        if config_key.startswith('.') or config_key.endswith('.'):
+            print('fatal: invalid key: starts or begins with dot')
+            exit(1)
+
+        config_key = config_key.split('.')
+
+        config_value = None
+        for ck in config_key:
+            if ck not in config_data and '--safe' not in ui:
+                exit(1)
+            if ck not in config_data:
+                break
+            config_data = config_data[ck]
+
+        config_value = config_data
+
+        print((json.dumps({'.'.join(config_key): config_value}) if '--verbose' in ui else (config_value if config_value is not None else 'null')))
     elif str(ui) == 'set':
         operands = ui.operands()
         config_key = operands[0]
