@@ -279,28 +279,27 @@ elif str(ui) == 'config':
             exit(1)
         if '.' in config_key:
             config_key = config_key.split('.')
+        else:
+            config_key = [config_key]
 
-        if type(config_key) == list:
-            config_mod_sequence = []
-            config_data_part = config_data
-            for ck in config_key[:-1]:
-                config_data_part = (config_data_part[ck] if ck in config_data_part else {})
-                config_mod_sequence.append((ck, config_data_part))
+        config_mod_sequence = []
+        config_data_part = config_data
+        for ck in config_key[:-1]:
+            config_data_part = (config_data_part[ck] if ck in config_data_part else {})
+            config_mod_sequence.append((ck, config_data_part))
 
-            if '--unset' in ui:
-                del config_data_part[config_key[-1]]
-            else:
-                config_data_part[config_key[-1]] = config_value
+        if '--unset' in ui:
+            del config_data_part[config_key[-1]]
+        else:
+            config_data_part[config_key[-1]] = config_value
 
-            for ck, mod in config_mod_sequence[1:][::-1]:
-                mod[ck] = config_data_part.copy()
-                config_data_part = mod
+        for ck, mod in config_mod_sequence[1:][::-1]:
+            mod[ck] = config_data_part.copy()
+            config_data_part = mod
+        if len(config_mod_sequence):
             config_data[config_mod_sequence[0][0]] = config_data_part
         else:
-            if '--unset' in ui:
-                del config_data[config_key]
-            else:
-                config_data[config_key] = config_value
+            config_data = config_data_part
 
         with open(config_path, 'w') as ofstream:
             ofstream.write(json.dumps(config_data))
