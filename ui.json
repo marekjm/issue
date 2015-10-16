@@ -201,6 +201,51 @@
             "operands": {
                 "no": [1, 1]
             }
+        },
+        "config": {
+            "doc": {
+                "help": "Configure the issue program.",
+                "usage": [
+                    "config [--global] set <key> [<value>]",
+                    "config [--global] get <key>"
+                ]
+            },
+            "options": {
+                "global": [
+                    {
+                        "short": "g",
+                        "long": "global",
+                        "help": "operate on global configuration"
+                    }
+                ]
+            },
+            "commands": {
+                "get": {
+                    "doc": {
+                        "help": "Obtain values set inside configuration file(s)",
+                        "usage": [
+                            "config [--global] get <key>"
+                        ]
+                    },
+                    "operands": {
+                        "no": [0, 1]
+                    }
+                },
+                "set": {
+                    "doc": {
+                        "help": "Set values in configuration file(s)",
+                        "usage": [
+                            "config [--global] set <key> [<value>]"
+                        ]
+                    },
+                    "operands": {
+                        "no": [1, 2]
+                    }
+                }
+            },
+            "operands": {
+                "no": [0, 0]
+            }
         }
     },
     "operands": {
