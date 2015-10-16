@@ -122,6 +122,10 @@ if str(ui) not in ('init', 'help', '') and not os.path.isdir(REPOSITORY_PATH):
     print('fatal: not inside issues repository')
     exit(1)
 
+if '--pack' in ui:
+    print('packing objects')
+    exit(0)
+
 if str(ui) == 'init':
     if '--force' in ui and os.path.isdir(REPOSITORY_PATH):
         shutil.rmtree(REPOSITORY_PATH)

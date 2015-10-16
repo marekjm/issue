@@ -31,6 +31,10 @@
             {
                 "long": "version",
                 "help": "show version"
+            },
+            {
+                "long": "pack",
+                "help": "pack information about objects for remote fetchers"
             }
         ]
     },
