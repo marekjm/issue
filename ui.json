@@ -224,7 +224,16 @@
                     "doc": {
                         "help": "Obtain values set inside configuration file(s)",
                         "usage": [
-                            "config [--global] get <key>"
+                            "config [--global] get [--safe] <key>"
+                        ]
+                    },
+                    "options": {
+                        "local": [
+                            {
+                                "short": "s",
+                                "long": "safe",
+                                "help": "if the key is not present in the configuration, assume 'null' value instead of failing"
+                            }
                         ]
                     },
                     "operands": {

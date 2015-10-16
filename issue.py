@@ -246,3 +246,23 @@ elif str(ui) == 'show':
             print('%%%% {0}\n'.format(datetime.datetime.fromtimestamp(issue_comment['timestamp'])))
             print(issue_comment['message'])
             print()
+elif str(ui) == 'config':
+    ui = ui.down()
+    config_data = {}
+    config_path = os.path.expanduser(('~/.issueconfig.json' if '--global' in ui else './.issue/config.json'))
+    if not os.path.isfile(config_path):
+        config_data = {}
+    else:
+        with open(config_path, 'r') as ifstream:
+            config_data = json.loads(ifstream.read())
+
+    if str(ui) == 'get':
+        config_key = ui.operands()[0]
+        config_value = None
+        if config_key not in config_data and '--safe' not in ui:
+            exit(1)
+        if config_key in config_data:
+            config_value = config_data[config_key]
+        print((json.dumps({config_key: config_value}) if '--verbose' in ui else (config_value if config_value is not None else 'null')))
+    elif str(ui) == 'set':
+        print('setting')
