@@ -277,10 +277,8 @@ elif str(ui) == 'config':
         if config_key.startswith('.') or config_key.endswith('.'):
             print('fatal: invalid key: starts or begins with dot')
             exit(1)
-        if '.' in config_key:
-            config_key = config_key.split('.')
-        else:
-            config_key = [config_key]
+
+        config_key = config_key.split('.')
 
         config_mod_sequence = []
         config_data_part = config_data
