@@ -214,7 +214,7 @@ elif str(ui) == 'ls':
     issues = []
     for g in groups:
         if g == 'dropped': continue
-        issues.extend(os.listdir(os.path.join(ISSUES_PATH, g)))
+        issues.extend([p for p in os.listdir(os.path.join(ISSUES_PATH, g)) if p.endswith('.json')])
 
     accepted_statuses = []
     if '--status' in ui:
