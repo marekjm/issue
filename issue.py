@@ -306,19 +306,9 @@ elif str(ui) == 'config':
             print('fatal: invalid key: starts or begins with dot')
             exit(1)
 
-        config_key = config_key.split('.')
+        config_value = config_data[config_key]
 
-        config_value = None
-        for ck in config_key:
-            if ck not in config_data and '--safe' not in ui:
-                exit(1)
-            if ck not in config_data:
-                break
-            config_data = config_data[ck]
-
-        config_value = config_data
-
-        print((json.dumps({'.'.join(config_key): config_value}) if '--verbose' in ui else (config_value if config_value is not None else 'null')))
+        print((json.dumps({config_key: config_value}) if '--verbose' in ui else (config_value if config_value is not None else 'null')))
     elif str(ui) == 'set':
         operands = ui.operands()
         config_key = operands[0]
@@ -333,26 +323,10 @@ elif str(ui) == 'config':
             print('fatal: invalid key: starts or begins with dot')
             exit(1)
 
-        config_key = config_key.split('.')
-
-        config_mod_sequence = []
-        config_data_part = config_data
-        for ck in config_key[:-1]:
-            config_data_part = (config_data_part[ck] if ck in config_data_part else {})
-            config_mod_sequence.append((ck, config_data_part))
-
         if '--unset' in ui:
-            del config_data_part[config_key[-1]]
+            del config_data[config_key]
         else:
-            config_data_part[config_key[-1]] = config_value
-
-        for ck, mod in config_mod_sequence[1:][::-1]:
-            mod[ck] = config_data_part.copy()
-            config_data_part = mod
-        if len(config_mod_sequence):
-            config_data[config_mod_sequence[0][0]] = config_data_part
-        else:
-            config_data = config_data_part
+            config_data[config_key] = config_value
 
         with open(config_path, 'w') as ofstream:
             ofstream.write(json.dumps(config_data))
