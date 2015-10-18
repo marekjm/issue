@@ -326,14 +326,27 @@
                             {
                                 "short": "k",
                                 "long": "key",
+                                "arguments": ["str"],
+                                "requires": ["--value"],
                                 "help": "set given config key in selected remote"
+                            },
+                            {
+                                "long": "value",
+                                "arguments": ["str"],
+                                "requires": ["--key"],
+                                "help": "set this value for given key in config for selected remote"
+                            },
+                            {
+                                "long": "unset",
+                                "arguments": ["str"],
+                                "help": "remove a key in config for selected remote"
                             },
                             {
                                 "short": "u",
                                 "long": "url",
                                 "arguments": ["str"],
                                 "required": true,
-                                "not_with": ["--key"],
+                                "not_with": ["--key", "--value", "--unset"],
                                 "help": "set SSH URL for selected remote"
                             }
                         ]
