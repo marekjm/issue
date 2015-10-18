@@ -409,11 +409,14 @@ elif str(ui) == 'remote':
             print(('{0} => {1}' if '--verbose' in ui else '{0}').format(k, remote_data['url']))
     elif str(ui) == 'set':
         remote_name = operands[0]
-        remotes[remote_name] = {}
+        if remote_name not in remotes:
+            remotes[remote_name] = {}
         if '--url' in ui:
             remotes[remote_name]['url'] = ui.get('--url')
         if '--key' in ui:
             remotes[remote_name][ui.get('--key')] = ui.get('--value')
+        if '--unset' in ui:
+            del remotes[remote_name][ui.get('--unset')]
         saveRemotes(remotes)
     elif str(ui) == 'rm':
         remote_name = ui.operands()[0]
