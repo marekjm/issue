@@ -192,7 +192,7 @@ def expandIssueUID(issue_sha1_part):
         raise IssueUIDAmbiguous(issue_sha1_part)
     return issue_sha1[0]
 
-def runShell(command):
+def runShell(*command):
     p = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     output, error = p.communicate()
     output = output.decode('utf-8').strip()
@@ -456,7 +456,7 @@ elif str(ui) == 'fetch':
         for remote_name in ui.operands():
             print('fetching objects from remote: {0}'.format(remote_name))
             remote_pack_fetch_command = ('scp', '{0}/pack.json'.format(remotes[remote_name]['url']), './.issue/remote_pack.json')
-            exit_code, output, error = runShell(remote_pack_fetch_command)
+            exit_code, output, error = runShell(*remote_pack_fetch_command)
 
             if exit_code:
                 print('  * fail ({0}): {1}'.format(exit_code, error))
@@ -478,3 +478,22 @@ elif str(ui) == 'fetch':
             # print(new_comments)
             print('  * issues:   {0} object(s)'.format(len(new_issues)))
             print('  * comments: {0} object(s)'.format(sum([len(new_comments[k]) for k in new_comments])))
+
+            for issue_sha1 in new_issues:
+                issue_group_path = os.path.join(ISSUES_PATH, issue_sha1[:2])
+                if not os.path.isdir(issue_group_path):
+                    os.mkdir(issue_group_path)
+
+                exit_code, output, error = runShell(
+                    'scp',
+                    '{0}/objects/issues/{1}/{2}.json'.format(remotes[remote_name]['url'], issue_sha1[:2], issue_sha1),
+                    os.path.join(ISSUES_PATH, issue_sha1[:2], '{0}.json'.format(issue_sha1))
+                )
+
+                if exit_code:
+                    print('  * fail ({0}): issue {1}: {2}'.format(exit_code, issue_sha1, error))
+                    continue
+
+                # make directories for issue-specific objects
+                os.mkdir(os.path.join(issue_group_path, issue_sha1))
+                os.mkdir(os.path.join(issue_group_path, issue_sha1, 'comments'))
