@@ -324,19 +324,22 @@
                     "options": {
                         "local": [
                             {
-                                "short": "n",
-                                "long": "null",
-                                "help": "insert 'null' value"
+                                "short": "k",
+                                "long": "key",
+                                "help": "set given config key in selected remote"
                             },
                             {
                                 "short": "u",
-                                "long": "unset",
-                                "help": "remove value from config"
+                                "long": "url",
+                                "arguments": ["str"],
+                                "required": true,
+                                "not_with": ["--key"],
+                                "help": "set SSH URL for selected remote"
                             }
                         ]
                     },
                     "operands": {
-                        "no": [1, 2]
+                        "no": [1, 1]
                     }
                 },
                 "remove": {

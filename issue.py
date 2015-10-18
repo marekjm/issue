@@ -143,6 +143,19 @@ def getConfig():
                 config_data[k] = v
     return config_data
 
+def getRemotes():
+    remotes = {}
+    remotes_path = os.path.join(REPOSITORY_PATH, 'remotes.json')
+    if os.path.isfile(remotes_path):
+        with open(remotes_path) as ifstream:
+            remotes = json.loads(ifstream.read())
+    return remotes
+
+def saveRemotes(remotes):
+    remotes_path = os.path.join(REPOSITORY_PATH, 'remotes.json')
+    with open(remotes_path, 'w') as ofstream:
+        ofstream.write(json.dumps(remotes))
+
 def listIssues():
     list_of_issues = []
     groups = os.listdir(ISSUES_PATH)
@@ -387,15 +400,23 @@ elif str(ui) == 'config':
         print((json.dumps(config_data) if '--verbose' not in ui else json.dumps(config_data, sort_keys=True, indent=2)))
 elif str(ui) == 'remote':
     ui = ui.down()
-    print('remote', end=' ')
+    operands = ui.operands()
+
+    remotes = getRemotes()
+
     if str(ui) == 'ls':
-        print('listing')
+        for k, remote_data in remotes.items():
+            print(('{0} => {1}' if '--verbose' in ui else '{0}').format(k, remote_data['url']))
     elif str(ui) == 'set':
-        print('setting')
+        remote_name = operands[0]
+        remotes[remote_name] = {}
+        if '--url' in ui:
+            remotes[remote_name]['url'] = ui.get('--url')
+        if '--key' in ui:
+            remotes[remote_name][ui.get('--key')] = ui.get('--value')
+        saveRemotes(remotes)
     elif str(ui) == 'rm':
-        print('removing')
-    else:
-        print()
+        saveRemotes(remotes)
 elif str(ui) == 'fetch':
     ui = ui.down()
     if '--probe' in ui:
