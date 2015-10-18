@@ -70,7 +70,6 @@ if clap.helper.HelpRunner(ui=ui, program=sys.argv[0]).adjust(options=['-h', '--h
 REPOSITORY_PATH = './.issue'
 OBJECTS_PATH = os.path.join(REPOSITORY_PATH, 'objects')
 ISSUES_PATH = os.path.join(OBJECTS_PATH, 'issues')
-COMMENTS_PATH = os.path.join(OBJECTS_PATH, 'comments')
 DROPPED_ISSUES_PATH = os.path.join(OBJECTS_PATH, 'dropped')
 LABELS_PATH = os.path.join(OBJECTS_PATH, 'labels')
 MILESTONES_PATH = os.path.join(OBJECTS_PATH, 'milestones')
@@ -156,6 +155,23 @@ def saveRemotes(remotes):
     with open(remotes_path, 'w') as ofstream:
         ofstream.write(json.dumps(remotes))
 
+def getPack():
+    pack_data = {
+        'issues': [],
+        'comments': {},
+    }
+
+    pack_issue_list = listIssues()
+    pack_data['issues'] = pack_issue_list
+
+    pack_comments = {}
+    for p in pack_issue_list:
+        pack_comments_path = os.path.join(ISSUES_PATH, p[:2], p, 'comments')
+        pack_comments[p] = [sp.split('.')[0] for sp in os.listdir(pack_comments_path)]
+    pack_data['comments'] = pack_comments
+
+    return pack_data
+
 def listIssues():
     list_of_issues = []
     groups = os.listdir(ISSUES_PATH)
@@ -185,27 +201,13 @@ if str(ui) not in ('init', 'help', '') and not os.path.isdir(REPOSITORY_PATH):
 
 if '--pack' in ui:
     print('packing objects:')
-    pack_data = {
-        'issues': [],
-        'comments': [],
-    }
+    pack_data = getPack()
 
     print('  * issues  ', end='')
-    pack_issue_list = []
-    for p in os.listdir(ISSUES_PATH):
-        pack_issue_list.extend([sp.split('.')[0] for sp in os.listdir(os.path.join(ISSUES_PATH, p))])
-    pack_data['issues'] = pack_issue_list
-    print(' [{0} object(s)]'.format(len(pack_issue_list)))
+    print(' [{0} object(s)]'.format(len(pack_data['issues'])))
 
     print('  * comments', end='')
-    pack_comment_list = []
-    for p in pack_issue_list:
-        pack_comments_path = os.path.join(COMMENTS_PATH, p[:2], p)
-        if not os.path.isdir(pack_comments_path):
-            continue
-        pack_comment_list.extend([sp.split('.')[0] for sp in os.listdir(pack_comments_path)])
-    pack_data['comments'] = pack_comment_list
-    print(' [{0} object(s)]'.format(len(pack_comment_list)))
+    print(' [{0} object(s)]'.format(sum([len(pack_data['comments'][n]) for n in pack_data['comments'].keys()])))
 
     with open(PACK_PATH, 'w') as ofstream:
         ofstream.write(json.dumps(pack_data))
