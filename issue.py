@@ -423,6 +423,14 @@ elif str(ui) == 'remote':
             print('fatal: remote does not exist: {0}'.format(remote_name))
             exit(1)
         saveRemotes(remotes)
+    elif str(ui) == 'show':
+        remote_name = ui.operands()[0]
+        if remote_name in remotes:
+            for k in sorted(remotes[remote_name].keys()):
+                print('{0} => {1}'.format(k, repr(remotes[remote_name][k])))
+        else:
+            print('fatal: remote does not exist: {0}'.format(remote_name))
+            exit(1)
 elif str(ui) == 'fetch':
     ui = ui.down()
     if '--probe' in ui:

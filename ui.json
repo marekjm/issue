@@ -349,6 +349,14 @@
                     "operands": {
                         "no": [1, 1]
                     }
+                },
+                "show": {
+                    "doc": {
+                        "help": "Show config of a remote repository"
+                    },
+                    "operands": {
+                        "no": [1, 1]
+                    }
                 }
             },
             "operands": {
