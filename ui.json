@@ -342,7 +342,7 @@
                         "no": [1, 1]
                     }
                 },
-                "remove": {
+                "rm": {
                     "doc": {
                         "help": "Remove a remote repository"
                     },

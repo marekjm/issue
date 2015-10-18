@@ -416,6 +416,12 @@ elif str(ui) == 'remote':
             remotes[remote_name][ui.get('--key')] = ui.get('--value')
         saveRemotes(remotes)
     elif str(ui) == 'rm':
+        remote_name = ui.operands()[0]
+        if remote_name in remotes:
+            del remotes[remote_name]
+        else:
+            print('fatal: remote does not exist: {0}'.format(remote_name))
+            exit(1)
         saveRemotes(remotes)
 elif str(ui) == 'fetch':
     ui = ui.down()
