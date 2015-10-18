@@ -41,7 +41,7 @@
                 "long": "nuke",
                 "conflicts": ["--pack"],
                 "plural": true,
-                "help": "remove the repository"
+                "help": "remove the repository, use --nuke --nuke to silence errors about nonexistent repositories"
             }
         ]
     },
