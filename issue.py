@@ -7,6 +7,7 @@ import os
 import random
 import re
 import shutil
+import subprocess
 import sys
 
 import unidecode
@@ -190,6 +191,14 @@ def expandIssueUID(issue_sha1_part):
     if len(issue_sha1) > 1:
         raise IssueUIDAmbiguous(issue_sha1_part)
     return issue_sha1[0]
+
+def runShell(command):
+    p = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    output, error = p.communicate()
+    output = output.decode('utf-8').strip()
+    error = error.decode('utf-8').strip()
+    exit_code = p.wait()
+    return (exit_code, output, error)
 
 
 ui = ui.down() # go down a mode
@@ -438,7 +447,34 @@ elif str(ui) == 'remote':
             exit(1)
 elif str(ui) == 'fetch':
     ui = ui.down()
+    local_pack = getPack()
+
     if '--probe' in ui:
         print('probing remotes for new objects')
     else:
-        print('fetching new objects')
+        remotes = getRemotes()
+        for remote_name in ui.operands():
+            print('fetching objects from remote: {0}'.format(remote_name))
+            remote_pack_fetch_command = ('scp', '{0}/pack.json'.format(remotes[remote_name]['url']), './.issue/remote_pack.json')
+            exit_code, output, error = runShell(remote_pack_fetch_command)
+
+            if exit_code:
+                print('  * fail ({0}): {1}'.format(exit_code, error))
+                continue
+
+            remote_pack = {}
+            with open(os.path.join(REPOSITORY_PATH, 'remote_pack.json')) as ifstream:
+                remote_pack = json.loads(ifstream.read())
+
+            new_issues = set(remote_pack['issues']) - set(local_pack['issues'])
+            # print(new_issues)
+
+            new_comments = {}
+            for k, v in remote_pack['comments'].items():
+                if k in local_pack['comments']:
+                    new_comments[k] = set(remote_pack['comments'][k]) - set(local_pack['comments'][k])
+                else:
+                    new_comments[k] = remote_pack['comments'][k]
+            # print(new_comments)
+            print('  * issues:   {0} object(s)'.format(len(new_issues)))
+            print('  * comments: {0} object(s)'.format(sum([len(new_comments[k]) for k in new_comments])))
