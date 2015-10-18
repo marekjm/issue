@@ -131,7 +131,7 @@ def getConfig():
             config_data = json.loads(ifstream.read())
     if os.path.isfile(config_path_local):
         with open(config_path_local, 'r') as ifstream:
-            for k, v in json.loads(ifstream.read()):
+            for k, v in json.loads(ifstream.read()).items():
                 config_data[k] = v
     return config_data
 
