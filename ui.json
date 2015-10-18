@@ -108,6 +108,12 @@
                         "short": "i",
                         "arguments": ["str"],
                         "help": "issue SHA1 identifier"
+                    },
+                    {
+                        "short": "g",
+                        "long": "git-commit",
+                        "arguments": ["str"],
+                        "help": "SHA1 of the Git commit used to close the issue"
                     }
                 ]
             }

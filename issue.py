@@ -282,6 +282,8 @@ elif str(ui) == 'close':
         i = expandIssueUID(i)
         issue_data = getIssue(i)
         issue_data['status'] = 'closed'
+        if '--git-commit' in ui:
+            issue_data['closing_git_commit'] = ui.get('--git-commit')
         saveIssue(i, issue_data)
 elif str(ui) == 'ls':
     groups = os.listdir(ISSUES_PATH)
@@ -356,6 +358,8 @@ elif str(ui) == 'show':
     print('{0}: {1}'.format(issue_sha1, issue_data['message']))
     print('    milestones: {0}'.format(', '.join(issue_data['milestones'])))
     print('    labels:     {0}'.format(', '.join(issue_data['labels'])))
+    if 'closing_git_commit' in issue_data:
+        print('\nCLOSING GIT COMMIT: {0}\n'.format(issue_data['closing_git_commit']))
     if issue_comment_thread:
         print('\nCOMMENT THREAD:\n')
         for i, timestamp in enumerate(sorted(issue_comment_thread.keys())):
