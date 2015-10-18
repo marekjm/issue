@@ -153,6 +153,15 @@ if '--pack' in ui:
 
     exit(0)
 
+if '--nuke' in ui:
+    repository_exists = os.path.isdir(REPOSITORY_PATH)
+    if not repository_exists and ui.get('--nuke') <= 1:
+        print('fatal: cannot remove nonexistent repository')
+        exit(1)
+    if repository_exists:
+        shutil.rmtree(REPOSITORY_PATH)
+    exit(0)
+
 if str(ui) == 'init':
     if '--force' in ui and os.path.isdir(REPOSITORY_PATH):
         shutil.rmtree(REPOSITORY_PATH)

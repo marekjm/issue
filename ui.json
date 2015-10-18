@@ -34,7 +34,14 @@
             },
             {
                 "long": "pack",
+                "conflicts": ["--nuke"],
                 "help": "pack information about objects for remote fetchers"
+            },
+            {
+                "long": "nuke",
+                "conflicts": ["--pack"],
+                "plural": true,
+                "help": "remove the repository"
             }
         ]
     },
