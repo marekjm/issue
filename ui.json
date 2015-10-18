@@ -389,6 +389,11 @@
                         "short": "p",
                         "long": "probe",
                         "help": "only probe the remotes for their state, don't download issue objects"
+                    },
+                    {
+                        "short": "f",
+                        "long": "full",
+                        "help": "fetch objects from all remotes (obtain full state)"
                     }
                 ]
             },
