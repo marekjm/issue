@@ -84,6 +84,12 @@ class IssueException(Exception):
 class NotAnIssue(IssueException):
     pass
 
+class IssueUIDNotMatched(IssueException):
+    pass
+
+class IssueUIDAmbiguous(IssueException):
+    pass
+
 
 # utility functions
 def getIssue(issue_sha1):
@@ -115,6 +121,38 @@ def dropIssue(issue_sha1):
 
 def sluggify(issue_message):
     return '-'.join(re.compile('[^ a-z]').sub(' ', unidecode.unidecode(issue_message).lower()).split())
+
+def getConfig():
+    config_data = {}
+    config_path_global = os.path.expanduser('~/.issueconfig.json')
+    config_path_local = './.issue/config.json'
+    if os.path.isfile(config_path_global):
+        with open(config_path_global, 'r') as ifstream:
+            config_data = json.loads(ifstream.read())
+    if os.path.isfile(config_path_local):
+        with open(config_path_local, 'r') as ifstream:
+            for k, v in json.loads(ifstream.read()):
+                config_data[k] = v
+    return config_data
+
+def listIssues():
+    list_of_issues = []
+    groups = os.listdir(ISSUES_PATH)
+    for g in groups:
+        if g == 'dropped': continue
+        list_of_issues.extend([p for p in os.listdir(os.path.join(ISSUES_PATH, g)) if not p.endswith('.json')])
+    return list_of_issues
+
+def expandIssueUID(issue_sha1_part):
+    issue_sha1 = []
+    issues = listIssues()
+    for i_sha1 in issues:
+        if i_sha1.startswith(issue_sha1_part): issue_sha1.append(i_sha1)
+    if len(issue_sha1) == 0:
+        raise IssueUIDNotMatched(issue_sha1_part)
+    if len(issue_sha1) > 1:
+        raise IssueUIDAmbiguous(issue_sha1_part)
+    return issue_sha1[0]
 
 
 ui = ui.down() # go down a mode
@@ -206,15 +244,13 @@ elif str(ui) == 'open':
         print(issue_sha1)
 elif str(ui) == 'close':
     for i in operands:
+        i = expandIssueUID(i)
         issue_data = getIssue(i)
         issue_data['status'] = 'closed'
         saveIssue(i, issue_data)
 elif str(ui) == 'ls':
     groups = os.listdir(ISSUES_PATH)
-    issues = []
-    for g in groups:
-        if g == 'dropped': continue
-        issues.extend([p for p in os.listdir(os.path.join(ISSUES_PATH, g)) if p.endswith('.json')])
+    issues = listIssues()
 
     accepted_statuses = []
     if '--status' in ui:
@@ -256,8 +292,8 @@ elif str(ui) == 'slug':
         issue_slug = ui.get('--format').format(issue_slug)
     print(issue_slug)
 elif str(ui) == 'comment':
-    issue_sha1 = operands[0]
-    issue_data = getIssue(issue_sha1)
+    issue_sha1 = expandIssueUID(operands[0])
+    # issue_data = getIssue(issue_sha1)
     issue_comment = operands[1]
     issue_comment_timestamp = datetime.datetime.now().timestamp()
     issue_comment_sha1 = hashlib.sha1(str('{0}{1}{2}'.format(issue_sha1, issue_comment_timestamp, issue_comment)).encode('utf-8')).hexdigest()
@@ -268,7 +304,7 @@ elif str(ui) == 'comment':
     issue_data['comments'][issue_comment_sha1] = issue_comment_data
     saveIssue(issue_sha1, issue_data)
 elif str(ui) == 'show':
-    issue_sha1 = operands[0]
+    issue_sha1 = expandIssueUID(operands[0])
     issue_data = {}
     try:
         issue_data = getIssue(issue_sha1)
