@@ -99,6 +99,12 @@ def getIssue(issue_sha1):
     try:
         with open(issue_file_path, 'r') as ifstream:
             issue_data = json.loads(ifstream.read())
+
+        issue_comments_dir = os.path.join(ISSUES_PATH, issue_group, issue_sha1, 'comments')
+        issue_data['comments'] = {}
+        for cmt in os.listdir(issue_comments_dir):
+            with open(os.path.join(issue_comments_dir, cmt)) as ifstream:
+                issue_data['comments'][cmt.split('.')[0]] = json.loads(ifstream.read())
     except FileNotFoundError as e:
         raise NotAnIssue(issue_file_path)
     return issue_data
@@ -106,6 +112,8 @@ def getIssue(issue_sha1):
 def saveIssue(issue_sha1, issue_data):
     issue_group = issue_sha1[:2]
     issue_file_path = os.path.join(ISSUES_PATH, issue_group, '{0}.json'.format(issue_sha1))
+    if 'comments' in issue_data:
+        del issue_data['comments']
     with open(issue_file_path, 'w') as ofstream:
         ofstream.write(json.dumps(issue_data))
 
@@ -223,7 +231,6 @@ elif str(ui) == 'open':
 
     issue_data = {
         'message': message,
-        'comments': {},
         'labels': labels,
         'milestones': milestones,
         'status': 'open',
@@ -237,6 +244,10 @@ elif str(ui) == 'open':
     issue_file_path = os.path.join(issue_group_path, '{0}.json'.format(issue_sha1))
     with open(issue_file_path, 'w') as ofstream:
         ofstream.write(json.dumps(issue_data))
+
+    # make directories for issue-specific objects
+    os.mkdir(os.path.join(issue_group_path, issue_sha1))
+    os.mkdir(os.path.join(issue_group_path, issue_sha1, 'comments'))
 
     if '--git' in ui:
         print('issue/{0}'.format(sluggify(message)))
@@ -293,7 +304,6 @@ elif str(ui) == 'slug':
     print(issue_slug)
 elif str(ui) == 'comment':
     issue_sha1 = expandIssueUID(operands[0])
-    # issue_data = getIssue(issue_sha1)
     issue_comment = operands[1]
     issue_comment_timestamp = datetime.datetime.now().timestamp()
     issue_comment_sha1 = hashlib.sha1(str('{0}{1}{2}'.format(issue_sha1, issue_comment_timestamp, issue_comment)).encode('utf-8')).hexdigest()
@@ -301,8 +311,15 @@ elif str(ui) == 'comment':
         'message': issue_comment,
         'timestamp': issue_comment_timestamp,
     }
-    issue_data['comments'][issue_comment_sha1] = issue_comment_data
-    saveIssue(issue_sha1, issue_data)
+    config_data = getConfig()
+    issue_comment_data = {
+        'author.name': config_data['author.name'],
+        'author.email': config_data['author.email'],
+        'message': issue_comment,
+        'timestamp': issue_comment_timestamp,
+    }
+    with open(os.path.join(ISSUES_PATH, issue_sha1[:2], issue_sha1, 'comments', '{0}.json'.format(issue_comment_sha1)), 'w') as ofstream:
+        ofstream.write(json.dumps(issue_comment_data))
 elif str(ui) == 'show':
     issue_sha1 = expandIssueUID(operands[0])
     issue_data = {}
@@ -316,10 +333,10 @@ elif str(ui) == 'show':
     print('    milestones: {0}'.format(', '.join(issue_data['milestones'])))
     print('    labels:     {0}'.format(', '.join(issue_data['labels'])))
     if issue_comment_thread:
-        print()
-        for timestamp in sorted(issue_comment_thread.keys()):
+        print('\nCOMMENT THREAD:\n')
+        for i, timestamp in enumerate(sorted(issue_comment_thread.keys())):
             issue_comment = issue_data['comments'][issue_comment_thread[timestamp]]
-            print('%%%% {0}\n'.format(datetime.datetime.fromtimestamp(issue_comment['timestamp'])))
+            print('>>>> {0}. {1} ({2}) at {3}\n'.format(i, issue_comment['author.name'], issue_comment['author.email'], datetime.datetime.fromtimestamp(issue_comment['timestamp'])))
             print(issue_comment['message'])
             print()
 elif str(ui) == 'config':
