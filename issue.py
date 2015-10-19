@@ -447,7 +447,8 @@ elif str(ui) == 'fetch':
     ui = ui.down()
     local_pack = getPack()
     remotes = getRemotes()
-    for remote_name in ui.operands():
+    fetch_from_remotes = (ui.operands() or sorted(remotes.keys()))
+    for remote_name in fetch_from_remotes:
         print('fetching objects from remote: {0}'.format(remote_name))
         remote_pack_fetch_command = ('scp', '{0}/pack.json'.format(remotes[remote_name]['url']), './.issue/remote_pack.json')
         exit_code, output, error = runShell(*remote_pack_fetch_command)
