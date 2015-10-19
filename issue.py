@@ -238,7 +238,13 @@ if str(ui) == 'init':
 elif str(ui) == 'open':
     message = ''
     if len(operands) < 1:
-        message = input('issue description: ')
+        editor = os.getenv('EDITOR', 'vi')
+        message_path = os.path.join(REPOSITORY_PATH, 'message')
+        shutil.copy(os.path.expanduser('~/.local/share/issue/issue_message'), message_path)
+        os.system('{0} {1}'.format(editor, message_path))
+        with open(message_path) as ifstream:
+            message_lines = ifstream.readlines()
+            message = ''.join([l for l in message_lines if not l.startswith('#')]).strip()
     else:
         message = operands[0]
     labels = ([l[0] for l in ui.get('--label')] if '--label' in ui else [])
