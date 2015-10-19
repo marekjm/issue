@@ -6,4 +6,4 @@ install:
 	chmod +x ~/.local/bin/issue
 	mkdir -p ~/.local/share/issue
 	cp ./ui.json ~/.local/share/issue/ui.json
-	cp ./share/issue_message ~/.local/share/issue/issue_message
+	cp ./share/*_message ~/.local/share/issue/

@@ -247,6 +247,11 @@ elif str(ui) == 'open':
             message = ''.join([l for l in message_lines if not l.startswith('#')]).strip()
     else:
         message = operands[0]
+
+    if not message:
+        print('fatal: aborting due to empty message')
+        exit(1)
+
     labels = ([l[0] for l in ui.get('--label')] if '--label' in ui else [])
     milestones = ([m[0] for m in ui.get('--milestone')] if '--milestone' in ui else [])
 
@@ -330,7 +335,23 @@ elif str(ui) == 'slug':
     print(issue_slug)
 elif str(ui) == 'comment':
     issue_sha1 = expandIssueUID(operands[0])
-    issue_comment = operands[1]
+
+    issue_comment = ''
+    if len(operands) < 2:
+        editor = os.getenv('EDITOR', 'vi')
+        message_path = os.path.join(REPOSITORY_PATH, 'message')
+        shutil.copy(os.path.expanduser('~/.local/share/issue/issue_comment_message'), message_path)
+        os.system('{0} {1}'.format(editor, message_path))
+        with open(message_path) as ifstream:
+            issue_comment_lines = ifstream.readlines()
+            issue_comment = ''.join([l for l in issue_comment_lines if not l.startswith('#')]).strip()
+    else:
+        issue_comment = operands[1]
+
+    if not issue_comment:
+        print('fatal: aborting due to empty message')
+        exit(1)
+
     issue_comment_timestamp = datetime.datetime.now().timestamp()
     issue_comment_sha1 = hashlib.sha1(str('{0}{1}{2}'.format(issue_sha1, issue_comment_timestamp, issue_comment)).encode('utf-8')).hexdigest()
     issue_comment_data = {
