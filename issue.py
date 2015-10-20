@@ -68,7 +68,7 @@ if clap.helper.HelpRunner(ui=ui, program=sys.argv[0]).adjust(options=['-h', '--h
 
 
 # ensure the repository exists
-REPOSITORY_PATH = './.issue'
+REPOSITORY_PATH = '.issue'
 OBJECTS_PATH = os.path.join(REPOSITORY_PATH, 'objects')
 ISSUES_PATH = os.path.join(OBJECTS_PATH, 'issues')
 LABELS_PATH = os.path.join(OBJECTS_PATH, 'labels')
@@ -198,9 +198,19 @@ def runShell(*command):
 ui = ui.down() # go down a mode
 operands = ui.operands()
 
-if str(ui) not in ('init', 'help', '') and not os.path.isdir(REPOSITORY_PATH):
-    print('fatal: not inside issues repository')
-    exit(1)
+if str(ui) not in ('init', 'help') and not os.path.isdir(REPOSITORY_PATH):
+    while not os.path.isdir(REPOSITORY_PATH) and REPOSITORY_PATH != '/.issue':
+        REPOSITORY_PATH = os.path.abspath(os.path.join('..', REPOSITORY_PATH))
+    if REPOSITORY_PATH == '/.issue':
+        print('fatal: not inside issues repository')
+        exit(1)
+    else:
+        OBJECTS_PATH = os.path.join(REPOSITORY_PATH, 'objects')
+        ISSUES_PATH = os.path.join(OBJECTS_PATH, 'issues')
+        LABELS_PATH = os.path.join(OBJECTS_PATH, 'labels')
+        MILESTONES_PATH = os.path.join(OBJECTS_PATH, 'milestones')
+        PACK_PATH = os.path.join(REPOSITORY_PATH, 'pack.json')
+
 
 if '--pack' in ui:
     print('packing objects:')
