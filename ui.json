@@ -42,6 +42,10 @@
                 "conflicts": ["--pack"],
                 "plural": true,
                 "help": "remove the repository, use --nuke --nuke to silence errors about nonexistent repositories"
+            },
+            {
+                "long": "where",
+                "help": "locate the repository, assumes cwd is a subdirectory of a repo"
             }
         ]
     },

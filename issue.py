@@ -236,6 +236,11 @@ if '--nuke' in ui:
         shutil.rmtree(REPOSITORY_PATH)
     exit(0)
 
+if '--where' in ui:
+    print(REPOSITORY_PATH)
+    exit(0)
+
+
 if str(ui) == 'init':
     if '--force' in ui and os.path.isdir(REPOSITORY_PATH):
         shutil.rmtree(REPOSITORY_PATH)
