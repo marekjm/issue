@@ -351,11 +351,17 @@ elif str(ui) == 'slug':
 elif str(ui) == 'comment':
     issue_sha1 = expandIssueUID(operands[0])
 
+    issue_data = getIssue(issue_sha1)
+
     issue_comment = ''
     if len(operands) < 2:
         editor = os.getenv('EDITOR', 'vi')
         message_path = os.path.join(REPOSITORY_PATH, 'message')
-        shutil.copy(os.path.expanduser('~/.local/share/issue/issue_comment_message'), message_path)
+        default_message_text = ''
+        with open(os.path.expanduser('~/.local/share/issue/issue_comment_message')) as ifstream:
+            default_message_text = ifstream.read()
+        with open(message_path, 'w') as ofstream:
+            ofstream.write(default_message_text.format(issue_sha1=issue_sha1, issue_message='\n'.join(['  > {0}'.format(l) for l in issue_data['message'].splitlines()])))
         os.system('{0} {1}'.format(editor, message_path))
         with open(message_path) as ifstream:
             issue_comment_lines = ifstream.readlines()

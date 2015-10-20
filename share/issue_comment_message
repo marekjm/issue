@@ -1,3 +1,7 @@
 Issue comment here.
 
+# Issue {issue_sha1}:
+#
+# {issue_message}
+#
 # Lines beginning with '#' will be ignored.
