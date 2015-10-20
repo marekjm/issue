@@ -199,17 +199,17 @@ ui = ui.down() # go down a mode
 operands = ui.operands()
 
 if str(ui) not in ('init', 'help') and not os.path.isdir(REPOSITORY_PATH):
-    while not os.path.isdir(REPOSITORY_PATH) and REPOSITORY_PATH != '/.issue':
-        REPOSITORY_PATH = os.path.abspath(os.path.join('..', REPOSITORY_PATH))
+    while not os.path.isdir(REPOSITORY_PATH) and os.path.abspath(REPOSITORY_PATH) != '/.issue':
+        REPOSITORY_PATH = os.path.join('..', REPOSITORY_PATH)
+    REPOSITORY_PATH = os.path.abspath(REPOSITORY_PATH)
     if REPOSITORY_PATH == '/.issue':
         print('fatal: not inside issues repository')
         exit(1)
-    else:
-        OBJECTS_PATH = os.path.join(REPOSITORY_PATH, 'objects')
-        ISSUES_PATH = os.path.join(OBJECTS_PATH, 'issues')
-        LABELS_PATH = os.path.join(OBJECTS_PATH, 'labels')
-        MILESTONES_PATH = os.path.join(OBJECTS_PATH, 'milestones')
-        PACK_PATH = os.path.join(REPOSITORY_PATH, 'pack.json')
+    OBJECTS_PATH = os.path.join(REPOSITORY_PATH, 'objects')
+    ISSUES_PATH = os.path.join(OBJECTS_PATH, 'issues')
+    LABELS_PATH = os.path.join(OBJECTS_PATH, 'labels')
+    MILESTONES_PATH = os.path.join(OBJECTS_PATH, 'milestones')
+    PACK_PATH = os.path.join(REPOSITORY_PATH, 'pack.json')
 
 
 if '--pack' in ui:
