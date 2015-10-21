@@ -335,7 +335,7 @@ elif str(ui) == 'ls':
             print('    labels:     {0}'.format(', '.join(issue_data['labels'])))
             print()
         else:
-            print('{0}: {1}'.format(issue_sha1, issue_data['message']))
+            print('{0}: {1}'.format(issue_sha1, issue_data['message'].splitlines()[0]))
 elif str(ui) == 'drop':
     for i in operands:
         dropIssue(expandIssueUID(i))
