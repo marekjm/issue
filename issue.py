@@ -198,7 +198,7 @@ def runShell(*command):
 ui = ui.down() # go down a mode
 operands = ui.operands()
 
-if str(ui) not in ('init', 'help') and not os.path.isdir(REPOSITORY_PATH):
+if str(ui) not in ('init', 'help') and '--nuke' not in ui and not os.path.isdir(REPOSITORY_PATH):
     while not os.path.isdir(REPOSITORY_PATH) and os.path.abspath(REPOSITORY_PATH) != '/.issue':
         REPOSITORY_PATH = os.path.join('..', REPOSITORY_PATH)
     REPOSITORY_PATH = os.path.abspath(REPOSITORY_PATH)
