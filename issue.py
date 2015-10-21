@@ -346,7 +346,7 @@ elif str(ui) == 'slug':
     if '--git' in ui:
         issue_slug = 'issue/{0}'.format(issue_slug)
     if '--format' in ui:
-        issue_slug = ui.get('--format').format(issue_slug)
+        issue_slug = ui.get('--format').format(slug=issue_slug, **dict(ui.get('--param')))
     print(issue_slug)
 elif str(ui) == 'comment':
     issue_sha1 = expandIssueUID(operands[0])

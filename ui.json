@@ -194,6 +194,15 @@
                         "arguments": ["str"],
                         "conflicts": ["--git"],
                         "help": "use custom slug format"
+                    },
+                    {
+                        "short": "p",
+                        "long": "param",
+                        "arguments": ["str", "str"],
+                        "conflicts": ["--git"],
+                        "requires": ["--format"],
+                        "plural": true,
+                        "help": "add parameter to use with format"
                     }
                 ]
             },
