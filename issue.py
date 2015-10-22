@@ -298,17 +298,17 @@ elif str(ui) == 'open':
     else:
         print(issue_sha1)
 elif str(ui) == 'close':
-    for i in operands:
+    for issue_sha1 in operands:
         try:
-            i = expandIssueUID(i)
+            issue_sha1 = expandIssueUID(issue_sha1)
         except IssueUIDAmbiguous:
-            print('fail: issue uid {0} is ambiguous'.format(i))
+            print('fail: issue uid {0} is ambiguous'.format(issue_sha1))
             continue
-        issue_data = getIssue(i)
+        issue_data = getIssue(issue_sha1)
         issue_data['status'] = 'closed'
         if '--git-commit' in ui:
             issue_data['closing_git_commit'] = ui.get('--git-commit')
-        saveIssue(i, issue_data)
+        saveIssue(issue_sha1, issue_data)
 elif str(ui) == 'ls':
     groups = os.listdir(ISSUES_PATH)
     issues = listIssues()
@@ -341,11 +341,11 @@ elif str(ui) == 'ls':
         else:
             print('{0}: {1}'.format(issue_sha1, issue_data['message'].splitlines()[0]))
 elif str(ui) == 'drop':
-    for i in operands:
+    for issue_sha1 in operands:
         try:
-            dropIssue(expandIssueUID(i))
+            dropIssue(expandIssueUID(issue_sha1))
         except IssueUIDAmbiguous:
-            print('fail: issue uid {0} is ambiguous'.format(i))
+            print('fail: issue uid {0} is ambiguous'.format(issue_sha1))
 elif str(ui) == 'slug':
     issue_data = {}
     issue_sha1 = operands[0]
