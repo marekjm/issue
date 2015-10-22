@@ -273,11 +273,16 @@ elif str(ui) == 'open':
     issue_sha1 = '{0}{1}{2}{3}'.format(message, labels, milestones, random.random())
     issue_sha1 = hashlib.sha1(issue_sha1.encode('utf-8')).hexdigest()
 
+    repo_config = getConfig()
+
     issue_data = {
         'message': message,
         'labels': labels,
         'milestones': milestones,
         'status': 'open',
+        'author.email': repo_config['author.email'],
+        'author.name': repo_config['author.name'],
+        'timestamp': datetime.datetime.now().timestamp(),
         '_meta': {}
     }
 
@@ -420,12 +425,19 @@ elif str(ui) == 'show':
     except NotAnIssue as e:
         print('fatal: {0} does not identify a valid object'.format(repr(issue_sha1)))
         exit(1)
-    issue_comment_thread = dict((issue_data['comments'][key]['timestamp'], key) for key in issue_data['comments'])
+
+    issue_author_name = (issue_data['author.name'] if 'author.name' in issue_data else 'Unknown Author')
+    issue_author_email = (issue_data['author.email'] if 'author.email' in issue_data else 'Unknown email')
+    issue_timestamp = (datetime.datetime.fromtimestamp(issue_data['timestamp']) if 'timestamp' in issue_data else 'unknown date')
     print('{0}: {1}'.format(issue_sha1, issue_data['message']))
+    print('    opened by:  {0} ({1}), on {2}'.format(issue_author_name, issue_author_email, issue_timestamp))
     print('    milestones: {0}'.format(', '.join(issue_data['milestones'])))
     print('    labels:     {0}'.format(', '.join(issue_data['labels'])))
+
     if 'closing_git_commit' in issue_data:
         print('\nCLOSING GIT COMMIT: {0}\n'.format(issue_data['closing_git_commit']))
+
+    issue_comment_thread = dict((issue_data['comments'][key]['timestamp'], key) for key in issue_data['comments'])
     if issue_comment_thread:
         print('\nCOMMENT THREAD:\n')
         for i, timestamp in enumerate(sorted(issue_comment_thread.keys())):
