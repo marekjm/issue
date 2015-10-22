@@ -341,7 +341,7 @@ elif str(ui) == 'drop':
         dropIssue(expandIssueUID(i))
 elif str(ui) == 'slug':
     issue_data = getIssue(expandIssueUID(operands[0]))
-    issue_message = issue_data['message']
+    issue_message = issue_data['message'].splitlines()[0].strip()
     issue_slug = sluggify(issue_message)
     if '--git' in ui:
         issue_slug = 'issue/{0}'.format(issue_slug)
