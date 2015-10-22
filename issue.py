@@ -299,7 +299,11 @@ elif str(ui) == 'open':
         print(issue_sha1)
 elif str(ui) == 'close':
     for i in operands:
-        i = expandIssueUID(i)
+        try:
+            i = expandIssueUID(i)
+        except IssueUIDAmbiguous:
+            print('fail: issue uid {0} is ambiguous'.format(i))
+            continue
         issue_data = getIssue(i)
         issue_data['status'] = 'closed'
         if '--git-commit' in ui:
@@ -338,9 +342,18 @@ elif str(ui) == 'ls':
             print('{0}: {1}'.format(issue_sha1, issue_data['message'].splitlines()[0]))
 elif str(ui) == 'drop':
     for i in operands:
-        dropIssue(expandIssueUID(i))
+        try:
+            dropIssue(expandIssueUID(i))
+        except IssueUIDAmbiguous:
+            print('fail: issue uid {0} is ambiguous'.format(i))
 elif str(ui) == 'slug':
-    issue_data = getIssue(expandIssueUID(operands[0]))
+    issue_data = {}
+    issue_sha1 = operands[0]
+    try:
+        issue_data = getIssue(expandIssueUID(issue_sha1))
+    except IssueUIDAmbiguous:
+        print('fail: issue uid {0} is ambiguous'.format(issue_sha1))
+        exit(1)
     issue_message = issue_data['message'].splitlines()[0].strip()
     issue_slug = sluggify(issue_message)
     if '--git' in ui:
@@ -349,7 +362,12 @@ elif str(ui) == 'slug':
         issue_slug = ui.get('--format').format(slug=issue_slug, **dict(ui.get('--param')))
     print(issue_slug)
 elif str(ui) == 'comment':
-    issue_sha1 = expandIssueUID(operands[0])
+    issue_sha1 = operands[0]
+    try:
+        issue_sha1 = expandIssueUID(issue_sha1)
+    except IssueUIDAmbiguous:
+        print('fail: issue uid {0} is ambiguous'.format(issue_sha1))
+        exit(1)
 
     issue_data = getIssue(issue_sha1)
 
@@ -389,7 +407,13 @@ elif str(ui) == 'comment':
     with open(os.path.join(ISSUES_PATH, issue_sha1[:2], issue_sha1, 'comments', '{0}.json'.format(issue_comment_sha1)), 'w') as ofstream:
         ofstream.write(json.dumps(issue_comment_data))
 elif str(ui) == 'show':
-    issue_sha1 = expandIssueUID(operands[0])
+    issue_sha1 = operands[0]
+    try:
+        issue_sha1 = expandIssueUID(issue_sha1)
+    except IssueUIDAmbiguous:
+        print('fail: issue uid {0} is ambiguous'.format(issue_sha1))
+        exit(1)
+
     issue_data = {}
     try:
         issue_data = getIssue(issue_sha1)
