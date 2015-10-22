@@ -280,9 +280,9 @@ elif str(ui) == 'open':
         'labels': labels,
         'milestones': milestones,
         'status': 'open',
-        'author.email': repo_config['author.email'],
-        'author.name': repo_config['author.name'],
-        'timestamp': datetime.datetime.now().timestamp(),
+        'open.author.email': repo_config['author.email'],
+        'open.author.name': repo_config['author.name'],
+        'open.timestamp': datetime.datetime.now().timestamp(),
         '_meta': {}
     }
 
@@ -303,6 +303,7 @@ elif str(ui) == 'open':
     else:
         print(issue_sha1)
 elif str(ui) == 'close':
+    repo_config = getConfig()
     for issue_sha1 in operands:
         try:
             issue_sha1 = expandIssueUID(issue_sha1)
@@ -311,6 +312,9 @@ elif str(ui) == 'close':
             continue
         issue_data = getIssue(issue_sha1)
         issue_data['status'] = 'closed'
+        issue_data['close.author.email'] = repo_config['author.email']
+        issue_data['close.author.name'] = repo_config['author.name']
+        issue_data['close.timestamp'] = datetime.datetime.now().timestamp()
         if '--git-commit' in ui:
             issue_data['closing_git_commit'] = ui.get('--git-commit')
         saveIssue(issue_sha1, issue_data)
@@ -426,11 +430,16 @@ elif str(ui) == 'show':
         print('fatal: {0} does not identify a valid object'.format(repr(issue_sha1)))
         exit(1)
 
-    issue_author_name = (issue_data['author.name'] if 'author.name' in issue_data else 'Unknown Author')
-    issue_author_email = (issue_data['author.email'] if 'author.email' in issue_data else 'Unknown email')
-    issue_timestamp = (datetime.datetime.fromtimestamp(issue_data['timestamp']) if 'timestamp' in issue_data else 'unknown date')
+    issue_open_author_name = (issue_data['open.author.name'] if 'open.author.name' in issue_data else 'Unknown Author')
+    issue_open_author_email = (issue_data['open.author.email'] if 'open.author.email' in issue_data else 'Unknown email')
+    issue_open_timestamp = (datetime.datetime.fromtimestamp(issue_data['open.timestamp']) if 'open.timestamp' in issue_data else 'unknown date')
     print('{0}: {1}'.format(issue_sha1, issue_data['message']))
-    print('    opened by:  {0} ({1}), on {2}'.format(issue_author_name, issue_author_email, issue_timestamp))
+    print('    opened by:  {0} ({1}), on {2}'.format(issue_open_author_name, issue_open_author_email, issue_open_timestamp))
+    if issue_data['status'] == 'closed':
+        issue_close_author_name = (issue_data['close.author.name'] if 'close.author.name' in issue_data else 'Unknown Author')
+        issue_close_author_email = (issue_data['close.author.email'] if 'close.author.email' in issue_data else 'Unknown email')
+        issue_close_timestamp = (datetime.datetime.fromtimestamp(issue_data['close.timestamp']) if 'close.timestamp' in issue_data else 'unknown date')
+        print('    closed by:  {0} ({1}), on {2}'.format(issue_close_author_name, issue_close_author_email, issue_close_timestamp))
     print('    milestones: {0}'.format(', '.join(issue_data['milestones'])))
     print('    labels:     {0}'.format(', '.join(issue_data['labels'])))
 
