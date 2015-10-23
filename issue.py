@@ -430,10 +430,12 @@ elif str(ui) == 'show':
         print('fatal: {0} does not identify a valid object'.format(repr(issue_sha1)))
         exit(1)
 
+    issue_message_lines = issue_data['message'].splitlines()
+
     issue_open_author_name = (issue_data['open.author.name'] if 'open.author.name' in issue_data else 'Unknown Author')
     issue_open_author_email = (issue_data['open.author.email'] if 'open.author.email' in issue_data else 'Unknown email')
     issue_open_timestamp = (datetime.datetime.fromtimestamp(issue_data['open.timestamp']) if 'open.timestamp' in issue_data else 'unknown date')
-    print('{0}: {1}'.format(issue_sha1, issue_data['message']))
+    print('{0}: {1}'.format(issue_sha1, issue_message_lines[0]))
     print('    opened by:  {0} ({1}), on {2}'.format(issue_open_author_name, issue_open_author_email, issue_open_timestamp))
     if issue_data['status'] == 'closed':
         issue_close_author_name = (issue_data['close.author.name'] if 'close.author.name' in issue_data else 'Unknown Author')
@@ -443,12 +445,15 @@ elif str(ui) == 'show':
     print('    milestones: {0}'.format(', '.join(issue_data['milestones'])))
     print('    labels:     {0}'.format(', '.join(issue_data['labels'])))
 
+    print('\n---- MESSAGE')
+    print('\n  {0}\n'.format('\n  '.join(issue_message_lines)))
+
     if 'closing_git_commit' in issue_data:
-        print('\nCLOSING GIT COMMIT: {0}\n'.format(issue_data['closing_git_commit']))
+        print('\n---- CLOSING GIT COMMIT: {0}\n'.format(issue_data['closing_git_commit']))
 
     issue_comment_thread = dict((issue_data['comments'][key]['timestamp'], key) for key in issue_data['comments'])
     if issue_comment_thread:
-        print('\nCOMMENT THREAD:\n')
+        print('\n---- COMMENT THREAD:\n')
         for i, timestamp in enumerate(sorted(issue_comment_thread.keys())):
             issue_comment = issue_data['comments'][issue_comment_thread[timestamp]]
             print('>>>> {0}. {1} ({2}) at {3}\n'.format(i, issue_comment['author.name'], issue_comment['author.email'], datetime.datetime.fromtimestamp(issue_comment['timestamp'])))
