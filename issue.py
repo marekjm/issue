@@ -74,6 +74,7 @@ ISSUES_PATH = os.path.join(OBJECTS_PATH, 'issues')
 LABELS_PATH = os.path.join(OBJECTS_PATH, 'labels')
 MILESTONES_PATH = os.path.join(OBJECTS_PATH, 'milestones')
 PACK_PATH = os.path.join(REPOSITORY_PATH, 'pack.json')
+REMOTE_PACK_PATH = os.path.join(REPOSITORY_PATH, 'remote_pack.json')
 
 
 # exception definitions
@@ -210,6 +211,7 @@ if str(ui) not in ('init', 'help') and '--nuke' not in ui and not os.path.isdir(
     LABELS_PATH = os.path.join(OBJECTS_PATH, 'labels')
     MILESTONES_PATH = os.path.join(OBJECTS_PATH, 'milestones')
     PACK_PATH = os.path.join(REPOSITORY_PATH, 'pack.json')
+    REMOTE_PACK_PATH = os.path.join(REPOSITORY_PATH, 'remote_pack.json')
 
 
 if '--pack' in ui:
@@ -548,7 +550,7 @@ elif str(ui) == 'fetch':
     fetch_from_remotes = (ui.operands() or sorted(remotes.keys()))
     for remote_name in fetch_from_remotes:
         print('fetching objects from remote: {0}'.format(remote_name))
-        remote_pack_fetch_command = ('scp', '{0}/pack.json'.format(remotes[remote_name]['url']), './.issue/remote_pack.json')
+        remote_pack_fetch_command = ('scp', '{0}/pack.json'.format(remotes[remote_name]['url']), REMOTE_PACK_PATH)
         exit_code, output, error = runShell(*remote_pack_fetch_command)
 
         if exit_code:
@@ -556,7 +558,7 @@ elif str(ui) == 'fetch':
             continue
 
         remote_pack = {}
-        with open(os.path.join(REPOSITORY_PATH, 'remote_pack.json')) as ifstream:
+        with open(REMOTE_PACK_PATH) as ifstream:
             remote_pack = json.loads(ifstream.read())
 
         new_issues = set(remote_pack['issues']) - set(local_pack['issues'])
