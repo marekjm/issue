@@ -388,7 +388,7 @@ elif str(ui) == 'comment':
         with open(os.path.expanduser('~/.local/share/issue/issue_comment_message')) as ifstream:
             default_message_text = ifstream.read()
         with open(message_path, 'w') as ofstream:
-            ofstream.write(default_message_text.format(issue_sha1=issue_sha1, issue_message='\n'.join(['  > {0}'.format(l) for l in issue_data['message'].splitlines()])))
+            ofstream.write(default_message_text.format(issue_sha1=issue_sha1, issue_message='\n'.join(['#  > {0}'.format(l) for l in issue_data['message'].splitlines()])))
         os.system('{0} {1}'.format(editor, message_path))
         with open(message_path) as ifstream:
             issue_comment_lines = ifstream.readlines()
