@@ -627,18 +627,39 @@ def commandFetch(ui):
                     continue
 
 
-command_function_map = {
-    'init': commandInit,
-    'open': commandOpen,
-    'close': commandClose,
-    'ls': commandLs,
-    'drop': commandDrop,
-    'slug': commandSlug,
-    'comment': commandComment,
-    'show': commandShow,
-    'config': commandConfig,
-    'remote': commandRemote,
-    'fetch': commandFetch,
-}
+def dispatch(ui, *commands, overrides = {}):
+    """Semi-automatic command dispatcher.
 
-command_function_map[str(ui)](ui)
+    Functions passed to `*commands` parameter should be named like `commandFooBarBaz` because
+    of command name mangling.
+    Example: `foo-bar-baz` is transformed to `FooBarBaz` and handled with `commandFooBarBaz`.
+
+    It is possible to override a command handler by passing it inside the `overrides` parameter.
+
+    This scheme can be effectively used to support command auto-dispatch with minimal manual guidance by
+    providing sane defaults and a way of overriding them when needed.
+    """
+    ui_command = str(ui)
+    if ui_command in overrides:
+        overrides[ui_command](ui)
+    else:
+        ui_command = ('command' + ''.join([(s[0].upper() + s[1:]) for s in ui_command.split('-')]))
+        for cmd in commands:
+            if cmd.__name__ == ui_command:
+                cmd(ui)
+                break
+
+
+dispatch(ui,        # first: pass the UI object to dispatch
+    commandInit,    # second: pass command handling functions
+    commandOpen,
+    commandClose,
+    commandLs,
+    commandDrop,
+    commandSlug,
+    commandComment,
+    commandShow,
+    commandConfig,
+    commandRemote,
+    commandFetch,
+)
