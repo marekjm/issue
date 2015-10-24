@@ -626,25 +626,19 @@ def commandFetch(ui):
                     print('  * fail ({0}): comment {1}.{2}: {3}'.format(exit_code, issue_sha1, cmt_sha1, error))
                     continue
 
-if str(ui) == 'init':
-    commandInit(ui)
-elif str(ui) == 'open':
-    commandOpen(ui)
-elif str(ui) == 'close':
-    commandClose(ui)
-elif str(ui) == 'ls':
-    commandLs(ui)
-elif str(ui) == 'drop':
-    commandDrop(ui)
-elif str(ui) == 'slug':
-    commandSlug(ui)
-elif str(ui) == 'comment':
-    commandComment(ui)
-elif str(ui) == 'show':
-    commandShow(ui)
-elif str(ui) == 'config':
-    commandConfig(ui)
-elif str(ui) == 'remote':
-    commandRemote(ui)
-elif str(ui) == 'fetch':
-    commandFetch(ui)
+
+command_function_map = {
+    'init': commandInit,
+    'open': commandOpen,
+    'close': commandClose,
+    'ls': commandLs,
+    'drop': commandDrop,
+    'slug': commandSlug,
+    'comment': commandComment,
+    'show': commandShow,
+    'config': commandConfig,
+    'remote': commandRemote,
+    'fetch': commandFetch,
+}
+
+command_function_map[str(ui)](ui)
