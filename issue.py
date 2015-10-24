@@ -429,7 +429,10 @@ def commandShow(ui):
     try:
         issue_sha1 = expandIssueUID(issue_sha1)
     except IssueUIDAmbiguous:
-        print('fail: issue uid {0} is ambiguous'.format(issue_sha1))
+        print('fail: issue uid {0} is ambiguous'.format(repr(issue_sha1)))
+        exit(1)
+    except IssueUIDNotMatched:
+        print('fail: issue uid {0} did not match anything'.format(repr(issue_sha1)))
         exit(1)
 
     issue_data = {}
