@@ -312,7 +312,7 @@ def commandClose(ui):
         try:
             issue_sha1 = expandIssueUID(issue_sha1)
         except IssueUIDAmbiguous:
-            print('fail: issue uid {0} is ambiguous'.format(issue_sha1))
+            print('fail: issue uid {0} is ambiguous'.format(repr(issue_sha1)))
             continue
         issue_data = getIssue(issue_sha1)
         issue_data['status'] = 'closed'
@@ -360,7 +360,7 @@ def commandDrop(ui):
         try:
             dropIssue(expandIssueUID(issue_sha1))
         except IssueUIDAmbiguous:
-            print('fail: issue uid {0} is ambiguous'.format(issue_sha1))
+            print('fail: issue uid {0} is ambiguous'.format(repr(issue_sha1)))
 
 def commandSlug(ui):
     issue_data = {}
@@ -368,7 +368,7 @@ def commandSlug(ui):
     try:
         issue_data = getIssue(expandIssueUID(issue_sha1))
     except IssueUIDAmbiguous:
-        print('fail: issue uid {0} is ambiguous'.format(issue_sha1))
+        print('fail: issue uid {0} is ambiguous'.format(repr(issue_sha1)))
         exit(1)
     issue_message = issue_data['message'].splitlines()[0].strip()
     issue_slug = sluggify(issue_message)
@@ -383,7 +383,7 @@ def commandComment(ui):
     try:
         issue_sha1 = expandIssueUID(issue_sha1)
     except IssueUIDAmbiguous:
-        print('fail: issue uid {0} is ambiguous'.format(issue_sha1))
+        print('fail: issue uid {0} is ambiguous'.format(repr(issue_sha1)))
         exit(1)
 
     issue_data = getIssue(issue_sha1)
