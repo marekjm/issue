@@ -243,7 +243,7 @@ if '--where' in ui:
     exit(0)
 
 
-if str(ui) == 'init':
+def commandInit(ui):
     if '--force' in ui and os.path.isdir(REPOSITORY_PATH):
         shutil.rmtree(REPOSITORY_PATH)
     if os.path.isdir(REPOSITORY_PATH):
@@ -252,7 +252,8 @@ if str(ui) == 'init':
     for pth in (REPOSITORY_PATH, OBJECTS_PATH, ISSUES_PATH, LABELS_PATH, MILESTONES_PATH):
         if not os.path.isdir(pth):
             os.mkdir(pth)
-elif str(ui) == 'open':
+
+def commandOpen(ui):
     message = ''
     if len(operands) < 1:
         editor = os.getenv('EDITOR', 'vi')
@@ -304,7 +305,8 @@ elif str(ui) == 'open':
         print('issue/{0}'.format(sluggify(message)))
     else:
         print(issue_sha1)
-elif str(ui) == 'close':
+
+def commandClose(ui):
     repo_config = getConfig()
     for issue_sha1 in operands:
         try:
@@ -320,7 +322,8 @@ elif str(ui) == 'close':
         if '--git-commit' in ui:
             issue_data['closing_git_commit'] = ui.get('--git-commit')
         saveIssue(issue_sha1, issue_data)
-elif str(ui) == 'ls':
+
+def commandLs(ui):
     groups = os.listdir(ISSUES_PATH)
     issues = listIssues()
 
@@ -351,13 +354,15 @@ elif str(ui) == 'ls':
             print()
         else:
             print('{0}: {1}'.format(issue_sha1, issue_data['message'].splitlines()[0]))
-elif str(ui) == 'drop':
+
+def commandDrop(ui):
     for issue_sha1 in operands:
         try:
             dropIssue(expandIssueUID(issue_sha1))
         except IssueUIDAmbiguous:
             print('fail: issue uid {0} is ambiguous'.format(issue_sha1))
-elif str(ui) == 'slug':
+
+def commandSlug(ui):
     issue_data = {}
     issue_sha1 = operands[0]
     try:
@@ -372,7 +377,8 @@ elif str(ui) == 'slug':
     if '--format' in ui:
         issue_slug = ui.get('--format').format(slug=issue_slug, **dict(ui.get('--param')))
     print(issue_slug)
-elif str(ui) == 'comment':
+
+def commandComment(ui):
     issue_sha1 = operands[0]
     try:
         issue_sha1 = expandIssueUID(issue_sha1)
@@ -417,7 +423,8 @@ elif str(ui) == 'comment':
     }
     with open(os.path.join(ISSUES_PATH, issue_sha1[:2], issue_sha1, 'comments', '{0}.json'.format(issue_comment_sha1)), 'w') as ofstream:
         ofstream.write(json.dumps(issue_comment_data))
-elif str(ui) == 'show':
+
+def commandShow(ui):
     issue_sha1 = operands[0]
     try:
         issue_sha1 = expandIssueUID(issue_sha1)
@@ -461,7 +468,8 @@ elif str(ui) == 'show':
             print('>>>> {0}. {1} ({2}) at {3}\n'.format(i, issue_comment['author.name'], issue_comment['author.email'], datetime.datetime.fromtimestamp(issue_comment['timestamp'])))
             print(issue_comment['message'])
             print()
-elif str(ui) == 'config':
+
+def commandConfig(ui):
     ui = ui.down()
     config_data = {}
     config_path = os.path.expanduser(('~/.issueconfig.json' if '--global' in ui else './.issue/config.json'))
@@ -507,7 +515,8 @@ elif str(ui) == 'config':
             ofstream.write(json.dumps(config_data))
     elif str(ui) == 'dump':
         print((json.dumps(config_data) if '--verbose' not in ui else json.dumps(config_data, sort_keys=True, indent=2)))
-elif str(ui) == 'remote':
+
+def commandRemote(ui):
     ui = ui.down()
     operands = ui.operands()
 
@@ -543,7 +552,8 @@ elif str(ui) == 'remote':
         else:
             print('fatal: remote does not exist: {0}'.format(remote_name))
             exit(1)
-elif str(ui) == 'fetch':
+
+def commandFetch(ui):
     ui = ui.down()
     local_pack = getPack()
     remotes = getRemotes()
@@ -615,3 +625,26 @@ elif str(ui) == 'fetch':
                 if exit_code:
                     print('  * fail ({0}): comment {1}.{2}: {3}'.format(exit_code, issue_sha1, cmt_sha1, error))
                     continue
+
+if str(ui) == 'init':
+    commandInit(ui)
+elif str(ui) == 'open':
+    commandOpen(ui)
+elif str(ui) == 'close':
+    commandClose(ui)
+elif str(ui) == 'ls':
+    commandLs(ui)
+elif str(ui) == 'drop':
+    commandDrop(ui)
+elif str(ui) == 'slug':
+    commandSlug(ui)
+elif str(ui) == 'comment':
+    commandComment(ui)
+elif str(ui) == 'show':
+    commandShow(ui)
+elif str(ui) == 'config':
+    commandConfig(ui)
+elif str(ui) == 'remote':
+    commandRemote(ui)
+elif str(ui) == 'fetch':
+    commandFetch(ui)
