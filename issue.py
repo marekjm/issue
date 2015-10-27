@@ -195,6 +195,35 @@ def runShell(*command):
     exit_code = p.wait()
     return (exit_code, output, error)
 
+def shortestUnique(lst):
+    if not lst:
+        return 0
+    if len(lst) == 1:
+        return 1
+
+    lst.sort()
+
+    base_n = len(lst[0])
+    n = (base_n // 2)
+
+    done = False
+    while 1:
+        if len(lst) != len(set([i[:n] for i in lst])):
+            n = base_n
+            break
+        base_n = n
+        n = (base_n // 2)
+    return n
+
+def listIssuesUsingShortestPossibleUIDs(with_full=False):
+    list_of_issues = listIssues()
+    n = shortestUnique(list_of_issues)
+    if with_full:
+        final_list_of_issues = [(i[:n], i) for i in list_of_issues]
+    else:
+        final_list_of_issues = [i[:n] for i in list_of_issues]
+    return final_list_of_issues
+
 
 ui = ui.down() # go down a mode
 operands = ui.operands()
@@ -325,7 +354,7 @@ def commandClose(ui):
 
 def commandLs(ui):
     groups = os.listdir(ISSUES_PATH)
-    issues = listIssues()
+    issues = listIssuesUsingShortestPossibleUIDs(with_full=True)
 
     accepted_statuses = []
     if '--status' in ui:
@@ -333,7 +362,9 @@ def commandLs(ui):
     accepted_labels = []
     if '--label' in ui:
         accepted_labels = [s[0] for s in ui.get('--label')]
-    for i in issues:
+
+    issues_to_list = []
+    for short, i in issues:
         issue_sha1 = i.split('.', 1)[0]
         issue_data = getIssue(issue_sha1)
         if '--open' in ui and (issue_data['status'] if 'status' in issue_data else '') not in ('open', ''): continue
@@ -347,13 +378,16 @@ def commandLs(ui):
                     break
             if not labels_match:
                 continue
+        issues_to_list.append((short, i, issue_data))
+
+    for short, i, issue_data in issues_to_list:
         if '--details' in ui:
-            print('{0}: {1}'.format(issue_sha1, issue_data['message']))
+            print('{0}: {1}'.format(short, issue_data['message']))
             print('    milestones: {0}'.format(', '.join(issue_data['milestones'])))
             print('    labels:     {0}'.format(', '.join(issue_data['labels'])))
             print()
         else:
-            print('{0}: {1}'.format(issue_sha1, issue_data['message'].splitlines()[0]))
+            print('{0}: {1}'.format(short, issue_data['message'].splitlines()[0]))
 
 def commandDrop(ui):
     for issue_sha1 in operands:
