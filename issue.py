@@ -414,7 +414,8 @@ def commandLs(ui):
     for short, i, issue_data in issues_to_list:
         if since is not None:
             issue_timestamp = ('close.timestamp' if '--closed' in ui else 'open.timestamp')
-            if datetime.datetime.fromtimestamp(issue_data.get(issue_timestamp, 0)) < since:
+            issue_timestamp = datetime.datetime.fromtimestamp(issue_data.get(issue_timestamp, 0))
+            if ((issue_timestamp > since) if '--older' in ui else (issue_timestamp <= since)):
                 continue
         if '--details' in ui:
             print('{0}: {1}'.format(short, issue_data['message'].splitlines()[0]))
