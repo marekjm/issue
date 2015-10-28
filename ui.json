@@ -168,6 +168,12 @@
                         "arguments": ["str"],
                         "plural": true,
                         "help": "show issues no older than given date specifier"
+                    },
+                    {
+                        "short": "r",
+                        "long": "recent",
+                        "conflicts": ["--since"],
+                        "help": "show recently changed (opened or closed) issues, defaults to 1 day but can be adjusted with \"defaults.time.recent\" config"
                     }
                 ]
             }

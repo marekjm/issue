@@ -363,10 +363,14 @@ def commandLs(ui):
     if '--label' in ui:
         accepted_labels = [s[0] for s in ui.get('--label')]
 
-    since = None
+    delta_mods, since = [], None
     if '--since' in ui:
+        delta_mods = [s[0] for s in ui.get('--since')]
+    if '--recent' in ui:
+        delta_mods = getConfig().get('default.time.recent', '1day').split(',')
+
+    if '--since' in ui or '--recent' in ui:
         time_delta = {}
-        delta_mods = ui.get('--since')
         time_patterns = [
             re.compile('(\d+)(minutes?)'),
             re.compile('(\d+)(hours?)'),
@@ -374,9 +378,10 @@ def commandLs(ui):
             re.compile('(\d+)(weeks?)'),
             re.compile('(\d+)(months?)'),
         ]
+        # print(delta_mods)
         for dm in delta_mods:
             for p in time_patterns:
-                pm = p.match(dm[0])
+                pm = p.match(dm)
                 if pm is not None:
                     mod = pm.group(2)
                     if mod[-1] != 's': mod += 's'  # allow both "1week" and "2weeks"
