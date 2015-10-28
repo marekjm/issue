@@ -363,6 +363,28 @@ def commandLs(ui):
     if '--label' in ui:
         accepted_labels = [s[0] for s in ui.get('--label')]
 
+    since = None
+    if '--since' in ui:
+        time_delta = {}
+        delta_mods = ui.get('--since')
+        time_patterns = [
+            re.compile('(\d+)(minutes?)'),
+            re.compile('(\d+)(hours?)'),
+            re.compile('(\d+)(days?)'),
+            re.compile('(\d+)(weeks?)'),
+            re.compile('(\d+)(months?)'),
+        ]
+        for dm in delta_mods:
+            for p in time_patterns:
+                pm = p.match(dm[0])
+                if pm is not None:
+                    mod = pm.group(2)
+                    if mod[-1] != 's': mod += 's'  # allow both "1week" and "2weeks"
+                    time_delta[mod] = int(pm.group(1))
+
+        # print(time_delta)
+        since = (datetime.datetime.now() - datetime.timedelta(**time_delta))
+
     issues_to_list = []
     for short, i in issues:
         issue_sha1 = i.split('.', 1)[0]
@@ -381,6 +403,10 @@ def commandLs(ui):
         issues_to_list.append((short, i, issue_data))
 
     for short, i, issue_data in issues_to_list:
+        if since is not None:
+            issue_timestamp = ('close.timestamp' if '--closed' in ui else 'open.timestamp')
+            if datetime.datetime.fromtimestamp(issue_data.get(issue_timestamp, 0)) < since:
+                continue
         if '--details' in ui:
             print('{0}: {1}'.format(short, issue_data['message']))
             print('    milestones: {0}'.format(', '.join(issue_data['milestones'])))

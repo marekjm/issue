@@ -161,6 +161,13 @@
                         "arguments": ["str"],
                         "plural": 1,
                         "help": "filter by given <label>"
+                    },
+                    {
+                        "short": "S",
+                        "long": "since",
+                        "arguments": ["str"],
+                        "plural": true,
+                        "help": "show issues no older than given date specifier"
                     }
                 ]
             }
