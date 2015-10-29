@@ -118,8 +118,18 @@
                         "long": "git-commit",
                         "arguments": ["str"],
                         "help": "SHA1 of the Git commit used to close the issue"
+                    },
+                    {
+                        "long": "last",
+                        "help": "close last active issue"
                     }
                 ]
+            },
+            "operands": {
+                "no": [1, 1],
+                "with": {
+                    "--last": [0, 0]
+                }
             }
         },
         "ls": {
@@ -195,6 +205,19 @@
                 "usage": [
                     "drop (<sha1> | <name>)"
                 ]
+            },
+            "options": {
+                "local": [
+                    {
+                        "long": "last",
+                        "help": "drop last active issue"
+                    }
+                ]
+            },
+            "operands": {
+                "with": {
+                    "--last": [1, 1]
+                }
             }
         },
         "slug": {
@@ -227,11 +250,18 @@
                         "requires": ["--format"],
                         "plural": true,
                         "help": "add parameter to use with format"
+                    },
+                    {
+                        "long": "last",
+                        "help": "sluggify last active issue"
                     }
                 ]
             },
             "operands": {
-                "no": [1, 1]
+                "no": [1, 1],
+                "with": {
+                    "--last": [0, 0]
+                }
             }
         },
         "comment": {
@@ -241,8 +271,19 @@
                     "comment <sha1> <message>"
                 ]
             },
+            "options": {
+                "local": [
+                    {
+                        "long": "last",
+                        "help": "make a commant on last active issue"
+                    }
+                ]
+            },
             "operands": {
-                "no": [1, 2]
+                "no": [1, 2],
+                "with": {
+                    "--last": [0, 1]
+                }
             }
         },
         "show": {
@@ -252,8 +293,19 @@
                     "show <sha1>"
                 ]
             },
+            "options": {
+                "local": [
+                    {
+                        "long": "last",
+                        "help": "display last active issue"
+                    }
+                ]
+            },
             "operands": {
-                "no": [1, 1]
+                "no": [1, 1],
+                "with": {
+                    "--last": [0, 0]
+                }
             }
         },
         "config": {

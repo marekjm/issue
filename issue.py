@@ -75,6 +75,7 @@ LABELS_PATH = os.path.join(OBJECTS_PATH, 'labels')
 MILESTONES_PATH = os.path.join(OBJECTS_PATH, 'milestones')
 PACK_PATH = os.path.join(REPOSITORY_PATH, 'pack.json')
 REMOTE_PACK_PATH = os.path.join(REPOSITORY_PATH, 'remote_pack.json')
+LAST_ISSUE_PATH = os.path.join(REPOSITORY_PATH, 'last')
 
 
 # exception definitions
@@ -228,6 +229,17 @@ def listIssuesUsingShortestPossibleUIDs(with_full=False):
         final_list_of_issues = [i[:n] for i in list_of_issues]
     return final_list_of_issues
 
+def markLastIssue(issue_sha1):
+    with open(LAST_ISSUE_PATH, 'w') as ofstream:
+        ofstream.write(issue_sha1)
+
+def getLastIssue():
+    last_issue_sha1 = ''
+    if os.path.isfile(LAST_ISSUE_PATH):
+        with open(LAST_ISSUE_PATH) as ifstream:
+            last_issue_sha1 = ifstream.read()
+    return last_issue_sha1
+
 
 ui = ui.down() # go down a mode
 operands = ui.operands()
@@ -245,6 +257,7 @@ if str(ui) not in ('init', 'help') and '--nuke' not in ui and not os.path.isdir(
     MILESTONES_PATH = os.path.join(OBJECTS_PATH, 'milestones')
     PACK_PATH = os.path.join(REPOSITORY_PATH, 'pack.json')
     REMOTE_PACK_PATH = os.path.join(REPOSITORY_PATH, 'remote_pack.json')
+    LAST_ISSUE_PATH = os.path.join(REPOSITORY_PATH, 'last')
 
 
 if '--pack' in ui:
@@ -339,22 +352,24 @@ def commandOpen(ui):
     else:
         print(issue_sha1)
 
+    markLastIssue(issue_sha1)
+
 def commandClose(ui):
     repo_config = getConfig()
-    for issue_sha1 in operands:
-        try:
-            issue_sha1 = expandIssueUID(issue_sha1)
-        except IssueUIDAmbiguous:
-            print('fail: issue uid {0} is ambiguous'.format(repr(issue_sha1)))
-            continue
-        issue_data = getIssue(issue_sha1)
-        issue_data['status'] = 'closed'
-        issue_data['close.author.email'] = repo_config['author.email']
-        issue_data['close.author.name'] = repo_config['author.name']
-        issue_data['close.timestamp'] = datetime.datetime.now().timestamp()
-        if '--git-commit' in ui:
-            issue_data['closing_git_commit'] = ui.get('--git-commit')
-        saveIssue(issue_sha1, issue_data)
+    issue_sha1 = (getLastIssue() if '--last' in ui else operands[0])
+    try:
+        issue_sha1 = expandIssueUID(issue_sha1)
+    except IssueUIDAmbiguous:
+        print('fail: issue uid {0} is ambiguous'.format(repr(issue_sha1)))
+    issue_data = getIssue(issue_sha1)
+    issue_data['status'] = 'closed'
+    issue_data['close.author.email'] = repo_config['author.email']
+    issue_data['close.author.name'] = repo_config['author.name']
+    issue_data['close.timestamp'] = datetime.datetime.now().timestamp()
+    if '--git-commit' in ui:
+        issue_data['closing_git_commit'] = ui.get('--git-commit')
+    saveIssue(issue_sha1, issue_data)
+    markLastIssue(issue_sha1)
 
 def commandLs(ui):
     groups = os.listdir(ISSUES_PATH)
@@ -439,7 +454,8 @@ def commandLs(ui):
             print('{0}: {1}'.format(short, issue_data['message'].splitlines()[0]))
 
 def commandDrop(ui):
-    for issue_sha1 in operands:
+    issue_list = ([getLastIssue()] if '--last' in ui else operands)
+    for issue_sha1 in issue_list:
         try:
             dropIssue(expandIssueUID(issue_sha1))
         except IssueUIDAmbiguous:
@@ -447,9 +463,10 @@ def commandDrop(ui):
 
 def commandSlug(ui):
     issue_data = {}
-    issue_sha1 = operands[0]
+    issue_sha1 = (getLastIssue() if '--last' in ui else operands[0])
     try:
-        issue_data = getIssue(expandIssueUID(issue_sha1))
+        issue_sha1 = expandIssueUID(issue_sha1)
+        issue_data = getIssue(issue_sha1)
     except IssueUIDAmbiguous:
         print('fail: issue uid {0} is ambiguous'.format(repr(issue_sha1)))
         exit(1)
@@ -460,9 +477,10 @@ def commandSlug(ui):
     if '--format' in ui:
         issue_slug = ui.get('--format').format(slug=issue_slug, **dict(ui.get('--param')))
     print(issue_slug)
+    markLastIssue(issue_sha1)
 
 def commandComment(ui):
-    issue_sha1 = operands[0]
+    issue_sha1 = (getLastIssue() if '--last' in ui else operands[0])
     try:
         issue_sha1 = expandIssueUID(issue_sha1)
     except IssueUIDAmbiguous:
@@ -472,7 +490,7 @@ def commandComment(ui):
     issue_data = getIssue(issue_sha1)
 
     issue_comment = ''
-    if len(operands) < 2:
+    if len(operands) < (1 if '--last' in ui else 2):
         editor = os.getenv('EDITOR', 'vi')
         message_path = os.path.join(REPOSITORY_PATH, 'message')
         default_message_text = ''
@@ -485,7 +503,12 @@ def commandComment(ui):
             issue_comment_lines = ifstream.readlines()
             issue_comment = ''.join([l for l in issue_comment_lines if not l.startswith('#')]).strip()
     else:
-        issue_comment = operands[1]
+        # True evaluates to 1 and
+        # False evaluates to 0
+        # this is exactly what we need here - since the 1 and 0 are
+        # indexes of the comment depending on whether the option is
+        # given or not
+        issue_comment = operands[int(not ('--last' in ui))]
 
     if not issue_comment:
         print('fatal: aborting due to empty message')
@@ -506,9 +529,10 @@ def commandComment(ui):
     }
     with open(os.path.join(ISSUES_PATH, issue_sha1[:2], issue_sha1, 'comments', '{0}.json'.format(issue_comment_sha1)), 'w') as ofstream:
         ofstream.write(json.dumps(issue_comment_data))
+    markLastIssue(issue_sha1)
 
 def commandShow(ui):
-    issue_sha1 = operands[0]
+    issue_sha1 = (getLastIssue() if '--last' in ui else operands[0])
     try:
         issue_sha1 = expandIssueUID(issue_sha1)
     except IssueUIDAmbiguous:
@@ -554,6 +578,7 @@ def commandShow(ui):
             print('>>>> {0}. {1} ({2}) at {3}\n'.format(i, issue_comment['author.name'], issue_comment['author.email'], datetime.datetime.fromtimestamp(issue_comment['timestamp'])))
             print(issue_comment['message'])
             print()
+    markLastIssue(issue_sha1)
 
 def commandConfig(ui):
     ui = ui.down()
