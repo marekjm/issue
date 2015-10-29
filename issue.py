@@ -417,6 +417,10 @@ def commandLs(ui):
             issue_timestamp = datetime.datetime.fromtimestamp(issue_data.get(issue_timestamp, 0))
             if ((issue_timestamp > since) if '--older' in ui else (issue_timestamp <= since)):
                 continue
+        if '--author' in ui:
+            author = ui.get('--author')
+            if not (author in issue_data['open.author.name'] or author in issue_data['open.author.email']):
+                continue
         if '--details' in ui:
             print('{0}: {1}'.format(short, issue_data['message'].splitlines()[0]))
             issue_open_author_name = (issue_data['open.author.name'] if 'open.author.name' in issue_data else 'Unknown Author')

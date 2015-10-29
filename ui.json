@@ -163,6 +163,12 @@
                         "help": "filter by given <label>"
                     },
                     {
+                        "short": "a",
+                        "long": "author",
+                        "arguments": ["str"],
+                        "help": "show issues opened or closed by given author"
+                    },
+                    {
                         "short": "S",
                         "long": "since",
                         "arguments": ["str"],
