@@ -458,9 +458,15 @@ def commandLs(ui):
                 if kw[0] == '-' and kw[1:] in message_lower:
                     found -= 1
                     continue
+                if kw[0] == '^' and kw[1:] in message_lower:
+                    found = 0
+                    break
                 if kw[0] == '+' and kw[1:] not in message_lower:
                     found -= 1
                     continue
+                if kw[0] == '=' and kw[1:] not in message_lower:
+                    found = 0
+                    break
                 if kw in message_lower:
                     found += 1
             if found < LS_KEYWORD_MATCH_THRESHOLD:
