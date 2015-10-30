@@ -77,6 +77,8 @@ PACK_PATH = os.path.join(REPOSITORY_PATH, 'pack.json')
 REMOTE_PACK_PATH = os.path.join(REPOSITORY_PATH, 'remote_pack.json')
 LAST_ISSUE_PATH = os.path.join(REPOSITORY_PATH, 'last')
 
+LS_KEYWORD_MATCH_THRESHOLD = 1
+
 
 # exception definitions
 class IssueException(Exception):
@@ -394,6 +396,8 @@ def commandLs(ui):
     groups = os.listdir(ISSUES_PATH)
     issues = listIssuesUsingShortestPossibleUIDs(with_full=True)
 
+    ls_keywords = [kw.lower() for kw in ui.operands() if len(kw) > 1]
+
     accepted_statuses = []
     if '--status' in ui:
         accepted_statuses = [s[0] for s in ui.get('--status')]
@@ -446,6 +450,20 @@ def commandLs(ui):
         if '--author' in ui:
             author = ui.get('--author')
             if not (author in issue_data['open.author.name'] or author in issue_data['open.author.email']):
+                continue
+        if ls_keywords:
+            message_lower = issue_data['message'].lower()
+            found = 0
+            for kw in ls_keywords:
+                if kw[0] == '-' and kw[1:] in message_lower:
+                    found -= 1
+                    continue
+                if kw[0] == '+' and kw[1:] not in message_lower:
+                    found -= 1
+                    continue
+                if kw in message_lower:
+                    found += 1
+            if found < LS_KEYWORD_MATCH_THRESHOLD:
                 continue
         if '--details' in ui:
             print('{0}: {1}'.format(short, issue_data['message'].splitlines()[0]))
