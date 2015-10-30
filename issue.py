@@ -240,6 +240,25 @@ def getLastIssue():
             last_issue_sha1 = ifstream.read()
     return last_issue_sha1
 
+def getTimeDeltaArguments(delta_mods):
+    time_delta = {}
+    time_patterns = [
+        re.compile('(\d+)(minutes?)'),
+        re.compile('(\d+)(hours?)'),
+        re.compile('(\d+)(days?)'),
+        re.compile('(\d+)(weeks?)'),
+        re.compile('(\d+)(months?)'),
+    ]
+    # print(delta_mods)
+    for dm in delta_mods:
+        for p in time_patterns:
+            pm = p.match(dm)
+            if pm is not None:
+                mod = pm.group(2)
+                if mod[-1] != 's': mod += 's'  # allow both "1week" and "2weeks"
+                time_delta[mod] = int(pm.group(1))
+    return time_delta
+
 
 ui = ui.down() # go down a mode
 operands = ui.operands()
@@ -391,46 +410,10 @@ def commandLs(ui):
         delta_mods_since = getConfig().get('default.time.recent', '1day').split(',')
 
     if '--since' in ui or '--recent' in ui:
-        time_delta = {}
-        time_patterns = [
-            re.compile('(\d+)(minutes?)'),
-            re.compile('(\d+)(hours?)'),
-            re.compile('(\d+)(days?)'),
-            re.compile('(\d+)(weeks?)'),
-            re.compile('(\d+)(months?)'),
-        ]
-        # print(delta_mods_since)
-        for dm in delta_mods_since:
-            for p in time_patterns:
-                pm = p.match(dm)
-                if pm is not None:
-                    mod = pm.group(2)
-                    if mod[-1] != 's': mod += 's'  # allow both "1week" and "2weeks"
-                    time_delta[mod] = int(pm.group(1))
-
-        # print(time_delta)
-        since = (datetime.datetime.now() - datetime.timedelta(**time_delta))
+        since = (datetime.datetime.now() - datetime.timedelta(**getTimeDeltaArguments(delta_mods_since)))
 
     if '--until' in ui:
-        time_delta = {}
-        time_patterns = [
-            re.compile('(\d+)(minutes?)'),
-            re.compile('(\d+)(hours?)'),
-            re.compile('(\d+)(days?)'),
-            re.compile('(\d+)(weeks?)'),
-            re.compile('(\d+)(months?)'),
-        ]
-        # print(delta_mods_until)
-        for dm in delta_mods_until:
-            for p in time_patterns:
-                pm = p.match(dm)
-                if pm is not None:
-                    mod = pm.group(2)
-                    if mod[-1] != 's': mod += 's'  # allow both "1week" and "2weeks"
-                    time_delta[mod] = int(pm.group(1))
-
-        # print(time_delta)
-        until = (datetime.datetime.now() - datetime.timedelta(**time_delta))
+        until = (datetime.datetime.now() - datetime.timedelta(**getTimeDeltaArguments(delta_mods_until)))
 
     issues_to_list = []
     for short, i in issues:
