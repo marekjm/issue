@@ -382,11 +382,13 @@ def commandLs(ui):
     if '--label' in ui:
         accepted_labels = [s[0] for s in ui.get('--label')]
 
-    delta_mods, since = [], None
+    delta_mods_since, since, delta_mods_until, until = [], None, [], None
     if '--since' in ui:
-        delta_mods = [s[0] for s in ui.get('--since')]
+        delta_mods_since = [s[0] for s in ui.get('--since')]
+    if '--until' in ui:
+        delta_mods_until = [s[0] for s in ui.get('--until')]
     if '--recent' in ui:
-        delta_mods = getConfig().get('default.time.recent', '1day').split(',')
+        delta_mods_since = getConfig().get('default.time.recent', '1day').split(',')
 
     if '--since' in ui or '--recent' in ui:
         time_delta = {}
@@ -397,8 +399,8 @@ def commandLs(ui):
             re.compile('(\d+)(weeks?)'),
             re.compile('(\d+)(months?)'),
         ]
-        # print(delta_mods)
-        for dm in delta_mods:
+        # print(delta_mods_since)
+        for dm in delta_mods_since:
             for p in time_patterns:
                 pm = p.match(dm)
                 if pm is not None:
@@ -408,6 +410,27 @@ def commandLs(ui):
 
         # print(time_delta)
         since = (datetime.datetime.now() - datetime.timedelta(**time_delta))
+
+    if '--until' in ui:
+        time_delta = {}
+        time_patterns = [
+            re.compile('(\d+)(minutes?)'),
+            re.compile('(\d+)(hours?)'),
+            re.compile('(\d+)(days?)'),
+            re.compile('(\d+)(weeks?)'),
+            re.compile('(\d+)(months?)'),
+        ]
+        # print(delta_mods_until)
+        for dm in delta_mods_until:
+            for p in time_patterns:
+                pm = p.match(dm)
+                if pm is not None:
+                    mod = pm.group(2)
+                    if mod[-1] != 's': mod += 's'  # allow both "1week" and "2weeks"
+                    time_delta[mod] = int(pm.group(1))
+
+        # print(time_delta)
+        until = (datetime.datetime.now() - datetime.timedelta(**time_delta))
 
     issues_to_list = []
     for short, i in issues:
@@ -430,7 +453,12 @@ def commandLs(ui):
         if since is not None:
             issue_timestamp = ('close.timestamp' if '--closed' in ui else 'open.timestamp')
             issue_timestamp = datetime.datetime.fromtimestamp(issue_data.get(issue_timestamp, 0))
-            if ((issue_timestamp > since) if '--older' in ui else (issue_timestamp <= since)):
+            if issue_timestamp < since:
+                continue
+        if until is not None:
+            issue_timestamp = ('close.timestamp' if '--closed' in ui else 'open.timestamp')
+            issue_timestamp = datetime.datetime.fromtimestamp(issue_data.get(issue_timestamp, 0))
+            if issue_timestamp > until:
                 continue
         if '--author' in ui:
             author = ui.get('--author')

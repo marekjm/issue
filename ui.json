@@ -186,15 +186,17 @@
                         "help": "show issues no older than given date specifier"
                     },
                     {
+                        "short": "U",
+                        "long": "until",
+                        "arguments": ["str"],
+                        "plural": true,
+                        "help": "show only issues older than given date specifier"
+                    },
+                    {
                         "short": "r",
                         "long": "recent",
                         "conflicts": ["--since"],
                         "help": "show recently changed (opened or closed) issues, defaults to 1 day but can be adjusted with \"defaults.time.recent\" config"
-                    },
-                    {
-                        "short": "O",
-                        "long": "older",
-                        "help": "inverts meaning of --recent and --since making them show *older than* issues"
                     }
                 ]
             }
