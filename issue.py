@@ -459,20 +459,10 @@ def fetchRemote(remote_name, remote_data=None, local_pack=None):
         issue_group_path = os.path.join(ISSUES_PATH, issue_sha1[:2])
         if not os.path.isdir(issue_group_path):
             os.mkdir(issue_group_path)
-
-        exit_code, output, error = runShell(
-            'scp',
-            '{0}/objects/issues/{1}/{2}.json'.format(remote_data['url'], issue_sha1[:2], issue_sha1),
-            os.path.join(ISSUES_PATH, issue_sha1[:2], '{0}.json'.format(issue_sha1))
-        )
-
-        if exit_code:
-            print('  * fail ({0}): issue {1}: {2}'.format(exit_code, issue_sha1, error))
-            continue
-
         # make directories for issue-specific objects
         os.mkdir(os.path.join(issue_group_path, issue_sha1))
         os.mkdir(os.path.join(issue_group_path, issue_sha1, 'comments'))
+        os.mkdir(os.path.join(issue_group_path, issue_sha1, 'diff'))
 
     for issue_sha1 in new_comments:
         if not new_comments[issue_sha1]:
