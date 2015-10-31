@@ -340,6 +340,107 @@ def fetchRemote(remote_name, remote_data=None, local_pack=None):
                 print('  * fail ({0}): comment {1}.{2}: {3}'.format(exit_code, issue_sha1, cmt_sha1, error))
                 continue
 
+def publishToRemote(remote_name, remote_data=None, local_pack=None):
+    if remote_data is None:
+        remote_data = getRemotes()[remote_name]
+    if local_pack is None:
+        local_pack = getPack()
+
+    remote_status = remote_data.get('status', 'unknown')
+    if remote_status != 'exchange':
+        print('cannot publish to "{0}": invalid remote status: {1}'.format(remote_name, remote_status))
+        if '--verbose' in ui:
+            if remote_status == 'endpoint':
+                print('note: create a shared exchange from which "{0}" endpoint can fetch objects'.format(remote_name))
+            elif remote_status == 'unknown':
+                print('note: run "issue fetch --status {0}" to obtain status of this node'.format(remote_name))
+            else:
+                print('note: broken status, run "issue fetch --status {0}" to fix it'.format(remote_name))
+        return 1
+    print('publishing objects to remote: {0}'.format(remote_name))
+
+    remote_pack_fetch_command = ('scp', '{0}/pack.json'.format(remote_data['url']), REMOTE_PACK_PATH)
+    exit_code, output, error = runShell(*remote_pack_fetch_command)
+
+    remote_pack = {'issues': [], 'comments': {}}
+    if exit_code == 0:
+        with open(REMOTE_PACK_PATH) as ifstream:
+            remote_pack = json.loads(ifstream.read())
+
+    new_issues = set(local_pack['issues']) - set(remote_pack['issues'])
+    # print(new_issues)
+
+    new_comments = {}
+    for k, v in remote_pack['comments'].items():
+        if k in local_pack['comments']:
+            new_comments[k] = set(local_pack['comments'][k]) - set(remote_pack['comments'][k])
+        else:
+            new_comments[k] = remote_pack['comments'][k]
+    # print(new_comments)
+    print('  * publishing issues:   {0} object(s)'.format(len(new_issues)))
+    print('  * publishing comments: {0} object(s)'.format(sum([len(new_comments[k]) for k in new_comments])))
+
+    for issue_sha1 in new_issues:
+        print(' -> publishing issue: {0}'.format(issue_sha1))
+        issue_group_path = os.path.join(ISSUES_PATH, issue_sha1[:2])
+
+        required_directories = [
+            os.path.join('objects', 'issues', issue_sha1[:2]),
+            os.path.join('objects', 'issues', issue_sha1[:2], issue_sha1),
+            os.path.join('objects', 'issues', issue_sha1[:2], issue_sha1, 'comments'),
+        ]
+
+        remote_repository_host, remote_repository_path = remote_data['url'].split(':')
+        required_directories = [os.path.join(remote_repository_path, rd) for rd in required_directories]
+        remote_mkdir_command = 'mkdir -p {0}'.format(' '.join(required_directories))
+
+        exit_code, output, error = runShell(
+            'ssh',
+            remote_repository_host,
+            remote_mkdir_command,
+        )
+
+        if exit_code:
+            print('  * fail ({0}): cannot create required directories: {1}'.format(exit_code, error))
+            continue
+
+        exit_code, output, error = runShell(
+            'scp',
+            os.path.join(ISSUES_PATH, issue_sha1[:2], '{0}.json'.format(issue_sha1)),
+            '{0}/objects/issues/{1}/{2}.json'.format(remote_data['url'], issue_sha1[:2], issue_sha1)
+        )
+
+        if exit_code:
+            print('  * fail ({0}): issue {1}: {2}'.format(exit_code, issue_sha1, error))
+            continue
+
+    for issue_sha1 in new_comments:
+        if not new_comments[issue_sha1]:
+            continue
+
+        for cmt_sha1 in new_comments[issue_sha1]:
+            exit_code, output, error = runShell(
+                'scp',
+                os.path.join(ISSUES_PATH, issue_sha1[:2], issue_sha1, 'comments', '{0}.json'.format(cmt_sha1)),
+                '{0}/objects/issues/{1}/{2}/comments/{3}.json'.format(
+                    remote_data['url'],
+                    issue_sha1[:2],
+                    issue_sha1,
+                    cmt_sha1,
+                )
+            )
+
+            if exit_code:
+                print('  * fail ({0}): comment {1}.{2}: {3}'.format(exit_code, issue_sha1, cmt_sha1, error))
+                continue
+
+    remote_pack_publish_command = ('scp', os.path.join(PACK_PATH), '{0}/pack.json'.format(remote_data['url']))
+    exit_code, output, error = runShell(*remote_pack_publish_command)
+
+    if exit_code:
+        print('  * fail ({0}): failed to send pack: {1}'.format(exit_code, error))
+        return 1
+
 
 ui = ui.down() # go down a mode
 operands = ui.operands()
@@ -818,100 +919,7 @@ def commandPublish(ui):
         savePack()
 
     for remote_name in publish_to_remotes:
-        remote_status = remotes[remote_name].get('status', 'unknown')
-        if remote_status != 'exchange':
-            print('cannot publish to "{0}": invalid remote status: {1}'.format(remote_name, remote_status))
-            if '--verbose' in ui:
-                if remote_status == 'endpoint':
-                    print('note: create a shared exchange from which "{0}" endpoint can fetch objects'.format(remote_name))
-                elif remote_status == 'unknown':
-                    print('note: run "issue fetch --status {0}" to obtain status of this node'.format(remote_name))
-                else:
-                    print('note: broken status, run "issue fetch --status {0}" to fix it'.format(remote_name))
-            continue
-        print('publishing objects to remote: {0}'.format(remote_name))
-
-        remote_pack_fetch_command = ('scp', '{0}/pack.json'.format(remotes[remote_name]['url']), REMOTE_PACK_PATH)
-        exit_code, output, error = runShell(*remote_pack_fetch_command)
-
-        remote_pack = {'issues': [], 'comments': {}}
-        if exit_code == 0:
-            with open(REMOTE_PACK_PATH) as ifstream:
-                remote_pack = json.loads(ifstream.read())
-
-        new_issues = set(local_pack['issues']) - set(remote_pack['issues'])
-        # print(new_issues)
-
-        new_comments = {}
-        for k, v in remote_pack['comments'].items():
-            if k in local_pack['comments']:
-                new_comments[k] = set(local_pack['comments'][k]) - set(remote_pack['comments'][k])
-            else:
-                new_comments[k] = remote_pack['comments'][k]
-        # print(new_comments)
-        print('  * publishing issues:   {0} object(s)'.format(len(new_issues)))
-        print('  * publishing comments: {0} object(s)'.format(sum([len(new_comments[k]) for k in new_comments])))
-
-        for issue_sha1 in new_issues:
-            print(' -> publishing issue: {0}'.format(issue_sha1))
-            issue_group_path = os.path.join(ISSUES_PATH, issue_sha1[:2])
-
-            required_directories = [
-                os.path.join('objects', 'issues', issue_sha1[:2]),
-                os.path.join('objects', 'issues', issue_sha1[:2], issue_sha1),
-                os.path.join('objects', 'issues', issue_sha1[:2], issue_sha1, 'comments'),
-            ]
-
-            remote_repository_host, remote_repository_path = remotes[remote_name]['url'].split(':')
-            required_directories = [os.path.join(remote_repository_path, rd) for rd in required_directories]
-            remote_mkdir_command = 'mkdir -p {0}'.format(' '.join(required_directories))
-
-            exit_code, output, error = runShell(
-                'ssh',
-                remote_repository_host,
-                remote_mkdir_command,
-            )
-
-            if exit_code:
-                print('  * fail ({0}): cannot create required directories: {1}'.format(exit_code, error))
-                continue
-
-            exit_code, output, error = runShell(
-                'scp',
-                os.path.join(ISSUES_PATH, issue_sha1[:2], '{0}.json'.format(issue_sha1)),
-                '{0}/objects/issues/{1}/{2}.json'.format(remotes[remote_name]['url'], issue_sha1[:2], issue_sha1)
-            )
-
-            if exit_code:
-                print('  * fail ({0}): issue {1}: {2}'.format(exit_code, issue_sha1, error))
-                continue
-
-        for issue_sha1 in new_comments:
-            if not new_comments[issue_sha1]:
-                continue
-
-            for cmt_sha1 in new_comments[issue_sha1]:
-                exit_code, output, error = runShell(
-                    'scp',
-                    os.path.join(ISSUES_PATH, issue_sha1[:2], issue_sha1, 'comments', '{0}.json'.format(cmt_sha1)),
-                    '{0}/objects/issues/{1}/{2}/comments/{3}.json'.format(
-                        remotes[remote_name]['url'],
-                        issue_sha1[:2],
-                        issue_sha1,
-                        cmt_sha1,
-                    )
-                )
-
-                if exit_code:
-                    print('  * fail ({0}): comment {1}.{2}: {3}'.format(exit_code, issue_sha1, cmt_sha1, error))
-                    continue
-
-        remote_pack_publish_command = ('scp', os.path.join(PACK_PATH), '{0}/pack.json'.format(remotes[remote_name]['url']))
-        exit_code, output, error = runShell(*remote_pack_publish_command)
-
-        if exit_code:
-            print('  * fail ({0}): failed to send pack: {1}'.format(exit_code, error))
-            continue
+        publishToRemote(remote_name, remotes[remote_name], local_pack)
 
 
 def dispatch(ui, *commands, overrides = {}, default_command=''):
