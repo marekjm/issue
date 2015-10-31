@@ -1047,6 +1047,8 @@ def commandIndex(ui):
     ui = ui.down()
     for issue_sha1 in (ui.operands() or listIssues()):
         indexIssue(expandIssueUID(issue_sha1))
+    if '--pack' in ui:
+        savePack()
 
 
 def dispatch(ui, *commands, overrides = {}, default_command=''):
