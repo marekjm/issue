@@ -116,4 +116,6 @@ Mail me if you would like to use the software under a different license.
 ## Dependencies
 
 Issue requires a recent version of Python 3, and [`CLAP`](https://github.com/marekjm/clap) library to run.
-Both components should be easily installed in any Linux system (CLAP must be installed with Git).
+Both components should be easily installed in any Linux system.
+CLAP must be installed with Git.
+Issue requires CLAP at least version `0.10.1`.
