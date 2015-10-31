@@ -70,6 +70,7 @@ if clap.helper.HelpRunner(ui=ui, program=sys.argv[0]).adjust(options=['-h', '--h
 # ensure the repository exists
 REPOSITORY_PATH = '.issue'
 OBJECTS_PATH = os.path.join(REPOSITORY_PATH, 'objects')
+REPOSITORY_TMP_PATH = os.path.join(REPOSITORY_PATH, 'tmp')
 ISSUES_PATH = os.path.join(OBJECTS_PATH, 'issues')
 LABELS_PATH = os.path.join(OBJECTS_PATH, 'labels')
 MILESTONES_PATH = os.path.join(OBJECTS_PATH, 'milestones')
@@ -273,6 +274,7 @@ if str(ui) not in ('init', 'help') and '--nuke' not in ui and not os.path.isdir(
         print('fatal: not inside issues repository')
         exit(1)
     OBJECTS_PATH = os.path.join(REPOSITORY_PATH, 'objects')
+    REPOSITORY_TMP_PATH = os.path.join(REPOSITORY_PATH, 'tmp')
     ISSUES_PATH = os.path.join(OBJECTS_PATH, 'issues')
     LABELS_PATH = os.path.join(OBJECTS_PATH, 'labels')
     MILESTONES_PATH = os.path.join(OBJECTS_PATH, 'milestones')
@@ -316,7 +318,7 @@ def commandInit(ui):
     if os.path.isdir(REPOSITORY_PATH) and '--up' not in ui:
         print('fatal: repository already exists')
         exit(1)
-    for pth in (REPOSITORY_PATH, OBJECTS_PATH, ISSUES_PATH, LABELS_PATH, MILESTONES_PATH):
+    for pth in (REPOSITORY_PATH, OBJECTS_PATH, REPOSITORY_TMP_PATH, ISSUES_PATH, LABELS_PATH, MILESTONES_PATH):
         if not os.path.isdir(pth):
             os.mkdir(pth)
     with open(os.path.join(REPOSITORY_PATH, 'status'), 'w') as ofstream:
