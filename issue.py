@@ -441,6 +441,9 @@ def publishToRemote(remote_name, remote_data=None, local_pack=None):
         print('  * fail ({0}): failed to send pack: {1}'.format(exit_code, error))
         return 1
 
+def timestamp(dt=None):
+    return (dt or datetime.datetime.now()).timestamp()
+
 
 if '--pack' in ui:
     print('packing objects:')
@@ -533,7 +536,7 @@ def commandOpen(ui):
         'status': 'open',
         'open.author.email': repo_config['author.email'],
         'open.author.name': repo_config['author.name'],
-        'open.timestamp': datetime.datetime.now().timestamp(),
+        'open.timestamp': timestamp(),
         '_meta': {}
     }
 
@@ -541,6 +544,7 @@ def commandOpen(ui):
     if not os.path.isdir(issue_group_path):
         os.mkdir(issue_group_path)
 
+    # no need for indexing when issue is just being opened
     issue_file_path = os.path.join(issue_group_path, '{0}.json'.format(issue_sha1))
     with open(issue_file_path, 'w') as ofstream:
         ofstream.write(json.dumps(issue_data))
@@ -548,6 +552,67 @@ def commandOpen(ui):
     # make directories for issue-specific objects
     os.mkdir(os.path.join(issue_group_path, issue_sha1))
     os.mkdir(os.path.join(issue_group_path, issue_sha1, 'comments'))
+    os.mkdir(os.path.join(issue_group_path, issue_sha1, 'diff'))
+
+    issue_differences = [
+        {
+            'action': 'open',
+            'author': {
+                'author.email': repo_config['author.email'],
+                'author.name': repo_config['author.name'],
+            },
+            'timestamp': timestamp(),
+        },
+        {
+            'action': 'set-message',
+            'params': {
+                'text': message,
+            },
+            'author': {
+                'author.email': repo_config['author.email'],
+                'author.name': repo_config['author.name'],
+            },
+            'timestamp': timestamp(),
+        },
+        {
+            'action': 'set-labels',
+            'params': {
+                'labels': labels,
+            },
+            'author': {
+                'author.email': repo_config['author.email'],
+                'author.name': repo_config['author.name'],
+            },
+            'timestamp': timestamp(),
+        },
+        {
+            'action': 'set-milestones',
+            'params': {
+                'milestones': milestones,
+            },
+            'author': {
+                'author.email': repo_config['author.email'],
+                'author.name': repo_config['author.name'],
+            },
+            'timestamp': timestamp(),
+        },
+        {
+            'action': 'set-status',
+            'params': {
+                'status': 'open',
+            },
+            'author': {
+                'author.email': repo_config['author.email'],
+                'author.name': repo_config['author.name'],
+            },
+            'timestamp': timestamp(),
+        }
+    ]
+    issue_diff_sha1 = '{0}{1}{2}{3}'.format(repo_config['author.email'], repo_config['author.name'], timestamp(), random.random())
+    issue_diff_sha1 = hashlib.sha1(issue_sha1.encode('utf-8')).hexdigest()
+    issue_diff_file_path = os.path.join(issue_group_path, issue_sha1, 'diff', '{0}.json'.format(issue_diff_sha1))
+    with open(issue_diff_file_path, 'w') as ofstream:
+        ofstream.write(json.dumps(issue_differences))
 
     if '--git' in ui:
         print('issue/{0}'.format(sluggify(message)))
