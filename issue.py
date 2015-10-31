@@ -1192,14 +1192,17 @@ def commandPublish(ui):
 
 def commandIndex(ui):
     ui = ui.down()
-    for issue_sha1 in (ui.operands() or listIssues()):
+    issue_list = ui.operands()
+    if '--reverse' not in ui and not issue_list:
+        issue_list = listIssues()
+    for issue_sha1 in issue_list:
+        issue_sha1 = expandIssueUID(issue_sha1)
         if '--reverse' in ui:
-            try:
-                getIssue(expandIssueUID(issue_sha1))
-            except NotIndexed:
-                revindexIssue(issue_sha1)
+            print('rev-indexing issue: {0}'.format(issue_sha1))
+            revindexIssue(issue_sha1)
         else:
-            indexIssue(expandIssueUID(issue_sha1))
+            print('indexing issue: {0}'.format(issue_sha1))
+            indexIssue(issue_sha1)
     if '--pack' in ui:
         savePack()
 
