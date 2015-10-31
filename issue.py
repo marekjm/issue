@@ -121,6 +121,59 @@ def saveIssue(issue_sha1, issue_data):
     with open(issue_file_path, 'w') as ofstream:
         ofstream.write(json.dumps(issue_data))
 
+def listIssueDifferences(issue_sha1):
+    issue_group = issue_sha1[:2]
+    issue_diffs_path = os.path.join(ISSUES_PATH, issue_group, issue_sha1, 'diff')
+    return [k.split('.')[0] for k in os.listdir(issue_diffs_path)]
+
+def getIssueDifferences(issue_sha1, *diffs):
+    issue_differences = []
+    issue_diff_path = os.path.join(ISSUES_PATH, issue_sha1[:2], issue_sha1, 'diff')
+    for d in diffs:
+        issue_diff_file_path = os.path.join(issue_diff_path, '{0}.json'.format(d))
+        with open(issue_diff_file_path) as ifstream:
+            issue_differences.extend(json.loads(ifstream.read()))
+    return issue_differences
+
+def indexIssue(issue_sha1, *diffs):
+    issue_data = {}
+    issue_file_path = os.path.join(ISSUES_PATH, issue_sha1[:2], '{0}.json'.format(issue_sha1))
+    with open(issue_file_path) as ifstream:
+        issue_data = json.loads(ifstream.read())
+
+    issue_differences = (diffs or listIssueDifferences(issue_sha1))
+    issue_differences = getIssueDifferences(issue_sha1, *issue_differences)
+
+    issue_differences_order = dict([(d['timestamp'], i) for i, d in enumerate(issue_differences)])
+    issue_differences_sorted = [issue_differences[issue_differences_order[ts]] for ts in sorted(issue_differences_order.keys())]
+
+    for d in issue_differences_sorted:
+        diff_datetime = datetime.datetime.fromtimestamp(d['timestamp'])
+        diff_action = d['action']
+        if diff_action == 'open':
+            issue_data['status'] = 'open'
+            issue_data['open.author.name'] = d['author']['author.name']
+            issue_data['open.author.email'] = d['author']['author.email']
+        elif diff_action == 'close':
+            issue_data['status'] = 'closed'
+            issue_data['close.author.name'] = d['author']['author.name']
+            issue_data['close.author.email'] = d['author']['author.email']
+        elif diff_action == 'set-message':
+            issue_data['message'] = d['params']['text']
+        elif diff_action == 'push-labels':
+            if 'labels' not in issue_data:
+                issue_data['labels'] = []
+            issue_data['labels'].extend(d['params']['labels'])
+        elif diff_action == 'push-milestones':
+            if 'milestones' not in issue_data:
+                issue_data['milestones'] = []
+            issue_data['milestones'].extend(d['params']['milestones'])
+        elif diff_action == 'set-status':
+            issue_data['status'] = d['params']['status']
+
+    with open(issue_file_path, 'w') as ofstream:
+        ofstream.write(json.dumps(issue_data))
+
 def dropIssue(issue_sha1):
     issue_group_path = os.path.join(ISSUES_PATH, issue_sha1[:2])
     issue_file_path = os.path.join(issue_group_path, '{0}.json'.format(issue_sha1))
@@ -575,7 +628,7 @@ def commandOpen(ui):
             'timestamp': timestamp(),
         },
         {
-            'action': 'set-labels',
+            'action': 'push-labels',
             'params': {
                 'labels': labels,
             },
@@ -586,20 +639,9 @@ def commandOpen(ui):
             'timestamp': timestamp(),
         },
         {
-            'action': 'set-milestones',
+            'action': 'push-milestones',
             'params': {
                 'milestones': milestones,
-            },
-            'author': {
-                'author.email': repo_config['author.email'],
-                'author.name': repo_config['author.name'],
-            },
-            'timestamp': timestamp(),
-        },
-        {
-            'action': 'set-status',
-            'params': {
-                'status': 'open',
             },
             'author': {
                 'author.email': repo_config['author.email'],
@@ -634,14 +676,29 @@ def commandClose(ui):
         print('fatal: issue already closed by {0}{1}'.format(issue_data.get('close.author.name', 'Unknown author'), (' ({0})'.format(issue_data['close.author.email']) if 'close.author.email' else '')))
         exit(1)
 
-    issue_data['status'] = 'closed'
-    issue_data['close.author.email'] = repo_config['author.email']
-    issue_data['close.author.name'] = repo_config['author.name']
-    issue_data['close.timestamp'] = datetime.datetime.now().timestamp()
+    issue_differences = [
+        {
+            'action': 'close',
+            'params': {
+            },
+            'author': {
+                'author.email': repo_config['author.email'],
+                'author.name': repo_config['author.name'],
+            },
+            'timestamp': timestamp(),
+        },
+    ]
     if '--git-commit' in ui:
-        issue_data['closing_git_commit'] = ui.get('--git-commit')
-    saveIssue(issue_sha1, issue_data)
+        issue_differences[0]['params']['closing_git_commit'] = ui.get('--git-commit')
+
+    issue_diff_sha1 = '{0}{1}{2}{3}'.format(repo_config['author.email'], repo_config['author.name'], timestamp(), random.random())
+    issue_diff_sha1 = hashlib.sha1(issue_diff_sha1.encode('utf-8')).hexdigest()
+    issue_diff_file_path = os.path.join(ISSUES_PATH, issue_sha1[:2], issue_sha1, 'diff', '{0}.json'.format(issue_diff_sha1))
+    with open(issue_diff_file_path, 'w') as ofstream:
+        ofstream.write(json.dumps(issue_differences))
     markLastIssue(issue_sha1)
+    # indexIssue(issue_sha1, issue_diff_sha1)
+    indexIssue(issue_sha1, issue_diff_sha1)
 
 def commandLs(ui):
     groups = os.listdir(ISSUES_PATH)
