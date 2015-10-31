@@ -268,6 +268,78 @@ def getTimeDeltaArguments(delta_mods):
                 time_delta[mod] = int(pm.group(1))
     return time_delta
 
+def fetchRemote(remote_name, remote_data=None, local_pack=None):
+    if remote_data is None:
+        remote_data = getRemotes()[remote_name]
+    if local_pack is None:
+        local_pack = getPack()
+    print('fetching objects from remote: {0}'.format(remote_name))
+    remote_pack_fetch_command = ('scp', '{0}/pack.json'.format(remote_data['url']), REMOTE_PACK_PATH)
+    exit_code, output, error = runShell(*remote_pack_fetch_command)
+
+    if exit_code:
+        print('  * fail ({0}): {1}'.format(exit_code, error))
+        return 1
+
+    remote_pack = {}
+    with open(REMOTE_PACK_PATH) as ifstream:
+        remote_pack = json.loads(ifstream.read())
+
+    new_issues = set(remote_pack['issues']) - set(local_pack['issues'])
+    # print(new_issues)
+
+    new_comments = {}
+    for k, v in remote_pack['comments'].items():
+        if k in local_pack['comments']:
+            new_comments[k] = set(remote_pack['comments'][k]) - set(local_pack['comments'][k])
+        else:
+            new_comments[k] = remote_pack['comments'][k]
+    # print(new_comments)
+    print('  * issues:   {0} object(s)'.format(len(new_issues)))
+    print('  * comments: {0} object(s)'.format(sum([len(new_comments[k]) for k in new_comments])))
+
+    if '--probe' in ui:
+        return 0
+
+    for issue_sha1 in new_issues:
+        issue_group_path = os.path.join(ISSUES_PATH, issue_sha1[:2])
+        if not os.path.isdir(issue_group_path):
+            os.mkdir(issue_group_path)
+
+        exit_code, output, error = runShell(
+            'scp',
+            '{0}/objects/issues/{1}/{2}.json'.format(remote_data['url'], issue_sha1[:2], issue_sha1),
+            os.path.join(ISSUES_PATH, issue_sha1[:2], '{0}.json'.format(issue_sha1))
+        )
+
+        if exit_code:
+            print('  * fail ({0}): issue {1}: {2}'.format(exit_code, issue_sha1, error))
+            continue
+
+        # make directories for issue-specific objects
+        os.mkdir(os.path.join(issue_group_path, issue_sha1))
+        os.mkdir(os.path.join(issue_group_path, issue_sha1, 'comments'))
+
+    for issue_sha1 in new_comments:
+        if not new_comments[issue_sha1]:
+            continue
+
+        for cmt_sha1 in new_comments[issue_sha1]:
+            exit_code, output, error = runShell(
+                'scp',
+                '{0}/objects/issues/{1}/{2}/comments/{3}.json'.format(
+                    remote_data['url'],
+                    issue_sha1[:2],
+                    issue_sha1,
+                    cmt_sha1,
+                ),
+                os.path.join(ISSUES_PATH, issue_sha1[:2], issue_sha1, 'comments', '{0}.json'.format(cmt_sha1))
+            )
+
+            if exit_code:
+                print('  * fail ({0}): comment {1}.{2}: {3}'.format(exit_code, issue_sha1, cmt_sha1, error))
+                continue
+
 
 ui = ui.down() # go down a mode
 operands = ui.operands()
@@ -734,72 +806,7 @@ def commandFetch(ui):
         saveRemotes(remotes)
     else:
         for remote_name in fetch_from_remotes:
-            print('fetching objects from remote: {0}'.format(remote_name))
-            remote_pack_fetch_command = ('scp', '{0}/pack.json'.format(remotes[remote_name]['url']), REMOTE_PACK_PATH)
-            exit_code, output, error = runShell(*remote_pack_fetch_command)
-
-            if exit_code:
-                print('  * fail ({0}): {1}'.format(exit_code, error))
-                continue
-
-            remote_pack = {}
-            with open(REMOTE_PACK_PATH) as ifstream:
-                remote_pack = json.loads(ifstream.read())
-
-            new_issues = set(remote_pack['issues']) - set(local_pack['issues'])
-            # print(new_issues)
-
-            new_comments = {}
-            for k, v in remote_pack['comments'].items():
-                if k in local_pack['comments']:
-                    new_comments[k] = set(remote_pack['comments'][k]) - set(local_pack['comments'][k])
-                else:
-                    new_comments[k] = remote_pack['comments'][k]
-            # print(new_comments)
-            print('  * issues:   {0} object(s)'.format(len(new_issues)))
-            print('  * comments: {0} object(s)'.format(sum([len(new_comments[k]) for k in new_comments])))
-
-            if '--probe' in ui:
-                continue
-
-            for issue_sha1 in new_issues:
-                issue_group_path = os.path.join(ISSUES_PATH, issue_sha1[:2])
-                if not os.path.isdir(issue_group_path):
-                    os.mkdir(issue_group_path)
-
-                exit_code, output, error = runShell(
-                    'scp',
-                    '{0}/objects/issues/{1}/{2}.json'.format(remotes[remote_name]['url'], issue_sha1[:2], issue_sha1),
-                    os.path.join(ISSUES_PATH, issue_sha1[:2], '{0}.json'.format(issue_sha1))
-                )
-
-                if exit_code:
-                    print('  * fail ({0}): issue {1}: {2}'.format(exit_code, issue_sha1, error))
-                    continue
-
-                # make directories for issue-specific objects
-                os.mkdir(os.path.join(issue_group_path, issue_sha1))
-                os.mkdir(os.path.join(issue_group_path, issue_sha1, 'comments'))
-
-            for issue_sha1 in new_comments:
-                if not new_comments[issue_sha1]:
-                    continue
-
-                for cmt_sha1 in new_comments[issue_sha1]:
-                    exit_code, output, error = runShell(
-                        'scp',
-                        '{0}/objects/issues/{1}/{2}/comments/{3}.json'.format(
-                            remotes[remote_name]['url'],
-                            issue_sha1[:2],
-                            issue_sha1,
-                            cmt_sha1,
-                        ),
-                        os.path.join(ISSUES_PATH, issue_sha1[:2], issue_sha1, 'comments', '{0}.json'.format(cmt_sha1))
-                    )
-
-                    if exit_code:
-                        print('  * fail ({0}): comment {1}.{2}: {3}'.format(exit_code, issue_sha1, cmt_sha1, error))
-                        continue
+            fetchRemote(remote_name, remotes[remote_name])
 
 def commandPublish(ui):
     ui = ui.down()
