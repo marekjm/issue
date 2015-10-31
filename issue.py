@@ -806,6 +806,10 @@ def commandPublish(ui):
     local_pack = getPack()
     remotes = getRemotes()
     publish_to_remotes = (ui.operands() or sorted([k for k in remotes.keys() if remotes[k].get('status', 'unknow') == 'exchange']))
+
+    if '--pack' in ui:
+        savePack()
+
     for remote_name in publish_to_remotes:
         remote_status = remotes[remote_name].get('status', 'unknown')
         if remote_status != 'exchange':

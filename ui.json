@@ -531,6 +531,11 @@
             },
             "options": {
                 "local": [
+                    {
+                        "short": "p",
+                        "long": "pack",
+                        "help": "pack objects before publishing"
+                    }
                 ]
             },
             "operands": {
