@@ -319,6 +319,8 @@ def commandInit(ui):
     for pth in (REPOSITORY_PATH, OBJECTS_PATH, ISSUES_PATH, LABELS_PATH, MILESTONES_PATH):
         if not os.path.isdir(pth):
             os.mkdir(pth)
+    with open(os.path.join(REPOSITORY_PATH, 'status'), 'w') as ofstream:
+        ofstream.write('exchange' if '--exchange' in ui else 'endpoint')
 
 def commandOpen(ui):
     message = ''

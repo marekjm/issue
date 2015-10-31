@@ -65,6 +65,11 @@
                         "help": "force initialisation of the repository (removes previous repository if one was already initialised)"
                     },
                     {
+                        "long": "exchange",
+                        "short": "e",
+                        "help": "initialise the repository as an exchange (allowing pushes)"
+                    },
+                    {
                         "long": "up",
                         "short": "u",
                         "help": "upgrade repository to newer version, creating additional structures as needed"
