@@ -551,6 +551,11 @@
             },
             "options": {
                 "local": [
+                    {
+                        "short": "p",
+                        "long": "pack",
+                        "help": "pack objects after indexing"
+                    }
                 ]
             },
             "operands": {
