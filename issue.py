@@ -88,6 +88,9 @@ class IssueException(Exception):
 class NotAnIssue(IssueException):
     pass
 
+class NotIndexed(IssueException):
+    pass
+
 class IssueUIDNotMatched(IssueException):
     pass
 
@@ -110,7 +113,10 @@ def getIssue(issue_sha1):
             with open(os.path.join(issue_comments_dir, cmt)) as ifstream:
                 issue_data['comments'][cmt.split('.')[0]] = json.loads(ifstream.read())
     except FileNotFoundError as e:
-        raise NotAnIssue(issue_file_path)
+        if os.path.isdir(os.path.join(ISSUES_PATH, issue_group, issue_sha1)):
+            raise NotIndexed(issue_file_path)
+        else:
+            raise NotAnIssue(issue_file_path)
     return issue_data
 
 def saveIssue(issue_sha1, issue_data):
@@ -799,7 +805,11 @@ def commandLs(ui):
     issues_to_list = []
     for short, i in issues:
         issue_sha1 = i.split('.', 1)[0]
-        issue_data = getIssue(issue_sha1)
+        try:
+            issue_data = getIssue(issue_sha1)
+        except NotIndexed as e:
+            print('{0}: [not indexed]'.format(short))
+            continue
         if '--open' in ui and (issue_data['status'] if 'status' in issue_data else '') not in ('open', ''): continue
         if '--closed' in ui and (issue_data['status'] if 'status' in issue_data else '') != 'closed': continue
         if '--status' in ui and (issue_data['status'] if 'status' in issue_data else '') not in accepted_statuses: continue
