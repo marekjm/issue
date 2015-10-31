@@ -62,6 +62,7 @@
                     {
                         "long": "force",
                         "short": "f",
+                        "conflicts": ["--up"],
                         "help": "force initialisation of the repository (removes previous repository if one was already initialised)"
                     },
                     {
@@ -72,6 +73,7 @@
                     {
                         "long": "up",
                         "short": "u",
+                        "conflicts": ["--force"],
                         "help": "upgrade repository to newer version, creating additional structures as needed"
                     }
                 ]
