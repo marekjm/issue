@@ -213,6 +213,7 @@ def getPack():
     pack_data = {
         'issues': [],
         'comments': {},
+        'diffs': {},
     }
 
     pack_issue_list = listIssues()
@@ -223,6 +224,12 @@ def getPack():
         pack_comments_path = os.path.join(ISSUES_PATH, p[:2], p, 'comments')
         pack_comments[p] = [sp.split('.')[0] for sp in os.listdir(pack_comments_path)]
     pack_data['comments'] = pack_comments
+
+    pack_diffs = {}
+    for p in pack_issue_list:
+        pack_diffs_path = os.path.join(ISSUES_PATH, p[:2], p, 'diff')
+        pack_diffs[p] = [sp.split('.')[0] for sp in os.listdir(pack_diffs_path)]
+    pack_data['diffs'] = pack_diffs
 
     return pack_data
 
@@ -502,11 +509,18 @@ if '--pack' in ui:
     print('packing objects:')
     pack_data = getPack()
 
+    count_issues = len(pack_data['issues'])
+    count_comments = sum([len(pack_data['comments'][n]) for n in pack_data['comments'].keys()])
+    count_diffs = sum([len(pack_data['diffs'][n]) for n in pack_data['diffs'].keys()])
+
     print('  * issues  ', end='')
-    print(' [{0} object(s)]'.format(len(pack_data['issues'])))
+    print(' [{0} object(s)]'.format(count_issues))
 
     print('  * comments', end='')
-    print(' [{0} object(s)]'.format(sum([len(pack_data['comments'][n]) for n in pack_data['comments'].keys()])))
+    print(' [{0} object(s)]'.format(count_comments))
+
+    print('  * diffs   ', end='')
+    print(' [{0} object(s)]'.format(count_diffs))
 
     savePack(pack_data)
     exit(0)
