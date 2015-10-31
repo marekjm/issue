@@ -609,7 +609,7 @@ def commandOpen(ui):
         }
     ]
     issue_diff_sha1 = '{0}{1}{2}{3}'.format(repo_config['author.email'], repo_config['author.name'], timestamp(), random.random())
-    issue_diff_sha1 = hashlib.sha1(issue_sha1.encode('utf-8')).hexdigest()
+    issue_diff_sha1 = hashlib.sha1(issue_diff_sha1.encode('utf-8')).hexdigest()
     issue_diff_file_path = os.path.join(issue_group_path, issue_sha1, 'diff', '{0}.json'.format(issue_diff_sha1))
     with open(issue_diff_file_path, 'w') as ofstream:
         ofstream.write(json.dumps(issue_differences))
