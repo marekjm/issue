@@ -907,7 +907,7 @@ def commandFetch(ui):
         saveRemotes(remotes)
     else:
         for remote_name in fetch_from_remotes:
-            fetchRemote(remote_name, remotes[remote_name])
+            fetchRemote(remote_name, remotes[remote_name], local_pack)
 
 def commandPublish(ui):
     ui = ui.down()
