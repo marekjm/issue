@@ -173,6 +173,12 @@ def getPack():
 
     return pack_data
 
+def savePack(pack_data=None):
+    if pack_data is None:
+        pack_data = getPack()
+    with open(PACK_PATH, 'w') as ofstream:
+        ofstream.write(json.dumps(pack_data))
+
 def listIssues():
     list_of_issues = []
     groups = os.listdir(ISSUES_PATH)
@@ -293,9 +299,7 @@ if '--pack' in ui:
     print('  * comments', end='')
     print(' [{0} object(s)]'.format(sum([len(pack_data['comments'][n]) for n in pack_data['comments'].keys()])))
 
-    with open(PACK_PATH, 'w') as ofstream:
-        ofstream.write(json.dumps(pack_data))
-
+    savePack(pack_data)
     exit(0)
 
 if '--nuke' in ui:
