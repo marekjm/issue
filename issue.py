@@ -773,7 +773,7 @@ def commandFetch(ui):
                     continue
 
 
-def dispatch(ui, *commands, overrides = {}):
+def dispatch(ui, *commands, overrides = {}, default_command=''):
     """Semi-automatic command dispatcher.
 
     Functions passed to `*commands` parameter should be named like `commandFooBarBaz` because
@@ -785,7 +785,9 @@ def dispatch(ui, *commands, overrides = {}):
     This scheme can be effectively used to support command auto-dispatch with minimal manual guidance by
     providing sane defaults and a way of overriding them when needed.
     """
-    ui_command = str(ui)
+    ui_command = (str(ui) or default_command)
+    if not ui_command:
+        return
     if ui_command in overrides:
         overrides[ui_command](ui)
     else:
