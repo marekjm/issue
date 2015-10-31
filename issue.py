@@ -462,7 +462,7 @@ if str(ui) not in ('init', 'help') and '--nuke' not in ui and not os.path.isdir(
     LAST_ISSUE_PATH = os.path.join(REPOSITORY_PATH, 'last')
 
 
-if '--pack' in ui:
+if '--pack' in ui and str(ui) == '':
     print('packing objects:')
     pack_data = getPack()
 
