@@ -355,8 +355,18 @@ def fetchRemote(remote_name, remote_data=None, local_pack=None):
         else:
             new_comments[k] = remote_pack['comments'][k]
     # print(new_comments)
+
+    new_diffs = {}
+    for k, v in remote_pack.get('diffs', {}).items():
+        if k in local_pack['diffs']:
+            new_diffs[k] = set(remote_pack['diffs'][k]) - set(local_pack['diffs'][k])
+        else:
+            new_diffs[k] = remote_pack['diffs'][k]
+    # print(new_diffs)
+
     print('  * issues:   {0} object(s)'.format(len(new_issues)))
     print('  * comments: {0} object(s)'.format(sum([len(new_comments[k]) for k in new_comments])))
+    print('  * diffs:    {0} object(s)'.format(sum([len(new_diffs[k]) for k in new_diffs])))
 
     if '--probe' in ui:
         return 0
@@ -400,6 +410,26 @@ def fetchRemote(remote_name, remote_data=None, local_pack=None):
                 print('  * fail ({0}): comment {1}.{2}: {3}'.format(exit_code, issue_sha1, cmt_sha1, error))
                 continue
 
+    for issue_sha1 in new_diffs:
+        if not new_diffs[issue_sha1]:
+            continue
+
+        for cmt_sha1 in new_diffs[issue_sha1]:
+            exit_code, output, error = runShell(
+                'scp',
+                '{0}/objects/issues/{1}/{2}/diffs/{3}.json'.format(
+                    remote_data['url'],
+                    issue_sha1[:2],
+                    issue_sha1,
+                    cmt_sha1,
+                ),
+                os.path.join(ISSUES_PATH, issue_sha1[:2], issue_sha1, 'diffs', '{0}.json'.format(cmt_sha1))
+            )
+
+            if exit_code:
+                print('  * fail ({0}): diff {1}.{2}: {3}'.format(exit_code, issue_sha1, cmt_sha1, error))
+                continue
+
 def publishToRemote(remote_name, remote_data=None, local_pack=None):
     if remote_data is None:
         remote_data = getRemotes()[remote_name]
@@ -437,8 +467,18 @@ def publishToRemote(remote_name, remote_data=None, local_pack=None):
         else:
             new_comments[k] = remote_pack['comments'][k]
     # print(new_comments)
+
+    new_diffs = {}
+    for k, v in remote_pack.get('diffs', {}).items():
+        if k in local_pack['diffs']:
+            new_diffs[k] = set(local_pack['diffs'][k]) - set(remote_pack['diffs'][k])
+        else:
+            new_diffs[k] = remote_pack['diffs'][k]
+    # print(new_diffs)
+
     print('  * publishing issues:   {0} object(s)'.format(len(new_issues)))
     print('  * publishing comments: {0} object(s)'.format(sum([len(new_comments[k]) for k in new_comments])))
+    print('  * publishing diffs:    {0} object(s)'.format(sum([len(new_diffs[k]) for k in new_diffs])))
 
     for issue_sha1 in new_issues:
         print(' -> publishing issue: {0}'.format(issue_sha1))
@@ -448,6 +488,7 @@ def publishToRemote(remote_name, remote_data=None, local_pack=None):
             os.path.join('objects', 'issues', issue_sha1[:2]),
             os.path.join('objects', 'issues', issue_sha1[:2], issue_sha1),
             os.path.join('objects', 'issues', issue_sha1[:2], issue_sha1, 'comments'),
+            os.path.join('objects', 'issues', issue_sha1[:2], issue_sha1, 'diff'),
         ]
 
         remote_repository_host, remote_repository_path = remote_data['url'].split(':')
@@ -492,6 +533,26 @@ def publishToRemote(remote_name, remote_data=None, local_pack=None):
 
             if exit_code:
                 print('  * fail ({0}): comment {1}.{2}: {3}'.format(exit_code, issue_sha1, cmt_sha1, error))
+                continue
+
+    for issue_sha1 in new_diffs:
+        if not new_diffs[issue_sha1]:
+            continue
+
+        for diff_sha1 in new_diffs[issue_sha1]:
+            exit_code, output, error = runShell(
+                'scp',
+                os.path.join(ISSUES_PATH, issue_sha1[:2], issue_sha1, 'diff', '{0}.json'.format(diff_sha1)),
+                '{0}/objects/issues/{1}/{2}/diffs/{3}.json'.format(
+                    remote_data['url'],
+                    issue_sha1[:2],
+                    issue_sha1,
+                    diff_sha1,
+                )
+            )
+
+            if exit_code:
+                print('  * fail ({0}): diff {1}.{2}: {3}'.format(exit_code, issue_sha1, diff_sha1, error))
                 continue
 
     remote_pack_publish_command = ('scp', os.path.join(PACK_PATH), '{0}/pack.json'.format(remote_data['url']))
@@ -570,6 +631,10 @@ def commandInit(ui):
             os.mkdir(pth)
     with open(os.path.join(REPOSITORY_PATH, 'status'), 'w') as ofstream:
         ofstream.write('exchange' if '--exchange' in ui else 'endpoint')
+    for issue_sha1 in listIssues():
+        issue_diffs_path = os.path.join(ISSUES_PATH, issue_sha1[:2], issue_sha1, 'diff')
+        if not os.path.isdir(issue_diffs_path):
+            os.mkdir(issue_diffs_path)
 
 def commandOpen(ui):
     message = ''
