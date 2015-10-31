@@ -470,8 +470,8 @@ def commandLs(ui):
                 if kw[0] == '^' and kw[1:] in message_lower:
                     found = 0
                     break
-                if kw[0] == '+' and kw[1:] not in message_lower:
-                    found -= 1
+                if kw[0] == '+':
+                    found += (1 if kw[1:] in message_lower else -1)
                     continue
                 if kw[0] == '=' and kw[1:] not in message_lower:
                     found = 0
