@@ -54,7 +54,13 @@
             "doc": {
                 "help": "Create new issues repository.",
                 "usage": [
-                    "init [--force]"
+                    "init [--force | --up] [--exchange]"
+                ],
+                "examples": [
+                    {
+                        "line": "--up --exchange",
+                        "desc": "upgrade existing repository from endpoint to exchange status"
+                    }
                 ]
             },
             "options": {
