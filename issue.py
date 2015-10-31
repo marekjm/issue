@@ -463,7 +463,7 @@ def publishToRemote(remote_name, remote_data=None, local_pack=None):
     new_comments = {}
     for k, v in local_pack['comments'].items():
         if k in remote_pack.get('comments', []):
-            new_comments[k] = set(local_pack['comments'][k]) - set(remote_pack.get('comments', {}).get([]))
+            new_comments[k] = set(local_pack['comments'][k]) - set(remote_pack.get('comments', {}).get(k, []))
         else:
             new_comments[k] = local_pack['comments'][k]
     # print(new_comments)
@@ -471,7 +471,7 @@ def publishToRemote(remote_name, remote_data=None, local_pack=None):
     new_diffs = {}
     for k, v in local_pack['diffs'].items():
         if k in remote_pack.get('diffs', {}):
-            new_diffs[k] = set(local_pack['diffs'][k]) - set(remote_pack.get('diffs', {}).get([]))
+            new_diffs[k] = set(local_pack['diffs'][k]) - set(remote_pack.get('diffs', {}).get(k, []))
         else:
             new_diffs[k] = local_pack['diffs'][k]
     # print(new_diffs)
