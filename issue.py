@@ -161,10 +161,12 @@ def indexIssue(issue_sha1, *diffs):
             issue_data['status'] = 'open'
             issue_data['open.author.name'] = d['author']['author.name']
             issue_data['open.author.email'] = d['author']['author.email']
+            issue_data['open.timestamp'] = d['timestamp']
         elif diff_action == 'close':
             issue_data['status'] = 'closed'
             issue_data['close.author.name'] = d['author']['author.name']
             issue_data['close.author.email'] = d['author']['author.email']
+            issue_data['close.timestamp'] = d['timestamp']
         elif diff_action == 'set-message':
             issue_data['message'] = d['params']['text']
         elif diff_action == 'push-labels':
@@ -180,6 +182,81 @@ def indexIssue(issue_sha1, *diffs):
 
     with open(issue_file_path, 'w') as ofstream:
         ofstream.write(json.dumps(issue_data))
+
+def revindexIssue(issue_sha1, *diffs):
+    issue_data = {}
+    issue_file_path = os.path.join(ISSUES_PATH, issue_sha1[:2], '{0}.json'.format(issue_sha1))
+    with open(issue_file_path) as ifstream:
+        issue_data = json.loads(ifstream.read())
+
+    repo_config = getConfig()
+
+    issue_author_email = issue_data.get('open.author.email', repo_config['author.email'])
+    issue_author_name = issue_data.get('open.author.name', repo_config['author.name'])
+    issue_open_timestamp = issue_data.get('open.timestamp', issue_data.get('timestamp', 0))
+    issue_differences = [
+        {
+            'action': 'open',
+            'author': {
+                'author.email': issue_author_email,
+                'author.name': issue_author_name,
+            },
+            'timestamp': issue_open_timestamp,
+        },
+        {
+            'action': 'set-message',
+            'params': {
+                'text': issue_data['message'],
+            },
+            'author': {
+                'author.email': issue_author_email,
+                'author.name': issue_author_name,
+            },
+            'timestamp': issue_open_timestamp+1,
+        },
+        {
+            'action': 'push-labels',
+            'params': {
+                'labels': issue_data['labels'],
+            },
+            'author': {
+                'author.email': issue_author_email,
+                'author.name': issue_author_name,
+            },
+            'timestamp': issue_open_timestamp+1,
+        },
+        {
+            'action': 'push-milestones',
+            'params': {
+                'milestones': issue_data['milestones'],
+            },
+            'author': {
+                'author.email': issue_author_email,
+                'author.name': issue_author_name,
+            },
+            'timestamp': issue_open_timestamp+1,
+        }
+    ]
+    if issue_data['status'] == 'closed':
+        issue_close_diff = {
+            'action': 'close',
+            'params': {
+            },
+            'author': {
+                'author.email': issue_data.get('close.author.email', repo_config['author.email']),
+                'author.name': issue_data.get('close.author.name', repo_config['author.name']),
+            },
+            'timestamp': issue_data.get('close.timestamp', 0),
+        }
+        if 'closing_git_commit' in issue_data:
+            issue_close_diff['closing_git_commit'] = issue_data['closing_git_commit']
+        issue_differences.append(issue_close_diff)
+
+    issue_diff_sha1 = '{0}{1}{2}{3}'.format(repo_config['author.email'], repo_config['author.name'], timestamp(), random.random())
+    issue_diff_sha1 = hashlib.sha1(issue_diff_sha1.encode('utf-8')).hexdigest()
+    issue_diff_file_path = os.path.join(ISSUES_PATH, issue_sha1[:2], issue_sha1, 'diff', '{0}.json'.format(issue_diff_sha1))
+    with open(issue_diff_file_path, 'w') as ofstream:
+        ofstream.write(json.dumps(issue_differences))
 
 def dropIssue(issue_sha1):
     issue_group_path = os.path.join(ISSUES_PATH, issue_sha1[:2])
@@ -1126,7 +1203,13 @@ def commandPublish(ui):
 def commandIndex(ui):
     ui = ui.down()
     for issue_sha1 in (ui.operands() or listIssues()):
-        indexIssue(expandIssueUID(issue_sha1))
+        if '--reverse' in ui:
+            try:
+                getIssue(expandIssueUID(issue_sha1))
+            except NotIndexed:
+                revindexIssue(issue_sha1)
+        else:
+            indexIssue(expandIssueUID(issue_sha1))
     if '--pack' in ui:
         savePack()
 

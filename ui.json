@@ -555,6 +555,11 @@
                         "short": "p",
                         "long": "pack",
                         "help": "pack objects after indexing"
+                    },
+                    {
+                        "short": "r",
+                        "long": "reverse",
+                        "help": "reverse indexing - build diffs from indexed issues"
                     }
                 ]
             },
