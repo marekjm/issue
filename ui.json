@@ -541,6 +541,26 @@
             "operands": {
                 "no": [0]
             }
+        },
+        "index": {
+            "doc": {
+                "help": "Index issues",
+                "usage": [
+                    "index [<issue>...]"
+                ]
+            },
+            "options": {
+                "local": [
+                    {
+                        "short": "p",
+                        "long": "pack",
+                        "help": "pack objects after indexing"
+                    }
+                ]
+            },
+            "operands": {
+                "no": [0]
+            }
         }
     },
     "operands": {

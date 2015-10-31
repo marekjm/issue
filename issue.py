@@ -1043,6 +1043,11 @@ def commandPublish(ui):
     for remote_name in publish_to_remotes:
         publishToRemote(remote_name, remotes[remote_name], local_pack)
 
+def commandIndex(ui):
+    ui = ui.down()
+    for issue_sha1 in (ui.operands() or listIssues()):
+        indexIssue(expandIssueUID(issue_sha1))
+
 
 def dispatch(ui, *commands, overrides = {}, default_command=''):
     """Semi-automatic command dispatcher.
@@ -1082,4 +1087,5 @@ dispatch(ui,        # first: pass the UI object to dispatch
     commandRemote,
     commandFetch,
     commandPublish,
+    commandIndex,
 )
