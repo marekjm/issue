@@ -461,19 +461,19 @@ def publishToRemote(remote_name, remote_data=None, local_pack=None):
     # print(new_issues)
 
     new_comments = {}
-    for k, v in remote_pack['comments'].items():
-        if k in local_pack['comments']:
-            new_comments[k] = set(local_pack['comments'][k]) - set(remote_pack['comments'][k])
+    for k, v in local_pack['comments'].items():
+        if k in remote_pack.get('comments', []):
+            new_comments[k] = set(local_pack['comments'][k]) - set(remote_pack.get('comments', {}).get([]))
         else:
-            new_comments[k] = remote_pack['comments'][k]
+            new_comments[k] = local_pack['comments'][k]
     # print(new_comments)
 
     new_diffs = {}
-    for k, v in remote_pack.get('diffs', {}).items():
-        if k in local_pack['diffs']:
-            new_diffs[k] = set(local_pack['diffs'][k]) - set(remote_pack['diffs'][k])
+    for k, v in local_pack['diffs'].items():
+        if k in remote_pack.get('diffs', {}):
+            new_diffs[k] = set(local_pack['diffs'][k]) - set(remote_pack.get('diffs', {}).get([]))
         else:
-            new_diffs[k] = remote_pack['diffs'][k]
+            new_diffs[k] = local_pack['diffs'][k]
     # print(new_diffs)
 
     print('  * publishing issues:   {0} object(s)'.format(len(new_issues)))
@@ -543,7 +543,7 @@ def publishToRemote(remote_name, remote_data=None, local_pack=None):
             exit_code, output, error = runShell(
                 'scp',
                 os.path.join(ISSUES_PATH, issue_sha1[:2], issue_sha1, 'diff', '{0}.json'.format(diff_sha1)),
-                '{0}/objects/issues/{1}/{2}/diffs/{3}.json'.format(
+                '{0}/objects/issues/{1}/{2}/diff/{3}.json'.format(
                     remote_data['url'],
                     issue_sha1[:2],
                     issue_sha1,
