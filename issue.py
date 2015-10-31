@@ -385,6 +385,11 @@ def commandClose(ui):
     except IssueUIDAmbiguous:
         print('fail: issue uid {0} is ambiguous'.format(repr(issue_sha1)))
     issue_data = getIssue(issue_sha1)
+
+    if issue_data['status'] == 'closed':
+        print('fatal: issue already closed by {0}{1}'.format(issue_data.get('close.author.name', 'Unknown author'), (' ({0})'.format(issue_data['close.author.email']) if 'close.author.email' else '')))
+        exit(1)
+
     issue_data['status'] = 'closed'
     issue_data['close.author.email'] = repo_config['author.email']
     issue_data['close.author.name'] = repo_config['author.name']
