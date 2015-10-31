@@ -505,16 +505,6 @@ def publishToRemote(remote_name, remote_data=None, local_pack=None):
             print('  * fail ({0}): cannot create required directories: {1}'.format(exit_code, error))
             continue
 
-        exit_code, output, error = runShell(
-            'scp',
-            os.path.join(ISSUES_PATH, issue_sha1[:2], '{0}.json'.format(issue_sha1)),
-            '{0}/objects/issues/{1}/{2}.json'.format(remote_data['url'], issue_sha1[:2], issue_sha1)
-        )
-
-        if exit_code:
-            print('  * fail ({0}): issue {1}: {2}'.format(exit_code, issue_sha1, error))
-            continue
-
     for issue_sha1 in new_comments:
         if not new_comments[issue_sha1]:
             continue
