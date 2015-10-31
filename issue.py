@@ -501,13 +501,13 @@ def fetchRemote(remote_name, remote_data=None, local_pack=None):
         for cmt_sha1 in new_diffs[issue_sha1]:
             exit_code, output, error = runShell(
                 'scp',
-                '{0}/objects/issues/{1}/{2}/diffs/{3}.json'.format(
+                '{0}/objects/issues/{1}/{2}/diff/{3}.json'.format(
                     remote_data['url'],
                     issue_sha1[:2],
                     issue_sha1,
                     cmt_sha1,
                 ),
-                os.path.join(ISSUES_PATH, issue_sha1[:2], issue_sha1, 'diffs', '{0}.json'.format(cmt_sha1))
+                os.path.join(ISSUES_PATH, issue_sha1[:2], issue_sha1, 'diff', '{0}.json'.format(cmt_sha1))
             )
 
             if exit_code:
