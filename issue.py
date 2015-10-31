@@ -313,7 +313,7 @@ if '--where' in ui:
 def commandInit(ui):
     if '--force' in ui and os.path.isdir(REPOSITORY_PATH):
         shutil.rmtree(REPOSITORY_PATH)
-    if os.path.isdir(REPOSITORY_PATH):
+    if os.path.isdir(REPOSITORY_PATH) and '--up' not in ui:
         print('fatal: repository already exists')
         exit(1)
     for pth in (REPOSITORY_PATH, OBJECTS_PATH, ISSUES_PATH, LABELS_PATH, MILESTONES_PATH):

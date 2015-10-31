@@ -63,6 +63,11 @@
                         "long": "force",
                         "short": "f",
                         "help": "force initialisation of the repository (removes previous repository if one was already initialised)"
+                    },
+                    {
+                        "long": "up",
+                        "short": "u",
+                        "help": "upgrade repository to newer version, creating additional structures as needed"
                     }
                 ]
             }
