@@ -679,7 +679,7 @@ def commandRemote(ui):
 
     if str(ui) == 'ls':
         for k, remote_data in remotes.items():
-            print(('{0} => {1}' if '--verbose' in ui else '{0}').format(k, remote_data['url']))
+            print(('{0} [{1}] => {2}' if '--verbose' in ui else '{0}').format(k, remote_data.get('status', 'unknown'), remote_data['url']))
     elif str(ui) == 'set':
         remote_name = operands[0]
         if remote_name not in remotes:
@@ -713,73 +713,89 @@ def commandFetch(ui):
     local_pack = getPack()
     remotes = getRemotes()
     fetch_from_remotes = (ui.operands() or sorted(remotes.keys()))
-    for remote_name in fetch_from_remotes:
-        print('fetching objects from remote: {0}'.format(remote_name))
-        remote_pack_fetch_command = ('scp', '{0}/pack.json'.format(remotes[remote_name]['url']), REMOTE_PACK_PATH)
-        exit_code, output, error = runShell(*remote_pack_fetch_command)
-
-        if exit_code:
-            print('  * fail ({0}): {1}'.format(exit_code, error))
-            continue
-
-        remote_pack = {}
-        with open(REMOTE_PACK_PATH) as ifstream:
-            remote_pack = json.loads(ifstream.read())
-
-        new_issues = set(remote_pack['issues']) - set(local_pack['issues'])
-        # print(new_issues)
-
-        new_comments = {}
-        for k, v in remote_pack['comments'].items():
-            if k in local_pack['comments']:
-                new_comments[k] = set(remote_pack['comments'][k]) - set(local_pack['comments'][k])
-            else:
-                new_comments[k] = remote_pack['comments'][k]
-        # print(new_comments)
-        print('  * issues:   {0} object(s)'.format(len(new_issues)))
-        print('  * comments: {0} object(s)'.format(sum([len(new_comments[k]) for k in new_comments])))
-
-        if '--probe' in ui:
-            continue
-
-        for issue_sha1 in new_issues:
-            issue_group_path = os.path.join(ISSUES_PATH, issue_sha1[:2])
-            if not os.path.isdir(issue_group_path):
-                os.mkdir(issue_group_path)
-
-            exit_code, output, error = runShell(
-                'scp',
-                '{0}/objects/issues/{1}/{2}.json'.format(remotes[remote_name]['url'], issue_sha1[:2], issue_sha1),
-                os.path.join(ISSUES_PATH, issue_sha1[:2], '{0}.json'.format(issue_sha1))
-            )
+    if '--status' in ui:
+        for remote_name in fetch_from_remotes:
+            if '--unknown-status' in ui and not (remotes[remote_name].get('status', 'unknown') == 'unknown'):
+                # if --unknown-status is specified fetch only when status is 'unknown'
+                continue
+            print('fetching status from remote: {0}'.format(remote_name))
+            remote_status_path = os.path.join(REPOSITORY_TMP_PATH, 'status')
+            remote_pack_fetch_command = ('scp', '{0}/status'.format(remotes[remote_name]['url']), remote_status_path)
+            exit_code, output, error = runShell(*remote_pack_fetch_command)
+            if exit_code:
+                print('  * fail ({0}): {1}'.format(exit_code, error))
+                continue
+            with open(remote_status_path) as ifstream:
+                remotes[remote_name]['status'] = ifstream.read()
+        saveRemotes(remotes)
+    else:
+        for remote_name in fetch_from_remotes:
+            print('fetching objects from remote: {0}'.format(remote_name))
+            remote_pack_fetch_command = ('scp', '{0}/pack.json'.format(remotes[remote_name]['url']), REMOTE_PACK_PATH)
+            exit_code, output, error = runShell(*remote_pack_fetch_command)
 
             if exit_code:
-                print('  * fail ({0}): issue {1}: {2}'.format(exit_code, issue_sha1, error))
+                print('  * fail ({0}): {1}'.format(exit_code, error))
                 continue
 
-            # make directories for issue-specific objects
-            os.mkdir(os.path.join(issue_group_path, issue_sha1))
-            os.mkdir(os.path.join(issue_group_path, issue_sha1, 'comments'))
+            remote_pack = {}
+            with open(REMOTE_PACK_PATH) as ifstream:
+                remote_pack = json.loads(ifstream.read())
 
-        for issue_sha1 in new_comments:
-            if not new_comments[issue_sha1]:
+            new_issues = set(remote_pack['issues']) - set(local_pack['issues'])
+            # print(new_issues)
+
+            new_comments = {}
+            for k, v in remote_pack['comments'].items():
+                if k in local_pack['comments']:
+                    new_comments[k] = set(remote_pack['comments'][k]) - set(local_pack['comments'][k])
+                else:
+                    new_comments[k] = remote_pack['comments'][k]
+            # print(new_comments)
+            print('  * issues:   {0} object(s)'.format(len(new_issues)))
+            print('  * comments: {0} object(s)'.format(sum([len(new_comments[k]) for k in new_comments])))
+
+            if '--probe' in ui:
                 continue
 
-            for cmt_sha1 in new_comments[issue_sha1]:
+            for issue_sha1 in new_issues:
+                issue_group_path = os.path.join(ISSUES_PATH, issue_sha1[:2])
+                if not os.path.isdir(issue_group_path):
+                    os.mkdir(issue_group_path)
+
                 exit_code, output, error = runShell(
                     'scp',
-                    '{0}/objects/issues/{1}/{2}/comments/{3}.json'.format(
-                        remotes[remote_name]['url'],
-                        issue_sha1[:2],
-                        issue_sha1,
-                        cmt_sha1,
-                    ),
-                    os.path.join(ISSUES_PATH, issue_sha1[:2], issue_sha1, 'comments', '{0}.json'.format(cmt_sha1))
+                    '{0}/objects/issues/{1}/{2}.json'.format(remotes[remote_name]['url'], issue_sha1[:2], issue_sha1),
+                    os.path.join(ISSUES_PATH, issue_sha1[:2], '{0}.json'.format(issue_sha1))
                 )
 
                 if exit_code:
-                    print('  * fail ({0}): comment {1}.{2}: {3}'.format(exit_code, issue_sha1, cmt_sha1, error))
+                    print('  * fail ({0}): issue {1}: {2}'.format(exit_code, issue_sha1, error))
                     continue
+
+                # make directories for issue-specific objects
+                os.mkdir(os.path.join(issue_group_path, issue_sha1))
+                os.mkdir(os.path.join(issue_group_path, issue_sha1, 'comments'))
+
+            for issue_sha1 in new_comments:
+                if not new_comments[issue_sha1]:
+                    continue
+
+                for cmt_sha1 in new_comments[issue_sha1]:
+                    exit_code, output, error = runShell(
+                        'scp',
+                        '{0}/objects/issues/{1}/{2}/comments/{3}.json'.format(
+                            remotes[remote_name]['url'],
+                            issue_sha1[:2],
+                            issue_sha1,
+                            cmt_sha1,
+                        ),
+                        os.path.join(ISSUES_PATH, issue_sha1[:2], issue_sha1, 'comments', '{0}.json'.format(cmt_sha1))
+                    )
+
+                    if exit_code:
+                        print('  * fail ({0}): comment {1}.{2}: {3}'.format(exit_code, issue_sha1, cmt_sha1, error))
+                        continue
 
 
 def dispatch(ui, *commands, overrides = {}, default_command=''):

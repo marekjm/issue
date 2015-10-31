@@ -506,9 +506,15 @@
                         "help": "only probe the remotes for their state, don't download issue objects"
                     },
                     {
-                        "short": "f",
-                        "long": "full",
-                        "help": "fetch objects from all remotes (obtain full state)"
+                        "short": "s",
+                        "long": "status",
+                        "help": "fetch only status specifications from remotes"
+                    },
+                    {
+                        "short": "U",
+                        "long": "unknown-status",
+                        "implies": ["--status"],
+                        "help": "fetch status specifications from remotes with 'unknown' status, implies --status"
                     }
                 ]
             },
