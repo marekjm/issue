@@ -442,27 +442,7 @@ def publishToRemote(remote_name, remote_data=None, local_pack=None):
         return 1
 
 
-ui = ui.down() # go down a mode
-operands = ui.operands()
-
-if str(ui) not in ('init', 'help') and '--nuke' not in ui and not os.path.isdir(REPOSITORY_PATH):
-    while not os.path.isdir(REPOSITORY_PATH) and os.path.abspath(REPOSITORY_PATH) != '/.issue':
-        REPOSITORY_PATH = os.path.join('..', REPOSITORY_PATH)
-    REPOSITORY_PATH = os.path.abspath(REPOSITORY_PATH)
-    if REPOSITORY_PATH == '/.issue':
-        print('fatal: not inside issues repository')
-        exit(1)
-    OBJECTS_PATH = os.path.join(REPOSITORY_PATH, 'objects')
-    REPOSITORY_TMP_PATH = os.path.join(REPOSITORY_PATH, 'tmp')
-    ISSUES_PATH = os.path.join(OBJECTS_PATH, 'issues')
-    LABELS_PATH = os.path.join(OBJECTS_PATH, 'labels')
-    MILESTONES_PATH = os.path.join(OBJECTS_PATH, 'milestones')
-    PACK_PATH = os.path.join(REPOSITORY_PATH, 'pack.json')
-    REMOTE_PACK_PATH = os.path.join(REPOSITORY_PATH, 'remote_pack.json')
-    LAST_ISSUE_PATH = os.path.join(REPOSITORY_PATH, 'last')
-
-
-if '--pack' in ui and str(ui) == '':
+if '--pack' in ui:
     print('packing objects:')
     pack_data = getPack()
 
@@ -487,6 +467,26 @@ if '--nuke' in ui:
 if '--where' in ui:
     print(REPOSITORY_PATH)
     exit(0)
+
+
+ui = ui.down() # go down a mode
+operands = ui.operands()
+
+if str(ui) not in ('init', 'help') and not os.path.isdir(REPOSITORY_PATH):
+    while not os.path.isdir(REPOSITORY_PATH) and os.path.abspath(REPOSITORY_PATH) != '/.issue':
+        REPOSITORY_PATH = os.path.join('..', REPOSITORY_PATH)
+    REPOSITORY_PATH = os.path.abspath(REPOSITORY_PATH)
+    if REPOSITORY_PATH == '/.issue':
+        print('fatal: not inside issues repository')
+        exit(1)
+    OBJECTS_PATH = os.path.join(REPOSITORY_PATH, 'objects')
+    REPOSITORY_TMP_PATH = os.path.join(REPOSITORY_PATH, 'tmp')
+    ISSUES_PATH = os.path.join(OBJECTS_PATH, 'issues')
+    LABELS_PATH = os.path.join(OBJECTS_PATH, 'labels')
+    MILESTONES_PATH = os.path.join(OBJECTS_PATH, 'milestones')
+    PACK_PATH = os.path.join(REPOSITORY_PATH, 'pack.json')
+    REMOTE_PACK_PATH = os.path.join(REPOSITORY_PATH, 'remote_pack.json')
+    LAST_ISSUE_PATH = os.path.join(REPOSITORY_PATH, 'last')
 
 
 def commandInit(ui):
