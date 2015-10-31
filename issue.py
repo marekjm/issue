@@ -797,6 +797,25 @@ def commandFetch(ui):
                         print('  * fail ({0}): comment {1}.{2}: {3}'.format(exit_code, issue_sha1, cmt_sha1, error))
                         continue
 
+def commandPublish(ui):
+    ui = ui.down()
+    local_pack = getPack()
+    remotes = getRemotes()
+    publish_to_remotes = (ui.operands() or sorted([k for k in remotes.keys() if remotes[k].get('status', 'unknow') == 'exchange']))
+    for remote_name in publish_to_remotes:
+        remote_status = remotes[remote_name].get('status', 'unknown')
+        if remote_status != 'exchange':
+            print('cannot publish to "{0}": invalid remote status: {1}'.format(remote_name, remote_status))
+            if '--verbose' in ui:
+                if remote_status == 'endpoint':
+                    print('note: create a shared exchange from which "{0}" endpoint can fetch objects'.format(remote_name))
+                elif remote_status == 'unknown':
+                    print('note: run "issue fetch --status {0}" to obtain status of this node'.format(remote_name))
+                else:
+                    print('note: broken status, run "issue fetch --status {0}" to fix it'.format(remote_name))
+            continue
+        print('publishing objects to remote: {0}'.format(remote_name))
+
 
 def dispatch(ui, *commands, overrides = {}, default_command=''):
     """Semi-automatic command dispatcher.
@@ -835,4 +854,5 @@ dispatch(ui,        # first: pass the UI object to dispatch
     commandConfig,
     commandRemote,
     commandFetch,
+    commandPublish,
 )

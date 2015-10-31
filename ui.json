@@ -521,6 +521,21 @@
             "operands": {
                 "no": [0]
             }
+        },
+        "publish": {
+            "doc": {
+                "help": "Publish issues on an remote",
+                "usage": [
+                    "publish [<remote>...]"
+                ]
+            },
+            "options": {
+                "local": [
+                ]
+            },
+            "operands": {
+                "no": [0]
+            }
         }
     },
     "operands": {
