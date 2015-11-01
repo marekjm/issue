@@ -569,6 +569,28 @@
                     "--reverse": [0, 0]
                 }
             }
+        },
+        "clone": {
+            "doc": {
+                "help": "Clone remote issue repository"
+            },
+            "options": {
+                "local": [
+                    {
+                        "short": "n",
+                        "long": "name",
+                        "help": "set name for initial remote, by default it is 'origin'"
+                    },
+                    {
+                        "short": "f",
+                        "long": "force",
+                        "help": "force initialisation if necessary"
+                    }
+                ]
+            },
+            "operands": {
+                "no": [1, 1]
+            }
         }
     },
     "operands": {

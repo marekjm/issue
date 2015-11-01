@@ -97,6 +97,9 @@ class IssueUIDNotMatched(IssueException):
 class IssueUIDAmbiguous(IssueException):
     pass
 
+class RepositoryExists(IssueException):
+    pass
+
 
 # utility functions
 def getIssue(issue_sha1):
@@ -636,6 +639,21 @@ def publishToRemote(remote_name, remote_data=None, local_pack=None):
 def timestamp(dt=None):
     return (dt or datetime.datetime.now()).timestamp()
 
+def repositoryInit(force=False, up=False):
+    if force and os.path.isdir(REPOSITORY_PATH):
+        shutil.rmtree(REPOSITORY_PATH)
+    if not up and os.path.isdir(REPOSITORY_PATH):
+        raise RepositoryExists(REPOSITORY_PATH)
+    for pth in (REPOSITORY_PATH, OBJECTS_PATH, REPOSITORY_TMP_PATH, ISSUES_PATH, LABELS_PATH, MILESTONES_PATH):
+        if not os.path.isdir(pth):
+            os.mkdir(pth)
+    with open(os.path.join(REPOSITORY_PATH, 'status'), 'w') as ofstream:
+        ofstream.write('exchange' if '--exchange' in ui else 'endpoint')
+    for issue_sha1 in listIssues():
+        issue_diffs_path = os.path.join(ISSUES_PATH, issue_sha1[:2], issue_sha1, 'diff')
+        if not os.path.isdir(issue_diffs_path):
+            os.mkdir(issue_diffs_path)
+
 
 if '--pack' in ui:
     print('packing objects:')
@@ -674,7 +692,7 @@ if '--where' in ui:
 ui = ui.down() # go down a mode
 operands = ui.operands()
 
-if str(ui) not in ('init', 'help') and not os.path.isdir(REPOSITORY_PATH):
+if str(ui) not in ('clone', 'init', 'help') and not os.path.isdir(REPOSITORY_PATH):
     while not os.path.isdir(REPOSITORY_PATH) and os.path.abspath(REPOSITORY_PATH) != '/.issue':
         REPOSITORY_PATH = os.path.join('..', REPOSITORY_PATH)
     REPOSITORY_PATH = os.path.abspath(REPOSITORY_PATH)
@@ -697,15 +715,7 @@ def commandInit(ui):
     if os.path.isdir(REPOSITORY_PATH) and '--up' not in ui:
         print('fatal: repository already exists')
         exit(1)
-    for pth in (REPOSITORY_PATH, OBJECTS_PATH, REPOSITORY_TMP_PATH, ISSUES_PATH, LABELS_PATH, MILESTONES_PATH):
-        if not os.path.isdir(pth):
-            os.mkdir(pth)
-    with open(os.path.join(REPOSITORY_PATH, 'status'), 'w') as ofstream:
-        ofstream.write('exchange' if '--exchange' in ui else 'endpoint')
-    for issue_sha1 in listIssues():
-        issue_diffs_path = os.path.join(ISSUES_PATH, issue_sha1[:2], issue_sha1, 'diff')
-        if not os.path.isdir(issue_diffs_path):
-            os.mkdir(issue_diffs_path)
+    repositoryInit()
 
 def commandOpen(ui):
     message = ''
@@ -1219,6 +1229,25 @@ def commandIndex(ui):
     if '--pack' in ui:
         savePack()
 
+def commandClone(ui):
+    ui = ui.down()
+    operands = ui.operands()
+
+    try:
+        repositoryInit(force=('--force' in ui))
+    except RepositoryExists:
+        print('fatal: repository exists')
+        exit(1)
+    remotes = getRemotes()
+
+    remote_name = (ui.get('--name') if '--name' in ui else 'origin')
+    remote_url = operands[0]
+
+    remotes[remote_name] = {}
+    remotes[remote_name]['url'] = remote_url
+    saveRemotes(remotes)
+    fetchRemote(remote_name, remotes[remote_name])
+
 
 def dispatch(ui, *commands, overrides = {}, default_command=''):
     """Semi-automatic command dispatcher.
@@ -1259,4 +1288,5 @@ dispatch(ui,        # first: pass the UI object to dispatch
     commandFetch,
     commandPublish,
     commandIndex,
+    commandClone,
 )
