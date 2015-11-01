@@ -715,7 +715,7 @@ def commandInit(ui):
     if os.path.isdir(REPOSITORY_PATH) and '--up' not in ui:
         print('fatal: repository already exists')
         exit(1)
-    repositoryInit()
+    repositoryInit(force=('--force' in ui), up=('--up' in ui))
 
 def commandOpen(ui):
     message = ''
