@@ -1205,13 +1205,16 @@ def commandIndex(ui):
     issue_list = ui.operands()
     if '--reverse' not in ui and not issue_list:
         issue_list = listIssues()
+    if '--reverse' in ui:
+        for i in listIssues():
+            if not os.listdir(os.path.join(ISSUES_PATH, i[:2], i, 'diff')):
+                issue_list.append(i)
     for issue_sha1 in issue_list:
         issue_sha1 = expandIssueUID(issue_sha1)
         if '--reverse' in ui:
             print('rev-indexing issue: {0}'.format(issue_sha1))
             revindexIssue(issue_sha1)
         else:
-            print('indexing issue: {0}'.format(issue_sha1))
             indexIssue(issue_sha1)
     if '--pack' in ui:
         savePack()
