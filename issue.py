@@ -521,6 +521,10 @@ def commandOpen(ui):
     labels = ([l[0] for l in ui.get('--label')] if '--label' in ui else [])
     milestones = ([m[0] for m in ui.get('--milestone')] if '--milestone' in ui else [])
 
+    repo_config = getConfig()
+    if 'project.tag' in repo_config:
+        labels.append(repo_config['project.tag'])
+
     issue_sha1 = '{0}{1}{2}{3}'.format(message, labels, milestones, random.random())
     issue_sha1 = hashlib.sha1(issue_sha1.encode('utf-8')).hexdigest()
 
@@ -536,6 +540,9 @@ def commandOpen(ui):
         'open.timestamp': datetime.datetime.now().timestamp(),
         '_meta': {}
     }
+
+    if 'project.name' in repo_config:
+        issue_data['project.name'] = repo_config['project.name']
 
     issue_group_path = os.path.join(ISSUES_PATH, issue_sha1[:2])
     if not os.path.isdir(issue_group_path):
