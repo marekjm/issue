@@ -189,6 +189,10 @@ def indexIssue(issue_sha1, *diffs):
             issue_data['milestones'].extend(d['params']['milestones'])
         elif diff_action == 'set-status':
             issue_data['status'] = d['params']['status']
+        elif diff_action == 'set-project-tag':
+            issue_data['project.tag'] = d['params']['tag']
+        elif diff_action == 'set-project-name':
+            issue_data['project.name'] = d['params']['name']
 
     with open(issue_file_path, 'w') as ofstream:
         ofstream.write(json.dumps(issue_data))
@@ -753,13 +757,6 @@ def commandOpen(ui):
         '_meta': {}
     }
 
-    repo_config = getConfig()
-    if 'project.tag' in repo_config:
-        issue_data['labels'].append(repo_config['project.tag'])
-        issue_data['project.tag'] = repo_config['project.tag']
-    if 'project.name' in repo_config:
-        issue_data['project.name'] = repo_config['project.name']
-
     issue_group_path = os.path.join(ISSUES_PATH, issue_sha1[:2])
     if not os.path.isdir(issue_group_path):
         os.mkdir(issue_group_path)
@@ -817,6 +814,44 @@ def commandOpen(ui):
             'timestamp': timestamp(),
         }
     ]
+
+    repo_config = getConfig()
+    if 'project.tag' in repo_config:
+        issue_differences.append({
+            'action': 'push-labels',
+            'params': {
+                'labels': [repo_config['project.tag']],
+            },
+            'author': {
+                'author.email': repo_config['author.email'],
+                'author.name': repo_config['author.name'],
+            },
+            'timestamp': timestamp(),
+        })
+        issue_differences.append({
+            'action': 'set-project-tag',
+            'params': {
+                'tag': repo_config['project.tag'],
+            },
+            'author': {
+                'author.email': repo_config['author.email'],
+                'author.name': repo_config['author.name'],
+            },
+            'timestamp': timestamp(),
+        })
+    if 'project.name' in repo_config:
+        issue_differences.append({
+            'action': 'set-project-name',
+            'params': {
+                'name': repo_config['project.name'],
+            },
+            'author': {
+                'author.email': repo_config['author.email'],
+                'author.name': repo_config['author.name'],
+            },
+            'timestamp': timestamp(),
+        })
+
     issue_diff_sha1 = '{0}{1}{2}{3}'.format(repo_config['author.email'], repo_config['author.name'], timestamp(), random.random())
     issue_diff_sha1 = hashlib.sha1(issue_diff_sha1.encode('utf-8')).hexdigest()
     issue_diff_file_path = os.path.join(issue_group_path, issue_sha1, 'diff', '{0}.json'.format(issue_diff_sha1))
