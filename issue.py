@@ -1235,7 +1235,7 @@ def commandFetch(ui):
                 print('  * fail ({0}): {1}'.format(exit_code, error))
                 continue
             with open(remote_status_path) as ifstream:
-                remotes[remote_name]['status'] = ifstream.read()
+                remotes[remote_name]['status'] = ifstream.read().strip()
         saveRemotes(remotes)
     else:
         for remote_name in fetch_from_remotes:
