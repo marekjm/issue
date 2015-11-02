@@ -521,10 +521,6 @@ def commandOpen(ui):
     labels = ([l[0] for l in ui.get('--label')] if '--label' in ui else [])
     milestones = ([m[0] for m in ui.get('--milestone')] if '--milestone' in ui else [])
 
-    repo_config = getConfig()
-    if 'project.tag' in repo_config:
-        labels.append(repo_config['project.tag'])
-
     issue_sha1 = '{0}{1}{2}{3}'.format(message, labels, milestones, random.random())
     issue_sha1 = hashlib.sha1(issue_sha1.encode('utf-8')).hexdigest()
 
@@ -541,6 +537,10 @@ def commandOpen(ui):
         '_meta': {}
     }
 
+    repo_config = getConfig()
+    if 'project.tag' in repo_config:
+        issue_data['labels'].append(repo_config['project.tag'])
+        issue_data['project.tag'] = repo_config['project.tag']
     if 'project.name' in repo_config:
         issue_data['project.name'] = repo_config['project.name']
 
@@ -791,6 +791,7 @@ def commandShow(ui):
         print('    closed by:  {0} ({1}), on {2}'.format(issue_close_author_name, issue_close_author_email, issue_close_timestamp))
     print('    milestones: {0}'.format(', '.join(issue_data['milestones'])))
     print('    labels:     {0}'.format(', '.join(issue_data['labels'])))
+    print('    project:    {0} ({1})'.format(issue_data.get('project.name', 'Unknown'), issue_data.get('project.tag', '')))
 
     print('\n---- MESSAGE')
     print('\n  {0}\n'.format('\n  '.join(issue_message_lines)))
