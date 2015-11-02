@@ -549,12 +549,12 @@ def commandOpen(ui):
     os.mkdir(os.path.join(issue_group_path, issue_sha1))
     os.mkdir(os.path.join(issue_group_path, issue_sha1, 'comments'))
 
+    markLastIssue(issue_sha1)
+
     if '--git' in ui:
         print('issue/{0}'.format(sluggify(message)))
-    else:
+    elif '--verbose' in ui:
         print(issue_sha1)
-
-    markLastIssue(issue_sha1)
 
 def commandClose(ui):
     repo_config = getConfig()
