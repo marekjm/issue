@@ -753,6 +753,13 @@ def commandOpen(ui):
         '_meta': {}
     }
 
+    repo_config = getConfig()
+    if 'project.tag' in repo_config:
+        issue_data['labels'].append(repo_config['project.tag'])
+        issue_data['project.tag'] = repo_config['project.tag']
+    if 'project.name' in repo_config:
+        issue_data['project.name'] = repo_config['project.name']
+
     issue_group_path = os.path.join(ISSUES_PATH, issue_sha1[:2])
     if not os.path.isdir(issue_group_path):
         os.mkdir(issue_group_path)
@@ -816,12 +823,12 @@ def commandOpen(ui):
     with open(issue_diff_file_path, 'w') as ofstream:
         ofstream.write(json.dumps(issue_differences))
 
+    markLastIssue(issue_sha1)
+
     if '--git' in ui:
         print('issue/{0}'.format(sluggify(message)))
-    else:
+    elif '--verbose' in ui:
         print(issue_sha1)
-
-    markLastIssue(issue_sha1)
 
 def commandClose(ui):
     repo_config = getConfig()
@@ -1073,6 +1080,7 @@ def commandShow(ui):
         print('    closed by:  {0} ({1}), on {2}'.format(issue_close_author_name, issue_close_author_email, issue_close_timestamp))
     print('    milestones: {0}'.format(', '.join(issue_data['milestones'])))
     print('    labels:     {0}'.format(', '.join(issue_data['labels'])))
+    print('    project:    {0} ({1})'.format(issue_data.get('project.name', 'Unknown'), issue_data.get('project.tag', '')))
 
     print('\n---- MESSAGE')
     print('\n  {0}\n'.format('\n  '.join(issue_message_lines)))
