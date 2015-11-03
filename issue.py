@@ -147,7 +147,7 @@ def getIssueDifferences(issue_sha1, *diffs):
 def indexIssue(issue_sha1, *diffs):
     issue_data = {}
     issue_file_path = os.path.join(ISSUES_PATH, issue_sha1[:2], '{0}.json'.format(issue_sha1))
-    if os.path.isfile(issue_file_path):
+    if os.path.isfile(issue_file_path) and diffs:
         with open(issue_file_path) as ifstream:
             issue_data = json.loads(ifstream.read())
 
