@@ -746,25 +746,9 @@ def commandOpen(ui):
 
     repo_config = getConfig()
 
-    issue_data = {
-        'message': message,
-        'labels': labels,
-        'milestones': milestones,
-        'status': 'open',
-        'open.author.email': repo_config['author.email'],
-        'open.author.name': repo_config['author.name'],
-        'open.timestamp': timestamp(),
-        '_meta': {}
-    }
-
     issue_group_path = os.path.join(ISSUES_PATH, issue_sha1[:2])
     if not os.path.isdir(issue_group_path):
         os.mkdir(issue_group_path)
-
-    # no need for indexing when issue is just being opened
-    issue_file_path = os.path.join(issue_group_path, '{0}.json'.format(issue_sha1))
-    with open(issue_file_path, 'w') as ofstream:
-        ofstream.write(json.dumps(issue_data))
 
     # make directories for issue-specific objects
     os.mkdir(os.path.join(issue_group_path, issue_sha1))
@@ -858,6 +842,7 @@ def commandOpen(ui):
     with open(issue_diff_file_path, 'w') as ofstream:
         ofstream.write(json.dumps(issue_differences))
 
+    indexIssue(issue_sha1)
     markLastIssue(issue_sha1)
 
     if '--git' in ui:
