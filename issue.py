@@ -1224,6 +1224,8 @@ def commandRemote(ui):
         remote_name = operands[0]
         if remote_name not in remotes:
             remotes[remote_name] = {}
+        if len(operands) == 2:
+            remotes[remote_name]['url'] = operands[1]
         if '--url' in ui:
             remotes[remote_name]['url'] = ui.get('--url')
         if '--key' in ui:
