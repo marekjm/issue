@@ -1225,6 +1225,9 @@ def commandFetch(ui):
     else:
         for remote_name in fetch_from_remotes:
             fetchRemote(remote_name, remotes[remote_name], local_pack)
+        if '--index' in ui:
+            for issue_sha1 in listIssues():
+                indexIssue(issue_sha1)
 
 def commandPublish(ui):
     ui = ui.down()

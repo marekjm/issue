@@ -506,6 +506,12 @@
                         "help": "only probe the remotes for their state, don't download issue objects"
                     },
                     {
+                        "short": "i",
+                        "long": "index",
+                        "conflicts": ["--status"],
+                        "help": "index repository after fetching objects"
+                    },
+                    {
                         "short": "s",
                         "long": "status",
                         "help": "fetch only status specifications from remotes"
