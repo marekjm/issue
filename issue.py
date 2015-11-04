@@ -1028,7 +1028,11 @@ def commandSlug(ui):
     if '--git' in ui:
         issue_slug = 'issue/{0}'.format(issue_slug)
     if '--format' in ui:
-        issue_slug = ui.get('--format').format(slug=issue_slug, **dict(ui.get('--param')))
+        parameters = issue_data.get('parameters', {})
+        if '--param' in ui:
+            for k, v in ui.get('--param'):
+                parameters[k] = v
+        issue_slug = ui.get('--format').format(slug=issue_slug, **parameters)
     print(issue_slug)
     markLastIssue(issue_sha1)
 
