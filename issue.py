@@ -183,6 +183,11 @@ def indexIssue(issue_sha1, *diffs):
             if 'labels' not in issue_data:
                 issue_data['labels'] = []
             issue_data['labels'].extend(d['params']['labels'])
+        elif diff_action == 'remove-labels':
+            if 'labels' not in issue_data:
+                issue_data['labels'] = []
+            for l in d['params']['labels']:
+                issue_data['labels'].remove(l)
         elif diff_action == 'push-milestones':
             if 'milestones' not in issue_data:
                 issue_data['milestones'] = []
@@ -1089,7 +1094,7 @@ def commandTag(ui):
 
     issue_differences = [
         {
-            'action': 'push-labels',
+            'action': ('remove-labels' if '--remove' in ui else 'push-labels'),
             'params': {
                 'labels': [issue_tag],
             },

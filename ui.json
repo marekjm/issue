@@ -318,6 +318,11 @@
                     {
                         "long": "last",
                         "help": "tag last active issue"
+                    },
+                    {
+                        "short": "r",
+                        "long": "remove",
+                        "help": "remove tag"
                     }
                 ]
             },
