@@ -470,6 +470,7 @@
                                 "long": "key",
                                 "arguments": ["str"],
                                 "requires": ["--value"],
+                                "conflicts": ["--url"],
                                 "help": "set given config key in selected remote"
                             },
                             {
@@ -494,7 +495,11 @@
                         ]
                     },
                     "operands": {
-                        "no": [1, 1]
+                        "no": [2, 2],
+                        "with": {
+                            "--url": [1, 1],
+                            "--key": [1, 1]
+                        }
                     }
                 },
                 "rm": {
