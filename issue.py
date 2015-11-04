@@ -1025,14 +1025,27 @@ def commandSlug(ui):
         exit(1)
     issue_message = issue_data['message'].splitlines()[0].strip()
     issue_slug = sluggify(issue_message)
+
+    slug_format = ''
+    slug_parameters = issue_data.get('parameters', {})
+    if '--param' in ui:
+        for k, v in ui.get('--param'):
+            slug_parameters[k] = v
+
     if '--git' in ui:
-        issue_slug = 'issue/{0}'.format(issue_slug)
+        slug_format = 'issue/{slug}'
     if '--format' in ui:
-        parameters = issue_data.get('parameters', {})
-        if '--param' in ui:
-            for k, v in ui.get('--param'):
-                parameters[k] = v
-        issue_slug = ui.get('--format').format(slug=issue_slug, **parameters)
+        slug_format = ui.get('--format')
+    if '--use-format' in ui:
+        repo_config = getConfig()
+        slug_format = repo_config.get('slug.format.{0}'.format(ui.get('--use-format')), '')
+        if not slug_format:
+            print('fatal: undefined slug format: {0}'.format(ui.get('--use-format')))
+            exit(1)
+
+    if slug_format:
+        issue_slug = slug_format.format(slug=issue_slug, **slug_parameters)
+
     print(issue_slug)
     markLastIssue(issue_sha1)
 

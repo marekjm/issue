@@ -263,11 +263,18 @@
                         "help": "use custom slug format"
                     },
                     {
+                        "short": "F",
+                        "long": "use-format",
+                        "arguments": ["str"],
+                        "conflicts": ["--git", "--format"],
+                        "help": "use preset slug format (set it with 'slug.format.<name>' config key)"
+                    },
+                    {
                         "short": "p",
                         "long": "param",
                         "arguments": ["str", "str"],
                         "conflicts": ["--git"],
-                        "requires": ["--format"],
+                        "wants": ["--format", "--use-format"],
                         "plural": true,
                         "help": "add parameter to use with format"
                     },
