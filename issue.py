@@ -200,7 +200,7 @@ def indexIssue(issue_sha1, *diffs):
             issue_data['project.name'] = d['params']['name']
 
     # remove duplicated tags
-    issue_data['labels'] = list(set(issue_data['labels']))
+    issue_data['labels'] = list(set(issue_data.get('labels', [])))
 
     with open(issue_file_path, 'w') as ofstream:
         ofstream.write(json.dumps(issue_data))
@@ -250,7 +250,7 @@ def revindexIssue(issue_sha1, *diffs):
         {
             'action': 'push-milestones',
             'params': {
-                'milestones': issue_data['milestones'],
+                'milestones': issue_data.get('milestones', []),
             },
             'author': {
                 'author.email': issue_author_email,
@@ -259,7 +259,7 @@ def revindexIssue(issue_sha1, *diffs):
             'timestamp': issue_open_timestamp+1,
         }
     ]
-    if issue_data['status'] == 'closed':
+    if issue_data.get('status', 'open') == 'closed':
         issue_close_diff = {
             'action': 'close',
             'params': {
@@ -995,7 +995,7 @@ def commandLs(ui):
                 print()
             else:
                 print('{0}: {1}'.format(short, issue_data['message'].splitlines()[0]))
-        except KeyError as e:
+        except (KeyError, IndexError) as e:
             print('{0}: [broken index]'.format(i))
 
 def commandDrop(ui):
