@@ -306,6 +306,28 @@
                 }
             }
         },
+        "tag": {
+            "doc": {
+                "help": "Tag an issue",
+                "usage": [
+                    "tag <tag> <sha1>"
+                ]
+            },
+            "options": {
+                "local": [
+                    {
+                        "long": "last",
+                        "help": "tag last active issue"
+                    }
+                ]
+            },
+            "operands": {
+                "no": [2, 2],
+                "with": {
+                    "--last": [1, 1]
+                }
+            }
+        },
         "show": {
             "doc": {
                 "help": "Show information about issues.",

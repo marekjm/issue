@@ -1068,6 +1068,44 @@ def commandComment(ui):
         ofstream.write(json.dumps(issue_comment_data))
     markLastIssue(issue_sha1)
 
+def commandTag(ui):
+    issue_sha1 = (getLastIssue() if '--last' in ui else operands[1])
+    try:
+        issue_sha1 = expandIssueUID(issue_sha1)
+    except IssueUIDAmbiguous:
+        print('fail: issue uid {0} is ambiguous'.format(repr(issue_sha1)))
+        exit(1)
+
+    issue_tag = operands[0]
+
+    if not issue_tag:
+        print('fatal: aborting due to empty tag')
+        exit(1)
+
+    repo_config = getConfig()
+
+    issue_differences = [
+        {
+            'action': 'push-labels',
+            'params': {
+                'labels': [issue_tag],
+            },
+            'author': {
+                'author.email': repo_config['author.email'],
+                'author.name': repo_config['author.name'],
+            },
+            'timestamp': timestamp(),
+        }
+    ]
+
+    issue_diff_sha1 = '{0}{1}{2}{3}'.format(repo_config['author.email'], repo_config['author.name'], timestamp(), random.random())
+    issue_diff_sha1 = hashlib.sha1(issue_diff_sha1.encode('utf-8')).hexdigest()
+    issue_diff_file_path = os.path.join(ISSUES_PATH, issue_sha1[:2], issue_sha1, 'diff', '{0}.json'.format(issue_diff_sha1))
+    with open(issue_diff_file_path, 'w') as ofstream:
+        ofstream.write(json.dumps(issue_differences))
+    markLastIssue(issue_sha1)
+    indexIssue(issue_sha1, issue_diff_sha1)
+
 def commandShow(ui):
     issue_sha1 = (getLastIssue() if '--last' in ui else operands[0])
     try:
@@ -1313,6 +1351,7 @@ dispatch(ui,        # first: pass the UI object to dispatch
     commandDrop,
     commandSlug,
     commandComment,
+    commandTag,
     commandShow,
     commandConfig,
     commandRemote,
