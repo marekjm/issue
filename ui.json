@@ -333,6 +333,34 @@
                 }
             }
         },
+        "param": {
+            "doc": {
+                "help": "Set a custom parameter on an issue",
+                "usage": [
+                    "param <sha1> <key> <value>",
+                    "param -r <sha1> <key>"
+                ]
+            },
+            "options": {
+                "local": [
+                    {
+                        "long": "last",
+                        "help": "set parameter on last active issue"
+                    },
+                    {
+                        "short": "r",
+                        "long": "remove",
+                        "help": "remove a parameter"
+                    }
+                ]
+            },
+            "operands": {
+                "no": [3, 3],
+                "with": {
+                    "--remove": [2, 2]
+                }
+            }
+        },
         "show": {
             "doc": {
                 "help": "Show information about issues.",

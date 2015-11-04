@@ -188,6 +188,14 @@ def indexIssue(issue_sha1, *diffs):
                 issue_data['labels'] = []
             for l in d['params']['labels']:
                 issue_data['labels'].remove(l)
+        elif diff_action == 'parameter-set':
+            if 'parameters' not in issue_data:
+                issue_data['parameters'] = {}
+            issue_data['parameters'][d['params']['key']] = d['params']['value']
+        elif diff_action == 'parameter-remove':
+            if 'parameters' not in issue_data:
+                issue_data['parameters'] = {}
+            del issue_data['parameters'][d['params']['key']]
         elif diff_action == 'push-milestones':
             if 'milestones' not in issue_data:
                 issue_data['milestones'] = []
@@ -1114,6 +1122,48 @@ def commandTag(ui):
     markLastIssue(issue_sha1)
     indexIssue(issue_sha1, issue_diff_sha1)
 
+def commandParam(ui):
+    issue_sha1 = (getLastIssue() if '--last' in ui else operands[0])
+    try:
+        issue_sha1 = expandIssueUID(issue_sha1)
+    except IssueUIDAmbiguous:
+        print('fail: issue uid {0} is ambiguous'.format(repr(issue_sha1)))
+        exit(1)
+
+    issue_parameter_key = operands[1]
+
+    if not issue_parameter_key:
+        print('fatal: aborting due to empty parameter key')
+        exit(1)
+
+    repo_config = getConfig()
+
+    issue_differences = [
+        {
+            'params': {},
+            'author': {
+                'author.email': repo_config['author.email'],
+                'author.name': repo_config['author.name'],
+            },
+            'timestamp': timestamp(),
+        }
+    ]
+    if '--remove' in ui:
+        issue_differences[0]['action'] = 'parameter-remove'
+        issue_differences[0]['params']['key'] = issue_parameter_key
+    else:
+        issue_differences[0]['action'] = 'parameter-set'
+        issue_differences[0]['params']['key'] = issue_parameter_key
+        issue_differences[0]['params']['value'] = operands[2]
+
+    issue_diff_sha1 = '{0}{1}{2}{3}'.format(repo_config['author.email'], repo_config['author.name'], timestamp(), random.random())
+    issue_diff_sha1 = hashlib.sha1(issue_diff_sha1.encode('utf-8')).hexdigest()
+    issue_diff_file_path = os.path.join(ISSUES_PATH, issue_sha1[:2], issue_sha1, 'diff', '{0}.json'.format(issue_diff_sha1))
+    with open(issue_diff_file_path, 'w') as ofstream:
+        ofstream.write(json.dumps(issue_differences))
+    markLastIssue(issue_sha1)
+    indexIssue(issue_sha1, issue_diff_sha1)
+
 def commandShow(ui):
     issue_sha1 = (getLastIssue() if '--last' in ui else operands[0])
     try:
@@ -1362,6 +1412,7 @@ dispatch(ui,        # first: pass the UI object to dispatch
     commandSlug,
     commandComment,
     commandTag,
+    commandParam,
     commandShow,
     commandConfig,
     commandRemote,
