@@ -1197,6 +1197,10 @@ def commandShow(ui):
     print('    milestones: {0}'.format(', '.join(issue_data['milestones'])))
     print('    labels:     {0}'.format(', '.join(issue_data['labels'])))
     print('    project:    {0} ({1})'.format(issue_data.get('project.name', 'Unknown'), issue_data.get('project.tag', '')))
+    if 'parameters' in issue_data and issue_data['parameters']:
+        print('\n---- PARAMETERS')
+        for key in sorted(issue_data['parameters'].keys()):
+            print('    {0} = {1}'.format(key, issue_data['parameters'][key]))
 
     print('\n---- MESSAGE')
     print('\n  {0}\n'.format('\n  '.join(issue_message_lines)))
