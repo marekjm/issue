@@ -194,6 +194,9 @@ def indexIssue(issue_sha1, *diffs):
         elif diff_action == 'set-project-name':
             issue_data['project.name'] = d['params']['name']
 
+    # remove duplicated tags
+    issue_data['labels'] = list(set(issue_data['labels']))
+
     with open(issue_file_path, 'w') as ofstream:
         ofstream.write(json.dumps(issue_data))
 
