@@ -112,6 +112,13 @@
                         "long": "git",
                         "short": "g",
                         "help": "instead of SHA1 of the issue print its Git-ready branch name"
+                    },
+                    {
+                        "long": "param",
+                        "short": "p",
+                        "arguments": ["str", "str"],
+                        "plural": true,
+                        "help": "set a parameter on the issue"
                     }
                 ]
             },
