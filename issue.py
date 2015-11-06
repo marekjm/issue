@@ -177,6 +177,8 @@ def indexIssue(issue_sha1, *diffs):
             issue_data['close.author.name'] = d['author']['author.name']
             issue_data['close.author.email'] = d['author']['author.email']
             issue_data['close.timestamp'] = d['timestamp']
+            if 'closing_git_commit' in d['params'] and d['params']['closing_git_commit']:
+                issue_data['closing_git_commit'] = d['params']['closing_git_commit']
         elif diff_action == 'set-message':
             issue_data['message'] = d['params']['text']
         elif diff_action == 'push-labels':
