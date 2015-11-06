@@ -4,13 +4,13 @@
         "usage": [
             "--help",
             "--version",
-            "open [--label <label>]... [--milestone <milestone>]... \"<description>\"",
+            "open [--tag <tag>]... [--milestone <milestone>]... \"<description>\"",
             "close [--message \"<message>\"] <id>..."
         ],
         "examples": [
             {
-                "line": "open --label bug --label urgent \"Oh noes! The program crashez.\"",
-                "desc": "open new issue with labels \"bug\" and \"urgent\" with given description"
+                "line": "open --tag bug --tag urgent \"Oh noes! The program crashez.\"",
+                "desc": "open new issue with tags \"bug\" and \"urgent\" with given description"
             }
         ]
     },
@@ -89,17 +89,17 @@
             "doc": {
                 "help": "Open new issues.",
                 "usage": [
-                    "open [--label <label>]... [--milestone <name>]... \"short description of the issue\""
+                    "open [--tag <tag>]... [--milestone <name>]... \"short description of the issue\""
                 ]
             },
             "options": {
                 "local": [
                     {
-                        "long": "label",
-                        "short": "l",
+                        "long": "tag",
+                        "short": "t",
                         "arguments": ["str"],
                         "plural": 1,
-                        "help": "add label to the issue"
+                        "help": "add tag to the issue"
                     },
                     {
                         "long": "milestone",
@@ -191,11 +191,11 @@
                         "help": "show more details about each issue"
                     },
                     {
-                        "short": "l",
-                        "long": "label",
+                        "short": "t",
+                        "long": "tag",
                         "arguments": ["str"],
                         "plural": 1,
-                        "help": "filter by given <label>"
+                        "help": "filter by given <tag>"
                     },
                     {
                         "short": "a",

@@ -72,7 +72,7 @@ REPOSITORY_PATH = '.issue'
 OBJECTS_PATH = os.path.join(REPOSITORY_PATH, 'objects')
 REPOSITORY_TMP_PATH = os.path.join(REPOSITORY_PATH, 'tmp')
 ISSUES_PATH = os.path.join(OBJECTS_PATH, 'issues')
-LABELS_PATH = os.path.join(OBJECTS_PATH, 'labels')
+TAGS_PATH = os.path.join(OBJECTS_PATH, 'tags')
 MILESTONES_PATH = os.path.join(OBJECTS_PATH, 'milestones')
 PACK_PATH = os.path.join(REPOSITORY_PATH, 'pack.json')
 REMOTE_PACK_PATH = os.path.join(REPOSITORY_PATH, 'remote_pack.json')
@@ -179,15 +179,19 @@ def indexIssue(issue_sha1, *diffs):
             issue_data['close.timestamp'] = d['timestamp']
         elif diff_action == 'set-message':
             issue_data['message'] = d['params']['text']
-        elif diff_action == 'push-labels':
-            if 'labels' not in issue_data:
-                issue_data['labels'] = []
-            issue_data['labels'].extend(d['params']['labels'])
-        elif diff_action == 'remove-labels':
-            if 'labels' not in issue_data:
-                issue_data['labels'] = []
-            for l in d['params']['labels']:
-                issue_data['labels'].remove(l)
+        # support both -tags and -labels ("labels" name has been used in pre-0.1.5 versions)
+        # FIXME: this support should be removed after early repositories are converted
+        elif diff_action == 'push-tags' or diff_action == 'push-labels':
+            if 'tags' not in issue_data:
+                issue_data['tags'] = []
+            issue_data['tags'].extend(d['params'][('tags' if 'tags' in d['params'] else 'labels')])
+        # support both -tags and -labels ("labels" name has been used in pre-0.1.5 versions)
+        # FIXME: this support should be removed after early repositories are converted
+        elif diff_action == 'remove-tags' or diff_action == 'remove-labels':
+            if 'tags' not in issue_data:
+                issue_data['tags'] = []
+            for l in d['params'][('tags' if 'tags' in d['params'] else 'labels')]:
+                issue_data['tags'].remove(l)
         elif diff_action == 'parameter-set':
             if 'parameters' not in issue_data:
                 issue_data['parameters'] = {}
@@ -208,7 +212,7 @@ def indexIssue(issue_sha1, *diffs):
             issue_data['project.name'] = d['params']['name']
 
     # remove duplicated tags
-    issue_data['labels'] = list(set(issue_data.get('labels', [])))
+    issue_data['tags'] = list(set(issue_data.get('tags', [])))
 
     with open(issue_file_path, 'w') as ofstream:
         ofstream.write(json.dumps(issue_data))
@@ -245,9 +249,9 @@ def revindexIssue(issue_sha1, *diffs):
             'timestamp': issue_open_timestamp+1,
         },
         {
-            'action': 'push-labels',
+            'action': 'push-tags',
             'params': {
-                'labels': issue_data['labels'],
+                'tags': issue_data['tags'],
             },
             'author': {
                 'author.email': issue_author_email,
@@ -664,7 +668,7 @@ def repositoryInit(force=False, up=False):
         shutil.rmtree(REPOSITORY_PATH)
     if not up and os.path.isdir(REPOSITORY_PATH):
         raise RepositoryExists(REPOSITORY_PATH)
-    for pth in (REPOSITORY_PATH, OBJECTS_PATH, REPOSITORY_TMP_PATH, ISSUES_PATH, LABELS_PATH, MILESTONES_PATH):
+    for pth in (REPOSITORY_PATH, OBJECTS_PATH, REPOSITORY_TMP_PATH, ISSUES_PATH, TAGS_PATH, MILESTONES_PATH):
         if not os.path.isdir(pth):
             os.mkdir(pth)
     with open(os.path.join(REPOSITORY_PATH, 'status'), 'w') as ofstream:
@@ -722,7 +726,7 @@ if str(ui) not in ('clone', 'init', 'help') and not os.path.isdir(REPOSITORY_PAT
     OBJECTS_PATH = os.path.join(REPOSITORY_PATH, 'objects')
     REPOSITORY_TMP_PATH = os.path.join(REPOSITORY_PATH, 'tmp')
     ISSUES_PATH = os.path.join(OBJECTS_PATH, 'issues')
-    LABELS_PATH = os.path.join(OBJECTS_PATH, 'labels')
+    TAGS_PATH = os.path.join(OBJECTS_PATH, 'tags')
     MILESTONES_PATH = os.path.join(OBJECTS_PATH, 'milestones')
     PACK_PATH = os.path.join(REPOSITORY_PATH, 'pack.json')
     REMOTE_PACK_PATH = os.path.join(REPOSITORY_PATH, 'remote_pack.json')
@@ -754,10 +758,10 @@ def commandOpen(ui):
         print('fatal: aborting due to empty message')
         exit(1)
 
-    labels = ([l[0] for l in ui.get('--label')] if '--label' in ui else [])
+    tags = ([l[0] for l in ui.get('--tag')] if '--tag' in ui else [])
     milestones = ([m[0] for m in ui.get('--milestone')] if '--milestone' in ui else [])
 
-    issue_sha1 = '{0}{1}{2}{3}'.format(message, labels, milestones, random.random())
+    issue_sha1 = '{0}{1}{2}{3}'.format(message, tags, milestones, random.random())
     issue_sha1 = hashlib.sha1(issue_sha1.encode('utf-8')).hexdigest()
 
     repo_config = getConfig()
@@ -792,9 +796,9 @@ def commandOpen(ui):
             'timestamp': timestamp(),
         },
         {
-            'action': 'push-labels',
+            'action': 'push-tags',
             'params': {
-                'labels': labels,
+                'tags': tags,
             },
             'author': {
                 'author.email': repo_config['author.email'],
@@ -818,9 +822,9 @@ def commandOpen(ui):
     repo_config = getConfig()
     if 'project.tag' in repo_config:
         issue_differences.append({
-            'action': 'push-labels',
+            'action': 'push-tags',
             'params': {
-                'labels': [repo_config['project.tag']],
+                'tags': [repo_config['project.tag']],
             },
             'author': {
                 'author.email': repo_config['author.email'],
@@ -927,9 +931,9 @@ def commandLs(ui):
     accepted_statuses = []
     if '--status' in ui:
         accepted_statuses = [s[0] for s in ui.get('--status')]
-    accepted_labels = []
-    if '--label' in ui:
-        accepted_labels = [s[0] for s in ui.get('--label')]
+    accepted_tags = []
+    if '--tag' in ui:
+        accepted_tags = [s[0] for s in ui.get('--tag')]
 
     delta_mods_since, since, delta_mods_until, until = [], None, [], None
     if '--since' in ui:
@@ -956,13 +960,13 @@ def commandLs(ui):
         if '--open' in ui and (issue_data['status'] if 'status' in issue_data else '') not in ('open', ''): continue
         if '--closed' in ui and (issue_data['status'] if 'status' in issue_data else '') != 'closed': continue
         if '--status' in ui and (issue_data['status'] if 'status' in issue_data else '') not in accepted_statuses: continue
-        if '--label' in ui:
-            labels_match = False
-            for l in (issue_data['labels'] if 'labels' in issue_data else []):
-                if l in accepted_labels:
-                    labels_match = True
+        if '--tag' in ui:
+            tags_match = False
+            for l in (issue_data['tags'] if 'tags' in issue_data else []):
+                if l in accepted_tags:
+                    tags_match = True
                     break
-            if not labels_match:
+            if not tags_match:
                 continue
         issues_to_list.append((short, i, issue_data))
 
@@ -1014,7 +1018,7 @@ def commandLs(ui):
                     print('    closed by:  {0} ({1}), on {2}'.format(issue_close_author_name, issue_close_author_email, issue_close_timestamp))
                 print('    opened by:  {0} ({1}), on {2}'.format(issue_open_author_name, issue_open_author_email, issue_open_timestamp))
                 print('    milestones: {0}'.format(', '.join(issue_data['milestones'])))
-                print('    labels:     {0}'.format(', '.join(issue_data['labels'])))
+                print('    tags:       {0}'.format(', '.join(issue_data['tags'])))
                 print()
             else:
                 print('{0}: {1}'.format(short, issue_data['message'].splitlines()[0]))
@@ -1134,9 +1138,9 @@ def commandTag(ui):
 
     issue_differences = [
         {
-            'action': ('remove-labels' if '--remove' in ui else 'push-labels'),
+            'action': ('remove-tags' if '--remove' in ui else 'push-tags'),
             'params': {
-                'labels': [issue_tag],
+                'tags': [issue_tag],
             },
             'author': {
                 'author.email': repo_config['author.email'],
@@ -1227,7 +1231,7 @@ def commandShow(ui):
         issue_close_timestamp = (datetime.datetime.fromtimestamp(issue_data['close.timestamp']) if 'close.timestamp' in issue_data else 'unknown date')
         print('    closed by:  {0} ({1}), on {2}'.format(issue_close_author_name, issue_close_author_email, issue_close_timestamp))
     print('    milestones: {0}'.format(', '.join(issue_data['milestones'])))
-    print('    labels:     {0}'.format(', '.join(issue_data['labels'])))
+    print('    tags:       {0}'.format(', '.join(issue_data['tags'])))
     print('    project:    {0} ({1})'.format(issue_data.get('project.name', 'Unknown'), issue_data.get('project.tag', '')))
     if 'parameters' in issue_data and issue_data['parameters']:
         print('\n---- PARAMETERS')
