@@ -40,15 +40,15 @@ issue ls --closed
 
 An issue can have zero or more tags assigned.
 It is possible to list issues containing specific tag
-using `--label` (short `-l`) option.
+using `--tag` (short `-t`) option.
 Several tags may be listed.
 
 ```
 # list all open urgent bugs
-issue ls -o -l urgent -l bug
+issue ls -o -t urgent -t bug
 
 # list all closed "feature" issues
-issue ls -c -l feature
+issue ls -c -t feature
 ```
 
 

@@ -69,9 +69,9 @@ Issues can be lister with `ls` command:
 - `issue ls` - list all issues,
 - `issue ls --open` - list all open issues,
 - `issue ls --closed` - list all closed issues,
-- `issle ls --open -l bug` - list all open issues with label `bug`,
+- `issle ls --open -t bug` - list all open issues with tag `bug`,
 
-Issue details (labels, comment thread) can be displayed with `show` command:
+Issue details (tags, comment thread) can be displayed with `show` command:
 
 - `issue show <unique-id>`
 
