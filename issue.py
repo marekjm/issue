@@ -1168,7 +1168,7 @@ def commandParam(ui):
         print('fail: issue uid {0} is ambiguous'.format(repr(issue_sha1)))
         exit(1)
 
-    issue_parameter_key = operands[1]
+    issue_parameter_key = operands[int(not ('--last' in ui))]
 
     if not issue_parameter_key:
         print('fatal: aborting due to empty parameter key')
@@ -1192,7 +1192,7 @@ def commandParam(ui):
     else:
         issue_differences[0]['action'] = 'parameter-set'
         issue_differences[0]['params']['key'] = issue_parameter_key
-        issue_differences[0]['params']['value'] = operands[2]
+        issue_differences[0]['params']['value'] = operands[int(not ('--last' in ui))+1]
 
     issue_diff_sha1 = '{0}{1}{2}{3}'.format(repo_config['author.email'], repo_config['author.name'], timestamp(), random.random())
     issue_diff_sha1 = hashlib.sha1(issue_diff_sha1.encode('utf-8')).hexdigest()
