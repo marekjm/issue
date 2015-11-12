@@ -665,10 +665,15 @@ def publishToRemote(remote_name, remote_data=None, local_pack=None):
 def timestamp(dt=None):
     return (dt or datetime.datetime.now()).timestamp()
 
-def getMessage(template=''):
+def getMessage(template='', fmt={}):
     editor = os.getenv('EDITOR', 'vi')
     message_path = os.path.join(REPOSITORY_PATH, 'message')
-    if template:
+    if template and format:
+        with open(os.path.expanduser('~/.local/share/issue/{0}'.format(template))) as ifstream:
+            default_message_text = ifstream.read()
+        with open(message_path, 'w') as ofstream:
+            ofstream.write(default_message_text.format(**fmt))
+    elif template and not format:
         shutil.copy(os.path.expanduser('~/.local/share/issue/{0}'.format(template)), message_path)
     os.system('{0} {1}'.format(editor, message_path))
     message = ''
