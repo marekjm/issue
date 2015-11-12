@@ -756,12 +756,7 @@ def commandInit(ui):
     repositoryInit(force=('--force' in ui), up=('--up' in ui))
 
 def commandOpen(ui):
-    message = ''
-    if len(operands) < 1:
-        message = getMessage('issue_message')
-    else:
-        message = operands[0]
-
+    message = (getMessage('issue_message') if len(operands) < 1 else operands[0])
     if not message:
         print('fatal: aborting due to empty message')
         exit(1)
