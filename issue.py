@@ -665,6 +665,18 @@ def publishToRemote(remote_name, remote_data=None, local_pack=None):
 def timestamp(dt=None):
     return (dt or datetime.datetime.now()).timestamp()
 
+def getMessage(template=''):
+    editor = os.getenv('EDITOR', 'vi')
+    message_path = os.path.join(REPOSITORY_PATH, 'message')
+    if template:
+        shutil.copy(os.path.expanduser('~/.local/share/issue/{0}'.format(template)), message_path)
+    os.system('{0} {1}'.format(editor, message_path))
+    message = ''
+    with open(message_path) as ifstream:
+        message_lines = ifstream.readlines()
+        message = ''.join([l for l in message_lines if not l.startswith('#')]).strip()
+    return message
+
 def repositoryInit(force=False, up=False):
     if force and os.path.isdir(REPOSITORY_PATH):
         shutil.rmtree(REPOSITORY_PATH)
@@ -746,13 +758,7 @@ def commandInit(ui):
 def commandOpen(ui):
     message = ''
     if len(operands) < 1:
-        editor = os.getenv('EDITOR', 'vi')
-        message_path = os.path.join(REPOSITORY_PATH, 'message')
-        shutil.copy(os.path.expanduser('~/.local/share/issue/issue_message'), message_path)
-        os.system('{0} {1}'.format(editor, message_path))
-        with open(message_path) as ifstream:
-            message_lines = ifstream.readlines()
-            message = ''.join([l for l in message_lines if not l.startswith('#')]).strip()
+        message = getMessage('issue_message')
     else:
         message = operands[0]
 
