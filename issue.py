@@ -80,26 +80,6 @@ LAST_ISSUE_PATH = os.path.join(REPOSITORY_PATH, 'last')
 LS_KEYWORD_MATCH_THRESHOLD = 1
 
 
-# exception definitions
-class IssueException(Exception):
-    pass
-
-class NotAnIssue(IssueException):
-    pass
-
-class NotIndexed(IssueException):
-    pass
-
-class IssueUIDNotMatched(IssueException):
-    pass
-
-class IssueUIDAmbiguous(IssueException):
-    pass
-
-class RepositoryExists(IssueException):
-    pass
-
-
 # utility functions
 def getIssue(issue_sha1):
     issue_group = issue_sha1[:2]
@@ -116,9 +96,9 @@ def getIssue(issue_sha1):
                 issue_data['comments'][cmt.split('.')[0]] = json.loads(ifstream.read())
     except FileNotFoundError as e:
         if os.path.isdir(os.path.join(ISSUES_PATH, issue_group, issue_sha1)):
-            raise NotIndexed(issue_file_path)
+            raise issue.exceptions.NotIndexed(issue_file_path)
         else:
-            raise NotAnIssue(issue_file_path)
+            raise issue.exceptions.NotAnIssue(issue_file_path)
     return issue_data
 
 def saveIssue(issue_sha1, issue_data):
@@ -371,9 +351,9 @@ def expandIssueUID(issue_sha1_part):
     for i_sha1 in issues:
         if i_sha1.startswith(issue_sha1_part): issue_sha1.append(i_sha1)
     if len(issue_sha1) == 0:
-        raise IssueUIDNotMatched(issue_sha1_part)
+        raise issue.exceptions.IssueUIDNotMatched(issue_sha1_part)
     if len(issue_sha1) > 1:
-        raise IssueUIDAmbiguous(issue_sha1_part)
+        raise issue.exceptions.IssueUIDAmbiguous(issue_sha1_part)
     return issue_sha1[0]
 
 def runShell(*command):
@@ -685,7 +665,7 @@ def repositoryInit(force=False, up=False):
     if force and os.path.isdir(REPOSITORY_PATH):
         shutil.rmtree(REPOSITORY_PATH)
     if not up and os.path.isdir(REPOSITORY_PATH):
-        raise RepositoryExists(REPOSITORY_PATH)
+        raise issue.exceptions.RepositoryExists(REPOSITORY_PATH)
     for pth in (REPOSITORY_PATH, OBJECTS_PATH, REPOSITORY_TMP_PATH, ISSUES_PATH, TAGS_PATH, MILESTONES_PATH):
         if not os.path.isdir(pth):
             os.mkdir(pth)
@@ -897,7 +877,7 @@ def commandClose(ui):
     issue_sha1 = (getLastIssue() if '--last' in ui else operands[0])
     try:
         issue_sha1 = expandIssueUID(issue_sha1)
-    except IssueUIDAmbiguous:
+    except issue.exceptions.IssueUIDAmbiguous:
         print('fail: issue uid {0} is ambiguous'.format(repr(issue_sha1)))
     issue_data = getIssue(issue_sha1)
 
@@ -961,7 +941,7 @@ def commandLs(ui):
         issue_sha1 = i.split('.', 1)[0]
         try:
             issue_data = getIssue(issue_sha1)
-        except NotIndexed as e:
+        except issue.exceptions.NotIndexed as e:
             print('{0}: [not indexed]'.format(short))
             continue
         if '--open' in ui and (issue_data['status'] if 'status' in issue_data else '') not in ('open', ''): continue
@@ -1037,7 +1017,7 @@ def commandDrop(ui):
     for issue_sha1 in issue_list:
         try:
             dropIssue(expandIssueUID(issue_sha1))
-        except IssueUIDAmbiguous:
+        except issue.exceptions.IssueUIDAmbiguous:
             print('fail: issue uid {0} is ambiguous'.format(repr(issue_sha1)))
 
 def commandSlug(ui):
@@ -1046,7 +1026,7 @@ def commandSlug(ui):
     try:
         issue_sha1 = expandIssueUID(issue_sha1)
         issue_data = getIssue(issue_sha1)
-    except IssueUIDAmbiguous:
+    except issue.exceptions.IssueUIDAmbiguous:
         print('fail: issue uid {0} is ambiguous'.format(repr(issue_sha1)))
         exit(1)
     issue_message = issue_data['message'].splitlines()[0].strip()
@@ -1079,7 +1059,7 @@ def commandComment(ui):
     issue_sha1 = (getLastIssue() if '--last' in ui else operands[0])
     try:
         issue_sha1 = expandIssueUID(issue_sha1)
-    except IssueUIDAmbiguous:
+    except issue.exceptions.IssueUIDAmbiguous:
         print('fail: issue uid {0} is ambiguous'.format(repr(issue_sha1)))
         exit(1)
 
@@ -1121,7 +1101,7 @@ def commandTag(ui):
     issue_sha1 = (getLastIssue() if '--last' in ui else operands[1])
     try:
         issue_sha1 = expandIssueUID(issue_sha1)
-    except IssueUIDAmbiguous:
+    except issue.exceptions.IssueUIDAmbiguous:
         print('fail: issue uid {0} is ambiguous'.format(repr(issue_sha1)))
         exit(1)
 
@@ -1159,7 +1139,7 @@ def commandParam(ui):
     issue_sha1 = (getLastIssue() if '--last' in ui else operands[0])
     try:
         issue_sha1 = expandIssueUID(issue_sha1)
-    except IssueUIDAmbiguous:
+    except issue.exceptions.IssueUIDAmbiguous:
         print('fail: issue uid {0} is ambiguous'.format(repr(issue_sha1)))
         exit(1)
 
@@ -1201,17 +1181,17 @@ def commandShow(ui):
     issue_sha1 = (getLastIssue() if '--last' in ui else operands[0])
     try:
         issue_sha1 = expandIssueUID(issue_sha1)
-    except IssueUIDAmbiguous:
+    except issue.exceptions.IssueUIDAmbiguous:
         print('fail: issue uid {0} is ambiguous'.format(repr(issue_sha1)))
         exit(1)
-    except IssueUIDNotMatched:
+    except issue.exceptions.IssueUIDNotMatched:
         print('fail: issue uid {0} did not match anything'.format(repr(issue_sha1)))
         exit(1)
 
     issue_data = {}
     try:
         issue_data = getIssue(issue_sha1)
-    except NotAnIssue as e:
+    except issue.exceptions.NotAnIssue as e:
         print('fatal: {0} does not identify a valid object'.format(repr(issue_sha1)))
         exit(1)
 
@@ -1401,7 +1381,7 @@ def commandClone(ui):
 
     try:
         repositoryInit(force=('--force' in ui))
-    except RepositoryExists:
+    except issue.exceptions.RepositoryExists:
         print('fatal: repository exists')
         exit(1)
     remotes = getRemotes()
