@@ -1088,17 +1088,7 @@ def commandComment(ui):
 
     issue_comment = ''
     if len(operands) < (1 if '--last' in ui else 2):
-        editor = os.getenv('EDITOR', 'vi')
-        message_path = os.path.join(REPOSITORY_PATH, 'message')
-        default_message_text = ''
-        with open(os.path.expanduser('~/.local/share/issue/issue_comment_message')) as ifstream:
-            default_message_text = ifstream.read()
-        with open(message_path, 'w') as ofstream:
-            ofstream.write(default_message_text.format(issue_sha1=issue_sha1, issue_message='\n'.join(['#  > {0}'.format(l) for l in issue_data['message'].splitlines()])))
-        os.system('{0} {1}'.format(editor, message_path))
-        with open(message_path) as ifstream:
-            issue_comment_lines = ifstream.readlines()
-            issue_comment = ''.join([l for l in issue_comment_lines if not l.startswith('#')]).strip()
+        issue_comment = getMessage('issue_comment_message', fmt={'issue_sha1': issue_sha1, 'issue_message': '\n'.join(['#  > {0}'.format(l) for l in issue_data['message'].splitlines()])})
     else:
         # True evaluates to 1 and
         # False evaluates to 0
