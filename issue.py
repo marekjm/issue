@@ -51,6 +51,11 @@ except clap.errors.InvalidOperandRangeError as e:
 except clap.errors.UIDesignError as e:
     print('UI has design error: {0}'.format(e))
     fail = True
+except clap.errors.AmbiguousCommandError as e:
+    name, candidates = str(e).split(': ')
+    print("ambiguous shortened command name: '{0}', candidates are: {1}".format(name, candidates))
+    print("hint: if this is a false positive use '--' operand separator")
+    fail = True
 except Exception as e:
     print('fatal: unhandled exception: {0}: {1}'.format(str(type(e))[8:-2], e))
     fail, err = True, e
