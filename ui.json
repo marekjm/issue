@@ -252,6 +252,12 @@
                 "help": "Print sluggified issue message.",
                 "usage": [
                     "slug <sha1>"
+                ],
+                "examples": [
+                    {
+                        "line": "-gBC <sha1>",
+                        "desc": "sluggify <sha1> issue, and checkout to a newly created Git branch with the same name"
+                    }
                 ]
             },
             "options": {
@@ -261,6 +267,16 @@
                         "long": "git",
                         "conflicts": ["--format"],
                         "help": "format slug in the Git-ready format"
+                    },
+                    {
+                        "short": "B",
+                        "long": "git-branch",
+                        "help": "create new Git branch using the slug as branch name"
+                    },
+                    {
+                        "short": "C",
+                        "long": "git-checkout",
+                        "help": "checkout Git branch with the same name as generated slug"
                     },
                     {
                         "short": "f",

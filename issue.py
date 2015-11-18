@@ -1057,7 +1057,12 @@ def commandSlug(ui):
     if slug_format:
         issue_slug = slug_format.format(slug=issue_slug, **slug_parameters)
 
-    print(issue_slug)
+    if '--git-branch' in ui:
+        os.system('git branch {0}'.format(issue_slug))
+    if '--git-checkout' in ui:
+        os.system('git checkout {0}'.format(issue_slug))
+    if ('--git-new-branch' not in ui) and ('--git-checkout' not in ui):
+        print(issue_slug)
     markLastIssue(issue_sha1)
 
 def commandComment(ui):
