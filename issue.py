@@ -1112,42 +1112,56 @@ def commandComment(ui):
     markLastIssue(issue_sha1)
 
 def commandTag(ui):
-    issue_sha1 = (getLastIssue() if '--last' in ui else operands[1])
-    try:
-        issue_sha1 = expandIssueUID(issue_sha1)
-    except issue.exceptions.IssueUIDAmbiguous:
-        print('fail: issue uid {0} is ambiguous'.format(repr(issue_sha1)))
+    ui = ui.down()
+    subcommand = str(ui)
+    if subcommand == 'ls':
+        pass
+    elif subcommand == 'new':
+        print('new tag: {0}'.format(ui.operands()[0]))
+    elif subcommand == 'rm':
+        print('removed tag: {0}'.format(ui.operands()[0]))
+    elif subcommand == 'show':
+        print('details of tag: {0}'.format(ui.operands()[0]))
+    elif subcommand == 'tag':
+        issue_sha1 = (getLastIssue() if '--last' in ui else operands[1])
+        try:
+            issue_sha1 = expandIssueUID(issue_sha1)
+        except issue.exceptions.IssueUIDAmbiguous:
+            print('fail: issue uid {0} is ambiguous'.format(repr(issue_sha1)))
+            exit(1)
+
+        issue_tag = operands[0]
+
+        if not issue_tag:
+            print('fatal: aborting due to empty tag')
+            exit(1)
+
+        repo_config = getConfig()
+
+        issue_differences = [
+            {
+                'action': ('remove-tags' if '--remove' in ui else 'push-tags'),
+                'params': {
+                    'tags': [issue_tag],
+                },
+                'author': {
+                    'author.email': repo_config['author.email'],
+                    'author.name': repo_config['author.name'],
+                },
+                'timestamp': timestamp(),
+            }
+        ]
+
+        issue_diff_sha1 = '{0}{1}{2}{3}'.format(repo_config['author.email'], repo_config['author.name'], timestamp(), random.random())
+        issue_diff_sha1 = hashlib.sha1(issue_diff_sha1.encode('utf-8')).hexdigest()
+        issue_diff_file_path = os.path.join(ISSUES_PATH, issue_sha1[:2], issue_sha1, 'diff', '{0}.json'.format(issue_diff_sha1))
+        with open(issue_diff_file_path, 'w') as ofstream:
+            ofstream.write(json.dumps(issue_differences))
+        markLastIssue(issue_sha1)
+        indexIssue(issue_sha1, issue_diff_sha1)
+    else:
+        print('fatal: unrecognized subcommand: {0}'.format(subcommand))
         exit(1)
-
-    issue_tag = operands[0]
-
-    if not issue_tag:
-        print('fatal: aborting due to empty tag')
-        exit(1)
-
-    repo_config = getConfig()
-
-    issue_differences = [
-        {
-            'action': ('remove-tags' if '--remove' in ui else 'push-tags'),
-            'params': {
-                'tags': [issue_tag],
-            },
-            'author': {
-                'author.email': repo_config['author.email'],
-                'author.name': repo_config['author.name'],
-            },
-            'timestamp': timestamp(),
-        }
-    ]
-
-    issue_diff_sha1 = '{0}{1}{2}{3}'.format(repo_config['author.email'], repo_config['author.name'], timestamp(), random.random())
-    issue_diff_sha1 = hashlib.sha1(issue_diff_sha1.encode('utf-8')).hexdigest()
-    issue_diff_file_path = os.path.join(ISSUES_PATH, issue_sha1[:2], issue_sha1, 'diff', '{0}.json'.format(issue_diff_sha1))
-    with open(issue_diff_file_path, 'w') as ofstream:
-        ofstream.write(json.dumps(issue_differences))
-    markLastIssue(issue_sha1)
-    indexIssue(issue_sha1, issue_diff_sha1)
 
 def commandParam(ui):
     issue_sha1 = (getLastIssue() if '--last' in ui else operands[0])

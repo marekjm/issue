@@ -356,6 +356,70 @@
                     }
                 ]
             },
+            "commands": {
+                "ls": {
+                    "doc": {
+                        "help": "List available tags"
+                    },
+                    "operands": {
+                        "no": [0, 0]
+                    }
+                },
+                "new": {
+                    "doc": {
+                        "help": "Create new tag"
+                    },
+                    "options": {
+                        "local": [
+                            {
+                                "short": "k",
+                                "long": "key",
+                                "arguments": ["str"],
+                                "requires": ["--value"],
+                                "conflicts": ["--url"],
+                                "help": "set given config key in selected remote"
+                            },
+                            {
+                                "long": "value",
+                                "arguments": ["str"],
+                                "requires": ["--key"],
+                                "help": "set this value for given key in config for selected remote"
+                            },
+                            {
+                                "long": "U",
+                                "long": "unset",
+                                "arguments": ["str"],
+                                "help": "remove a key in config for selected remote"
+                            },
+                            {
+                                "short": "u",
+                                "long": "url",
+                                "arguments": ["str"],
+                                "help": "set SSH URL for selected remote"
+                            }
+                        ]
+                    },
+                    "operands": {
+                        "no": [1, 1]
+                    }
+                },
+                "rm": {
+                    "doc": {
+                        "help": "Remove a tag repository"
+                    },
+                    "operands": {
+                        "no": [1]
+                    }
+                },
+                "show": {
+                    "doc": {
+                        "help": "Show details of a tag"
+                    },
+                    "operands": {
+                        "no": [1, 1]
+                    }
+                }
+            },
             "operands": {
                 "no": [2, 2],
                 "with": {
