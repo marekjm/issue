@@ -85,7 +85,7 @@ LAST_ISSUE_PATH = os.path.join(REPOSITORY_PATH, 'last')
 LS_KEYWORD_MATCH_THRESHOLD = 1
 
 
-# utility functions
+# issue-related utility functions
 def getIssue(issue_sha1):
     issue_group = issue_sha1[:2]
     issue_file_path = os.path.join(ISSUES_PATH, issue_group, '{0}.json'.format(issue_sha1))
@@ -287,6 +287,57 @@ def dropIssue(issue_sha1):
 def sluggify(issue_message):
     return '-'.join(re.compile('[^ a-z]').sub(' ', unidecode.unidecode(issue_message).lower()).split())
 
+
+# tag-related utility functions
+def listTagDifferences(tag_sha1):
+    tag_group = tag_sha1[:2]
+    tag_diffs_path = os.path.join(TAGS_PATH, tag_group, tag_sha1, 'diff')
+    return [k.split('.')[0] for k in os.listdir(tag_diffs_path)]
+
+def getTagDifferences(tag_sha1, *diffs):
+    tag_differences = []
+    tag_diff_path = os.path.join(TAGS_PATH, tag_sha1[:2], tag_sha1, 'diff')
+    for d in diffs:
+        tag_diff_file_path = os.path.join(tag_diff_path, '{0}.json'.format(d))
+        with open(tag_diff_file_path) as ifstream:
+            tag_differences.extend(json.loads(ifstream.read()))
+    return tag_differences
+
+def indexTag(tag_sha1, *diffs):
+    tag_data = {}
+    tag_file_path = os.path.join(TAGS_PATH, tag_sha1[:2], '{0}.json'.format(tag_sha1))
+    if os.path.isfile(tag_file_path) and diffs:
+        with open(tag_file_path) as ifstream:
+            tag_data = json.loads(ifstream.read())
+
+    tag_differences = (diffs or listTagDifferences(tag_sha1))
+    tag_differences = getTagDifferences(tag_sha1, *tag_differences)
+
+    tag_differences_sorted = []
+    tag_differences_order = {}
+    for i, d in enumerate(tag_differences):
+        if d['timestamp'] not in tag_differences_order:
+            tag_differences_order[d['timestamp']] = []
+        tag_differences_order[d['timestamp']].append(i)
+    tag_differences_sorted = []
+    for ts in sorted(tag_differences_order.keys()):
+        tag_differences_sorted.extend([tag_differences[i] for i in tag_differences_order[ts]])
+
+    for d in tag_differences_sorted:
+        diff_datetime = datetime.datetime.fromtimestamp(d['timestamp'])
+        diff_action = d['action']
+        if diff_action == 'tag-open':
+            tag_data['name'] = d['params']['name']
+            tag_data['tag.author.name'] = d['author']['author.name']
+            tag_data['tag.author.email'] = d['author']['author.email']
+        elif diff_action == 'tag-set-project-name':
+            tag_data['project.name'] = d['params']['name']
+
+    with open(tag_file_path, 'w') as ofstream:
+        ofstream.write(json.dumps(tag_data))
+
+
+# configuration-related utility functions
 def getConfig():
     config_data = {}
     config_path_global = os.path.expanduser('~/.issueconfig.json')
@@ -300,6 +351,8 @@ def getConfig():
                 config_data[k] = v
     return config_data
 
+
+# remote-related utility functions
 def getRemotes():
     remotes = {}
     remotes_path = os.path.join(REPOSITORY_PATH, 'remotes.json')
@@ -343,6 +396,8 @@ def savePack(pack_data=None):
     with open(PACK_PATH, 'w') as ofstream:
         ofstream.write(json.dumps(pack_data))
 
+
+# misc utility functions
 def listIssues():
     list_of_issues = []
     groups = os.listdir(ISSUES_PATH)
@@ -682,6 +737,9 @@ def repositoryInit(force=False, up=False):
             os.mkdir(issue_diffs_path)
 
 
+######################################################################
+# LOGIC CODE
+#
 if '--pack' in ui:
     print('packing objects:')
     pack_data = getPack()
@@ -1166,6 +1224,7 @@ def commandTag(ui):
         tag_diff_file_path = os.path.join(tag_group_path, tag_sha1, 'diff', '{0}.json'.format(tag_diff_sha1))
         with open(tag_diff_file_path, 'w') as ofstream:
             ofstream.write(json.dumps(tag_differences))
+        indexTag(tag_sha1)
     elif subcommand == 'rm':
         print('removed tag: {0}'.format(ui.operands()[0]))
     elif subcommand == 'show':
