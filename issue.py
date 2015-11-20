@@ -1248,6 +1248,51 @@ def commandShow(ui):
         markLastIssue(issue_sha1)
     elif str(ui) == 'log':
         print('showing log of issue: {0}'.format(issue_sha1))
+        issue_differences = getIssueDifferences(issue_sha1, *listIssueDifferences(issue_sha1))
+
+        issue_differences_sorted = []
+        issue_differences_order = {}
+        for i, d in enumerate(issue_differences):
+            if d['timestamp'] not in issue_differences_order:
+                issue_differences_order[d['timestamp']] = []
+            issue_differences_order[d['timestamp']].append(i)
+        issue_differences_sorted = []
+        for ts in sorted(issue_differences_order.keys()):
+            issue_differences_sorted.extend([issue_differences[i] for i in issue_differences_order[ts]])
+
+        for d in issue_differences_sorted:
+            diff_datetime = str(datetime.datetime.fromtimestamp(d['timestamp'])).rsplit('.', 1)[0]
+            diff_action = d['action']
+            if diff_action == 'open':
+                print('{0}: opened by: {1} ({2})'.format(diff_datetime, d['author']['author.name'], d['author']['author.email']))
+            elif diff_action == 'close':
+                print('{0}: closed by: {1} ({2})'.format(diff_datetime, d['author']['author.name'], d['author']['author.email'], end=''))
+                if 'closing_git_commit' in d['params'] and d['params']['closing_git_commit']:
+                    print(' with Git commit {0}'.format(d['params']['closing_git_commit']))
+                else:
+                    print()
+            elif diff_action == 'set-message':
+                print('{0}: message set by: {1} ({2})'.format(diff_datetime, d['author']['author.name'], d['author']['author.email']))
+            # support both -tags and -labels ("labels" name has been used in pre-0.1.5 versions)
+            # FIXME: this support should be removed after early repositories are converted
+            elif diff_action == 'push-tags' or diff_action == 'push-labels':
+                print('{0}: tagged by: {1} ({2}) with {3}'.format(diff_datetime, d['author']['author.name'], d['author']['author.email'], ', '.join(d['params'][('tags' if 'tags' in d['params'] else 'labels')])))
+            # support both -tags and -labels ("labels" name has been used in pre-0.1.5 versions)
+            # FIXME: this support should be removed after early repositories are converted
+            elif diff_action == 'remove-tags' or diff_action == 'remove-labels':
+                print('{0}: tags removed by: {1} ({2}) with {3}'.format(diff_datetime, d['author']['author.name'], d['author']['author.email'], ', '.join(d['params'][('tags' if 'tags' in d['params'] else 'labels')])))
+            elif diff_action == 'parameter-set':
+                print('{0}: parameter set by: {1} ({2}): {3} = {4}'.format(diff_datetime, d['author']['author.name'], d['author']['author.email'], d['params']['key'], repr(d['params']['value'])))
+            elif diff_action == 'parameter-remove':
+                print('{0}: parameter removed by: {1} ({2}): {3}'.format(diff_datetime, d['author']['author.name'], d['author']['author.email'], d['params']['key']))
+            elif diff_action == 'push-milestones':
+                print('{0}: milestones set by: {1} ({2}): {3}'.format(diff_datetime, d['author']['author.name'], d['author']['author.email'], ', '.join(d['params']['milestones'])))
+            elif diff_action == 'set-status':
+                print('{0}: status set by: {1} ({2}): {3}'.format(diff_datetime, d['author']['author.name'], d['author']['author.email'], d['params']['status']))
+            elif diff_action == 'set-project-tag':
+                print('{0}: project tag set by: {1} ({2}): {3}'.format(diff_datetime, d['author']['author.name'], d['author']['author.email'], d['params']['tag']))
+            elif diff_action == 'set-project-name':
+                print('{0}: project name set by: {1} ({2}): {3}'.format(diff_datetime, d['author']['author.name'], d['author']['author.email'], d['params']['name']))
 
 def commandConfig(ui):
     ui = ui.down()
