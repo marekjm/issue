@@ -1266,7 +1266,7 @@ def commandShow(ui):
             if diff_action == 'open':
                 print('{0}: opened by: {1} ({2})'.format(diff_datetime, d['author']['author.name'], d['author']['author.email']))
             elif diff_action == 'close':
-                print('{0}: closed by: {1} ({2})'.format(diff_datetime, d['author']['author.name'], d['author']['author.email'], end=''))
+                print('{0}: closed by: {1} ({2})'.format(diff_datetime, d['author']['author.name'], d['author']['author.email']), end='')
                 if 'closing_git_commit' in d['params'] and d['params']['closing_git_commit']:
                     print(' with Git commit {0}'.format(d['params']['closing_git_commit']))
                 else:
