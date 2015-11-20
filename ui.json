@@ -400,12 +400,22 @@
                 ]
             },
             "options": {
-                "local": [
+                "global": [
                     {
                         "long": "last",
                         "help": "display last active issue"
                     }
                 ]
+            },
+            "commands": {
+                "log": {
+                    "operands": {
+                        "no": [1, 1],
+                        "with": {
+                            "--last": [0, 0]
+                        }
+                    }
+                }
             },
             "operands": {
                 "no": [1, 1],
