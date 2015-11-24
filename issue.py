@@ -903,7 +903,18 @@ def commandClose(ui):
         },
     ]
     if '--git-commit' in ui:
-        issue_differences[0]['params']['closing_git_commit'] = ui.get('--git-commit')
+        closing_git_commit = ui.get('--git-commit')
+        if closing_git_commit == '-':
+            closing_git_commit = 'HEAD'
+        p = subprocess.Popen(('git', 'show', closing_git_commit), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        output, error = p.communicate()
+        exit_code = p.wait()
+        output = output.decode('utf-8').strip()
+        if exit_code != 0:
+            print(error.decode('utf-8').strip().splitlines()[0])
+            exit(exit_code)
+        closing_git_commit = output.splitlines()[0].split(' ')[1]
+        issue_differences[0]['params']['closing_git_commit'] = closing_git_commit
 
     issue_diff_sha1 = '{0}{1}{2}{3}'.format(repo_config['author.email'], repo_config['author.name'], timestamp(), random.random())
     issue_diff_sha1 = hashlib.sha1(issue_diff_sha1.encode('utf-8')).hexdigest()
