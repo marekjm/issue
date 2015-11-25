@@ -148,6 +148,8 @@ def indexIssue(issue_sha1, *diffs):
     for ts in sorted(issue_differences_order.keys()):
         issue_differences_sorted.extend([issue_differences[i] for i in issue_differences_order[ts]])
 
+    issue_work_started = {}
+    issue_work_in_progress_time_deltas = []
     for d in issue_differences_sorted:
         diff_datetime = datetime.datetime.fromtimestamp(d['timestamp'])
         diff_action = d['action']
@@ -196,9 +198,27 @@ def indexIssue(issue_sha1, *diffs):
             issue_data['project.tag'] = d['params']['tag']
         elif diff_action == 'set-project-name':
             issue_data['project.name'] = d['params']['name']
+        elif diff_action == 'work-start':
+            # FIXME: for now, if several 'work-start' events follow each other make the next one end
+            # the preceding one and set it as new start timestamp
+            # this should not happen - "work start" should check if there is an unmatched 'work-start' event
+            # and complain
+            if issue_work_started.get(d['author.email']) is not None:
+                issue_work_in_progress_time_deltas.append((datetime.datetime.fromtimestamp(d['params']['timestamp']) - issue_work_started[d['author.email']]))
+            issue_work_started[d['author.email']] = datetime.datetime.fromtimestamp(d['params']['timestamp'])
+        elif diff_action == 'work-stop':
+            if issue_work_started.get(d['author.email']) is not None:
+                issue_work_in_progress_time_deltas.append((datetime.datetime.fromtimestamp(d['params']['timestamp']) - issue_work_started[d['author.email']]))
+            issue_work_started[d['author.email']] = None
 
     # remove duplicated tags
     issue_data['tags'] = list(set(issue_data.get('tags', [])))
+
+    if issue_work_in_progress_time_deltas:
+        issue_total_time_spent = issue_work_in_progress_time_deltas[0]
+        for td in issue_work_in_progress_time_deltas[1:]:
+            issue_total_time_spent += td
+        issue_data['total_time_spent'] = str(issue_total_time_spent).rsplit('.', 1)[0]
 
     with open(issue_file_path, 'w') as ofstream:
         ofstream.write(json.dumps(issue_data))
@@ -1234,6 +1254,7 @@ def commandShow(ui):
             issue_close_author_email = (issue_data['close.author.email'] if 'close.author.email' in issue_data else 'Unknown email')
             issue_close_timestamp = (datetime.datetime.fromtimestamp(issue_data['close.timestamp']) if 'close.timestamp' in issue_data else 'unknown date')
             print('    closed by:  {0} ({1}), on {2}'.format(issue_close_author_name, issue_close_author_email, issue_close_timestamp))
+        print('    total time spent:  {0}'.format(issue_data.get('total_time_spent', '0:00:00')))
         print('    milestones: {0}'.format(', '.join(issue_data['milestones'])))
         print('    tags:       {0}'.format(', '.join(issue_data['tags'])))
         print('    project:    {0} ({1})'.format(issue_data.get('project.name', 'Unknown'), issue_data.get('project.tag', '')))
