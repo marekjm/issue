@@ -203,13 +203,13 @@ def indexIssue(issue_sha1, *diffs):
             # the preceding one and set it as new start timestamp
             # this should not happen - "work start" should check if there is an unmatched 'work-start' event
             # and complain
-            if issue_work_started.get(d['author.email']) is not None:
-                issue_work_in_progress_time_deltas.append((datetime.datetime.fromtimestamp(d['params']['timestamp']) - issue_work_started[d['author.email']]))
-            issue_work_started[d['author.email']] = datetime.datetime.fromtimestamp(d['params']['timestamp'])
+            if issue_work_started.get(d['author']['author.email']) is not None:
+                issue_work_in_progress_time_deltas.append((datetime.datetime.fromtimestamp(d['params']['timestamp']) - issue_work_started[d['author']['author.email']]))
+            issue_work_started[d['author']['author.email']] = datetime.datetime.fromtimestamp(d['params']['timestamp'])
         elif diff_action == 'work-stop':
-            if issue_work_started.get(d['author.email']) is not None:
-                issue_work_in_progress_time_deltas.append((datetime.datetime.fromtimestamp(d['params']['timestamp']) - issue_work_started[d['author.email']]))
-            issue_work_started[d['author.email']] = None
+            if issue_work_started.get(d['author']['author.email']) is not None:
+                issue_work_in_progress_time_deltas.append((datetime.datetime.fromtimestamp(d['params']['timestamp']) - issue_work_started[d['author']['author.email']]))
+            issue_work_started[d['author']['author.email']] = None
 
     # remove duplicated tags
     issue_data['tags'] = list(set(issue_data.get('tags', [])))
