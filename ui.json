@@ -424,6 +424,47 @@
                 }
             }
         },
+        "work": {
+            "doc": {
+                "help": "Work on an issue.",
+                "usage": [
+                    "work start <sha1>",
+                    "work stop <sha1>"
+                ]
+            },
+            "options": {
+                "global": [
+                    {
+                        "long": "last",
+                        "help": "operate on last active issue"
+                    }
+                ]
+            },
+            "commands": {
+                "start": {
+                    "operands": {
+                        "no": [1, 1],
+                        "with": {
+                            "--last": [0, 0]
+                        }
+                    }
+                },
+                "stop": {
+                    "operands": {
+                        "no": [1, 1],
+                        "with": {
+                            "--last": [0, 0]
+                        }
+                    }
+                }
+            },
+            "operands": {
+                "no": [1, 1],
+                "with": {
+                    "--last": [0, 0]
+                }
+            }
+        },
         "config": {
             "doc": {
                 "help": "Configure the issue program.",
