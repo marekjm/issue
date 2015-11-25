@@ -1472,6 +1472,69 @@ def commandClone(ui):
     saveRemotes(remotes)
     fetchRemote(remote_name, remotes[remote_name])
 
+def commandWork(ui):
+    ui = ui.down()
+    issue_sha1 = (getLastIssue() if '--last' in ui else ui.operands()[0])
+    try:
+        issue_sha1 = expandIssueUID(issue_sha1)
+    except issue.exceptions.IssueUIDAmbiguous:
+        print('fail: issue uid {0} is ambiguous'.format(repr(issue_sha1)))
+        exit(1)
+    except issue.exceptions.IssueUIDNotMatched:
+        print('fail: issue uid {0} did not match anything'.format(repr(issue_sha1)))
+        exit(1)
+
+    if str(ui) == 'start':
+        repo_config = getConfig()
+
+        ts = timestamp()
+        issue_differences = [
+            {
+                'action': 'work-start',
+                'params': {
+                    'timestamp': ts,
+                },
+                'author': {
+                    'author.email': repo_config['author.email'],
+                    'author.name': repo_config['author.name'],
+                },
+                'timestamp': ts,
+            }
+        ]
+
+        issue_diff_sha1 = '{0}{1}{2}{3}'.format(repo_config['author.email'], repo_config['author.name'], timestamp(), random.random())
+        issue_diff_sha1 = hashlib.sha1(issue_diff_sha1.encode('utf-8')).hexdigest()
+        issue_diff_file_path = os.path.join(ISSUES_PATH, issue_sha1[:2], issue_sha1, 'diff', '{0}.json'.format(issue_diff_sha1))
+        with open(issue_diff_file_path, 'w') as ofstream:
+            ofstream.write(json.dumps(issue_differences))
+        markLastIssue(issue_sha1)
+        indexIssue(issue_sha1, issue_diff_sha1)
+    elif str(ui) == 'stop':
+        repo_config = getConfig()
+
+        ts = timestamp()
+        issue_differences = [
+            {
+                'action': 'work-stop',
+                'params': {
+                    'timestamp': ts,
+                },
+                'author': {
+                    'author.email': repo_config['author.email'],
+                    'author.name': repo_config['author.name'],
+                },
+                'timestamp': ts,
+            }
+        ]
+
+        issue_diff_sha1 = '{0}{1}{2}{3}'.format(repo_config['author.email'], repo_config['author.name'], timestamp(), random.random())
+        issue_diff_sha1 = hashlib.sha1(issue_diff_sha1.encode('utf-8')).hexdigest()
+        issue_diff_file_path = os.path.join(ISSUES_PATH, issue_sha1[:2], issue_sha1, 'diff', '{0}.json'.format(issue_diff_sha1))
+        with open(issue_diff_file_path, 'w') as ofstream:
+            ofstream.write(json.dumps(issue_differences))
+        markLastIssue(issue_sha1)
+        indexIssue(issue_sha1, issue_diff_sha1)
+
 
 def dispatch(ui, *commands, overrides = {}, default_command=''):
     """Semi-automatic command dispatcher.
@@ -1515,4 +1578,5 @@ dispatch(ui,        # first: pass the UI object to dispatch
     commandPublish,
     commandIndex,
     commandClone,
+    commandWork,
 )
