@@ -445,6 +445,13 @@
                         "long": "last",
                         "help": "operate on last active issue"
                     }
+                ],
+                "local": [
+                    {
+                        "short": "i",
+                        "long": "in-progress",
+                        "help": "list issues with started work"
+                    }
                 ]
             },
             "commands": {
@@ -468,7 +475,8 @@
             "operands": {
                 "no": [1, 1],
                 "with": {
-                    "--last": [0, 0]
+                    "--last": [0, 0],
+                    "--in-progress": [0, 0]
                 }
             }
         },

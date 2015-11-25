@@ -1511,6 +1511,21 @@ def commandClone(ui):
 
 def commandWork(ui):
     ui = ui.down()
+
+    if '--in-progress' in ui:
+        work_in_progress = []
+        for issue_sha1 in sorted(listIssues()):
+            issue_differences = sortIssueDifferences(getIssueDifferences(issue_sha1, *listIssueDifferences(issue_sha1)))
+            for diff in issue_differences[::-1]:
+                if diff['action'] == 'work-stop':
+                    break
+                if diff['action'] == 'work-start':
+                    work_in_progress.append(issue_sha1)
+                    break
+        for wip in work_in_progress:
+            print(wip)
+        return
+
     issue_sha1 = (getLastIssue() if '--last' in ui else ui.operands()[0])
     try:
         issue_sha1 = expandIssueUID(issue_sha1)
