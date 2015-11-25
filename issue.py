@@ -1304,6 +1304,10 @@ def commandShow(ui):
                 print('{0}: project tag set by: {1} ({2}): {3}'.format(diff_datetime, d['author']['author.name'], d['author']['author.email'], d['params']['tag']))
             elif diff_action == 'set-project-name':
                 print('{0}: project name set by: {1} ({2}): {3}'.format(diff_datetime, d['author']['author.name'], d['author']['author.email'], d['params']['name']))
+            elif diff_action == 'work-start':
+                print('{0}: work started by {1} ({2})'.format(diff_datetime, d['author']['author.name'], d['author']['author.email']))
+            elif diff_action == 'work-stop':
+                print('{0}: work stopped by {1} ({2})'.format(diff_datetime, d['author']['author.name'], d['author']['author.email']))
 
 def commandConfig(ui):
     ui = ui.down()
