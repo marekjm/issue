@@ -128,6 +128,18 @@ def getIssueDifferences(issue_sha1, *diffs):
             issue_differences.extend(json.loads(ifstream.read()))
     return issue_differences
 
+def sortIssueDifferences(issue_differences):
+    issue_differences_sorted = []
+    issue_differences_order = {}
+    for i, d in enumerate(issue_differences):
+        if d['timestamp'] not in issue_differences_order:
+            issue_differences_order[d['timestamp']] = []
+        issue_differences_order[d['timestamp']].append(i)
+    issue_differences_sorted = []
+    for ts in sorted(issue_differences_order.keys()):
+        issue_differences_sorted.extend([issue_differences[i] for i in issue_differences_order[ts]])
+    return issue_differences_sorted
+
 def indexIssue(issue_sha1, *diffs):
     issue_data = {}
     issue_file_path = os.path.join(ISSUES_PATH, issue_sha1[:2], '{0}.json'.format(issue_sha1))
@@ -138,15 +150,7 @@ def indexIssue(issue_sha1, *diffs):
     issue_differences = (diffs or listIssueDifferences(issue_sha1))
     issue_differences = getIssueDifferences(issue_sha1, *issue_differences)
 
-    issue_differences_sorted = []
-    issue_differences_order = {}
-    for i, d in enumerate(issue_differences):
-        if d['timestamp'] not in issue_differences_order:
-            issue_differences_order[d['timestamp']] = []
-        issue_differences_order[d['timestamp']].append(i)
-    issue_differences_sorted = []
-    for ts in sorted(issue_differences_order.keys()):
-        issue_differences_sorted.extend([issue_differences[i] for i in issue_differences_order[ts]])
+    issue_differences_sorted = sortIssueDifferences(issue_differences)
 
     issue_work_started = {}
     issue_work_in_progress_time_deltas = []
