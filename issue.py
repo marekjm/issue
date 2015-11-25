@@ -214,10 +214,19 @@ def indexIssue(issue_sha1, *diffs):
     # remove duplicated tags
     issue_data['tags'] = list(set(issue_data.get('tags', [])))
 
+    issue_total_time_spent = None
     if issue_work_in_progress_time_deltas:
         issue_total_time_spent = issue_work_in_progress_time_deltas[0]
         for td in issue_work_in_progress_time_deltas[1:]:
             issue_total_time_spent += td
+
+    repo_config = getConfig()
+    if issue_work_started.get(repo_config['author.email']) is not None:
+        if issue_total_time_spent is not None:
+            issue_total_time_spent += (datetime.datetime.now() - issue_work_started.get(repo_config['author.email']))
+        else:
+            issue_total_time_spent = (datetime.datetime.now() - issue_work_started.get(repo_config['author.email']))
+    if issue_total_time_spent is not None:
         issue_data['total_time_spent'] = str(issue_total_time_spent).rsplit('.', 1)[0]
 
     with open(issue_file_path, 'w') as ofstream:
