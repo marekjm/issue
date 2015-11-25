@@ -1243,6 +1243,9 @@ def commandShow(ui):
         print('fail: issue uid {0} did not match anything'.format(repr(issue_sha1)))
         exit(1)
 
+    if str(ui) == 'show' and '--index' in ui:
+        indexIssue(issue_sha1)
+
     issue_data = {}
     try:
         issue_data = getIssue(issue_sha1)
@@ -1252,9 +1255,6 @@ def commandShow(ui):
 
     if str(ui) == 'show':
         issue_message_lines = issue_data['message'].splitlines()
-
-        if '--index' in ui:
-            indexIssue(issue_sha1)
 
         issue_open_author_name = (issue_data['open.author.name'] if 'open.author.name' in issue_data else 'Unknown Author')
         issue_open_author_email = (issue_data['open.author.email'] if 'open.author.email' in issue_data else 'Unknown email')
