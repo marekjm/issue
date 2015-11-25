@@ -405,6 +405,13 @@
                         "long": "last",
                         "help": "display last active issue"
                     }
+                ],
+                "local": [
+                    {
+                        "short": "i",
+                        "long": "index",
+                        "help": "index selected issue before showing it"
+                    }
                 ]
             },
             "commands": {

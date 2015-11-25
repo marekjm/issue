@@ -1253,6 +1253,9 @@ def commandShow(ui):
     if str(ui) == 'show':
         issue_message_lines = issue_data['message'].splitlines()
 
+        if '--index' in ui:
+            indexIssue(issue_sha1)
+
         issue_open_author_name = (issue_data['open.author.name'] if 'open.author.name' in issue_data else 'Unknown Author')
         issue_open_author_email = (issue_data['open.author.email'] if 'open.author.email' in issue_data else 'Unknown email')
         issue_open_timestamp = (datetime.datetime.fromtimestamp(issue_data['open.timestamp']) if 'open.timestamp' in issue_data else 'unknown date')
