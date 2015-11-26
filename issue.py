@@ -1358,9 +1358,6 @@ def commandTag(ui):
             print('fatal: tag "{0}" does not exist'.format(t))
             print('hint: use "issue tag new {0}" to create it'.format(t))
             exit(1)
-    else:
-        print('fatal: unrecognized subcommand: {0}'.format(subcommand))
-        exit(1)
 
 def commandParam(ui):
     issue_sha1 = (getLastIssue() if '--last' in ui else operands[0])
