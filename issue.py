@@ -1217,7 +1217,24 @@ def commandTag(ui):
     ui = ui.down()
     subcommand = str(ui)
     if subcommand == 'ls':
-        pass
+        available_tags = []
+        tag_to_issue_map = {}
+        for issue_sha1 in sorted(listIssues()):
+            issue_differences = getIssueDifferences(issue_sha1, *listIssueDifferences(issue_sha1))
+            for diff in issue_differences[::-1]:
+                if diff['action'] == 'push-tags':
+                    available_tags.extend(diff['params']['tags'])
+                    for t in diff['params']['tags']:
+                        if t not in tag_to_issue_map:
+                            tag_to_issue_map[t] = []
+                        tag_to_issue_map[t].append(issue_sha1)
+        for t in sorted(set(available_tags)):
+            if '--verbose' in ui:
+                print('* {0} ({1} issues)'.format(t, len(tag_to_issue_map[t])))
+                for issue_sha1 in sorted(set(tag_to_issue_map[t])):
+                    print('    {0}'.format(issue_sha1))
+            else:
+                print('{0}/{1}'.format(t, len(tag_to_issue_map[t])))
     elif subcommand == 'new':
         tag_name = ui.operands()[0]
         print('new tag: {0}'.format(tag_name))
