@@ -128,6 +128,18 @@ def getIssueDifferences(issue_sha1, *diffs):
             issue_differences.extend(json.loads(ifstream.read()))
     return issue_differences
 
+def sortIssueDifferences(issue_differences):
+    issue_differences_sorted = []
+    issue_differences_order = {}
+    for i, d in enumerate(issue_differences):
+        if d['timestamp'] not in issue_differences_order:
+            issue_differences_order[d['timestamp']] = []
+        issue_differences_order[d['timestamp']].append(i)
+    issue_differences_sorted = []
+    for ts in sorted(issue_differences_order.keys()):
+        issue_differences_sorted.extend([issue_differences[i] for i in issue_differences_order[ts]])
+    return issue_differences_sorted
+
 def indexIssue(issue_sha1, *diffs):
     issue_data = {}
     issue_file_path = os.path.join(ISSUES_PATH, issue_sha1[:2], '{0}.json'.format(issue_sha1))
@@ -138,16 +150,10 @@ def indexIssue(issue_sha1, *diffs):
     issue_differences = (diffs or listIssueDifferences(issue_sha1))
     issue_differences = getIssueDifferences(issue_sha1, *issue_differences)
 
-    issue_differences_sorted = []
-    issue_differences_order = {}
-    for i, d in enumerate(issue_differences):
-        if d['timestamp'] not in issue_differences_order:
-            issue_differences_order[d['timestamp']] = []
-        issue_differences_order[d['timestamp']].append(i)
-    issue_differences_sorted = []
-    for ts in sorted(issue_differences_order.keys()):
-        issue_differences_sorted.extend([issue_differences[i] for i in issue_differences_order[ts]])
+    issue_differences_sorted = sortIssueDifferences(issue_differences)
 
+    issue_work_started = {}
+    issue_work_in_progress_time_deltas = []
     for d in issue_differences_sorted:
         diff_datetime = datetime.datetime.fromtimestamp(d['timestamp'])
         diff_action = d['action']
@@ -196,9 +202,36 @@ def indexIssue(issue_sha1, *diffs):
             issue_data['project.tag'] = d['params']['tag']
         elif diff_action == 'set-project-name':
             issue_data['project.name'] = d['params']['name']
+        elif diff_action == 'work-start':
+            # FIXME: for now, if several 'work-start' events follow each other make the next one end
+            # the preceding one and set it as new start timestamp
+            # this should not happen - "work start" should check if there is an unmatched 'work-start' event
+            # and complain
+            if issue_work_started.get(d['author']['author.email']) is not None:
+                issue_work_in_progress_time_deltas.append((datetime.datetime.fromtimestamp(d['params']['timestamp']) - issue_work_started[d['author']['author.email']]))
+            issue_work_started[d['author']['author.email']] = datetime.datetime.fromtimestamp(d['params']['timestamp'])
+        elif diff_action == 'work-stop':
+            if issue_work_started.get(d['author']['author.email']) is not None:
+                issue_work_in_progress_time_deltas.append((datetime.datetime.fromtimestamp(d['params']['timestamp']) - issue_work_started[d['author']['author.email']]))
+            issue_work_started[d['author']['author.email']] = None
 
     # remove duplicated tags
     issue_data['tags'] = list(set(issue_data.get('tags', [])))
+
+    issue_total_time_spent = None
+    if issue_work_in_progress_time_deltas:
+        issue_total_time_spent = issue_work_in_progress_time_deltas[0]
+        for td in issue_work_in_progress_time_deltas[1:]:
+            issue_total_time_spent += td
+
+    repo_config = getConfig()
+    if issue_work_started.get(repo_config['author.email']) is not None:
+        if issue_total_time_spent is not None:
+            issue_total_time_spent += (datetime.datetime.now() - issue_work_started.get(repo_config['author.email']))
+        else:
+            issue_total_time_spent = (datetime.datetime.now() - issue_work_started.get(repo_config['author.email']))
+    if issue_total_time_spent is not None:
+        issue_data['total_time_spent'] = str(issue_total_time_spent).rsplit('.', 1)[0]
 
     with open(issue_file_path, 'w') as ofstream:
         ofstream.write(json.dumps(issue_data))
@@ -1335,6 +1368,9 @@ def commandShow(ui):
         print('fail: issue uid {0} did not match anything'.format(repr(issue_sha1)))
         exit(1)
 
+    if str(ui) == 'show' and '--index' in ui:
+        indexIssue(issue_sha1)
+
     issue_data = {}
     try:
         issue_data = getIssue(issue_sha1)
@@ -1355,6 +1391,7 @@ def commandShow(ui):
             issue_close_author_email = (issue_data['close.author.email'] if 'close.author.email' in issue_data else 'Unknown email')
             issue_close_timestamp = (datetime.datetime.fromtimestamp(issue_data['close.timestamp']) if 'close.timestamp' in issue_data else 'unknown date')
             print('    closed by:  {0} ({1}), on {2}'.format(issue_close_author_name, issue_close_author_email, issue_close_timestamp))
+        print('    total time spent:  {0}'.format(issue_data.get('total_time_spent', '0:00:00')))
         print('    milestones: {0}'.format(', '.join(issue_data['milestones'])))
         print('    tags:       {0}'.format(', '.join(issue_data['tags'])))
         print('    project:    {0} ({1})'.format(issue_data.get('project.name', 'Unknown'), issue_data.get('project.tag', '')))
@@ -1425,6 +1462,10 @@ def commandShow(ui):
                 print('{0}: project tag set by: {1} ({2}): {3}'.format(diff_datetime, d['author']['author.name'], d['author']['author.email'], d['params']['tag']))
             elif diff_action == 'set-project-name':
                 print('{0}: project name set by: {1} ({2}): {3}'.format(diff_datetime, d['author']['author.name'], d['author']['author.email'], d['params']['name']))
+            elif diff_action == 'work-start':
+                print('{0}: work started by {1} ({2})'.format(diff_datetime, d['author']['author.name'], d['author']['author.email']))
+            elif diff_action == 'work-stop':
+                print('{0}: work stopped by {1} ({2})'.format(diff_datetime, d['author']['author.name'], d['author']['author.email']))
 
 def commandConfig(ui):
     ui = ui.down()
@@ -1589,6 +1630,84 @@ def commandClone(ui):
     saveRemotes(remotes)
     fetchRemote(remote_name, remotes[remote_name])
 
+def commandWork(ui):
+    ui = ui.down()
+
+    if '--in-progress' in ui:
+        work_in_progress = []
+        for issue_sha1 in sorted(listIssues()):
+            issue_differences = sortIssueDifferences(getIssueDifferences(issue_sha1, *listIssueDifferences(issue_sha1)))
+            for diff in issue_differences[::-1]:
+                if diff['action'] == 'work-stop':
+                    break
+                if diff['action'] == 'work-start':
+                    work_in_progress.append(issue_sha1)
+                    break
+        for wip in work_in_progress:
+            print(wip)
+        return
+
+    issue_sha1 = (getLastIssue() if '--last' in ui else ui.operands()[0])
+    try:
+        issue_sha1 = expandIssueUID(issue_sha1)
+    except issue.exceptions.IssueUIDAmbiguous:
+        print('fail: issue uid {0} is ambiguous'.format(repr(issue_sha1)))
+        exit(1)
+    except issue.exceptions.IssueUIDNotMatched:
+        print('fail: issue uid {0} did not match anything'.format(repr(issue_sha1)))
+        exit(1)
+
+    if str(ui) == 'start':
+        repo_config = getConfig()
+
+        ts = timestamp()
+        issue_differences = [
+            {
+                'action': 'work-start',
+                'params': {
+                    'timestamp': ts,
+                },
+                'author': {
+                    'author.email': repo_config['author.email'],
+                    'author.name': repo_config['author.name'],
+                },
+                'timestamp': ts,
+            }
+        ]
+
+        issue_diff_sha1 = '{0}{1}{2}{3}'.format(repo_config['author.email'], repo_config['author.name'], timestamp(), random.random())
+        issue_diff_sha1 = hashlib.sha1(issue_diff_sha1.encode('utf-8')).hexdigest()
+        issue_diff_file_path = os.path.join(ISSUES_PATH, issue_sha1[:2], issue_sha1, 'diff', '{0}.json'.format(issue_diff_sha1))
+        with open(issue_diff_file_path, 'w') as ofstream:
+            ofstream.write(json.dumps(issue_differences))
+        markLastIssue(issue_sha1)
+        indexIssue(issue_sha1, issue_diff_sha1)
+    elif str(ui) == 'stop':
+        repo_config = getConfig()
+
+        ts = timestamp()
+        issue_differences = [
+            {
+                'action': 'work-stop',
+                'params': {
+                    'timestamp': ts,
+                },
+                'author': {
+                    'author.email': repo_config['author.email'],
+                    'author.name': repo_config['author.name'],
+                },
+                'timestamp': ts,
+            }
+        ]
+
+        issue_diff_sha1 = '{0}{1}{2}{3}'.format(repo_config['author.email'], repo_config['author.name'], timestamp(), random.random())
+        issue_diff_sha1 = hashlib.sha1(issue_diff_sha1.encode('utf-8')).hexdigest()
+        issue_diff_file_path = os.path.join(ISSUES_PATH, issue_sha1[:2], issue_sha1, 'diff', '{0}.json'.format(issue_diff_sha1))
+        with open(issue_diff_file_path, 'w') as ofstream:
+            ofstream.write(json.dumps(issue_differences))
+        markLastIssue(issue_sha1)
+        indexIssue(issue_sha1, issue_diff_sha1)
+
 
 def dispatch(ui, *commands, overrides = {}, default_command=''):
     """Semi-automatic command dispatcher.
@@ -1632,4 +1751,5 @@ dispatch(ui,        # first: pass the UI object to dispatch
     commandPublish,
     commandIndex,
     commandClone,
+    commandWork,
 )
