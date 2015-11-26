@@ -1250,20 +1250,18 @@ def commandTag(ui):
             print(s.format(tag_marker, t, len(tag_to_issue_map[t])))
     elif subcommand == 'new':
         tag_name = ui.operands()[0]
-        print('new tag: {0}'.format(tag_name))
+
+        tag_path = os.path.join(TAGS_PATH, tag_name)
+        if os.path.isdir(tag_path) and '--force' in ui:
+            shutil.rmtree(tag_path)
+        if os.path.isdir(tag_path):
+            print('tag exists')
+            exit(1)
+
+        os.mkdir(tag_path)
+        os.mkdir(os.path.join(tag_path, 'diff'))
 
         repo_config = getConfig()
-
-        tag_sha1 = '{0}{1}{2}'.format(tag_name, timestamp(), random.random())
-        tag_sha1 = hashlib.sha1(tag_sha1.encode('utf-8')).hexdigest()
-
-        tag_group_path = os.path.join(TAGS_PATH, tag_sha1[:2])
-        if not os.path.isdir(tag_group_path):
-            os.mkdir(tag_group_path)
-
-        # make directories for issue-specific objects
-        os.mkdir(os.path.join(tag_group_path, tag_sha1))
-        os.mkdir(os.path.join(tag_group_path, tag_sha1, 'diff'))
 
         tag_differences = [
             {
@@ -1278,8 +1276,6 @@ def commandTag(ui):
                 'timestamp': timestamp(),
             },
         ]
-
-        repo_config = getConfig()
         if 'project.name' in repo_config:
             tag_differences.append({
                 'action': 'tag-set-project-name',
@@ -1293,12 +1289,12 @@ def commandTag(ui):
                 'timestamp': timestamp(),
             })
 
-        tag_diff_sha1 = '{0}{1}{2}{3}'.format(repo_config['author.email'], repo_config['author.name'], timestamp(), random.random())
+        tag_diff_sha1 = '{0}{1}{2}{3}{4}'.format(tag_name, repo_config['author.email'], repo_config['author.name'], timestamp(), random.random())
         tag_diff_sha1 = hashlib.sha1(tag_diff_sha1.encode('utf-8')).hexdigest()
-        tag_diff_file_path = os.path.join(tag_group_path, tag_sha1, 'diff', '{0}.json'.format(tag_diff_sha1))
+        tag_diff_file_path = os.path.join(tag_path, 'diff', '{0}.json'.format(tag_diff_sha1))
         with open(tag_diff_file_path, 'w') as ofstream:
             ofstream.write(json.dumps(tag_differences))
-        indexTag(tag_sha1)
+        # indexTag(tag_sha1)
     elif subcommand == 'rm':
         print('removed tag: {0}'.format(ui.operands()[0]))
     elif subcommand == 'show':
