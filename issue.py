@@ -322,6 +322,27 @@ def sluggify(issue_message):
 
 
 # tag-related utility functions
+def listTags():
+    return os.listdir(TAGS_PATH)
+
+def gatherTags():
+    available_tags = []
+    tag_to_issue_map = {}
+    for issue_sha1 in sorted(listIssues()):
+        issue_differences = getIssueDifferences(issue_sha1, *listIssueDifferences(issue_sha1))
+        for diff in issue_differences[::-1]:
+            if diff['action'] == 'push-tags':
+                available_tags.extend(diff['params']['tags'])
+                for t in diff['params']['tags']:
+                    if t not in tag_to_issue_map:
+                        tag_to_issue_map[t] = []
+                    tag_to_issue_map[t].append(issue_sha1)
+    for t in listTags():
+        available_tags.append(t)
+        if t not in tag_to_issue_map:
+            tag_to_issue_map[t] = []
+    return (available_tags, tag_to_issue_map)
+
 def listTagDifferences(tag_sha1):
     tag_group = tag_sha1[:2]
     tag_diffs_path = os.path.join(TAGS_PATH, tag_group, tag_sha1, 'diff')
@@ -1217,24 +1238,16 @@ def commandTag(ui):
     ui = ui.down()
     subcommand = str(ui)
     if subcommand == 'ls':
-        available_tags = []
-        tag_to_issue_map = {}
-        for issue_sha1 in sorted(listIssues()):
-            issue_differences = getIssueDifferences(issue_sha1, *listIssueDifferences(issue_sha1))
-            for diff in issue_differences[::-1]:
-                if diff['action'] == 'push-tags':
-                    available_tags.extend(diff['params']['tags'])
-                    for t in diff['params']['tags']:
-                        if t not in tag_to_issue_map:
-                            tag_to_issue_map[t] = []
-                        tag_to_issue_map[t].append(issue_sha1)
+        available_tags, tag_to_issue_map = gatherTags()
+        created_tags = set(listTags())
         for t in sorted(set(available_tags)):
+            s = '{0}{1}'
             if '--verbose' in ui:
-                print('* {0} ({1} issues)'.format(t, len(tag_to_issue_map[t])))
-                for issue_sha1 in sorted(set(tag_to_issue_map[t])):
-                    print('    {0}'.format(issue_sha1))
-            else:
-                print('{0}/{1}'.format(t, len(tag_to_issue_map[t])))
+                s += '/{2}'
+            tag_marker = ' '
+            if t not in created_tags:
+                tag_marker = '!'
+            print(s.format(tag_marker, t, len(tag_to_issue_map[t])))
     elif subcommand == 'new':
         tag_name = ui.operands()[0]
         print('new tag: {0}'.format(tag_name))
