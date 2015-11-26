@@ -863,6 +863,13 @@ def commandOpen(ui):
         exit(1)
 
     tags = ([l[0] for l in ui.get('--tag')] if '--tag' in ui else [])
+    gathered_tags = gatherTags()
+    for t in tags:
+        if t not in gathered_tags[0]:
+            print('fatal: tag "{0}" does not exist'.format(t))
+            print('hint: use "issue tag new {0}" to create it'.format(t))
+            exit(1)
+
     milestones = ([m[0] for m in ui.get('--milestone')] if '--milestone' in ui else [])
 
     issue_sha1 = '{0}{1}{2}{3}'.format(message, tags, milestones, random.random())
@@ -1308,6 +1315,11 @@ def commandTag(ui):
             exit(1)
 
         issue_tag = operands[0]
+
+        if issue_tag not in gatherTags()[0]:
+            print('fatal: tag "{0}" does not exist'.format(issue_tag))
+            print('hint: use "issue tag new {0}" to create it'.format(issue_tag))
+            exit(1)
 
         if not issue_tag:
             print('fatal: aborting due to empty tag')
