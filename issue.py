@@ -927,13 +927,8 @@ def commandInit(ui):
     repositoryInit(force=('--force' in ui), up=('--up' in ui))
 
 def commandOpen(ui):
-    message = (getMessage('issue_message') if len(operands) < 1 else operands[0])
-    if not message:
-        print('fatal: aborting due to empty message')
-        exit(1)
-
     tags = ([l[0] for l in ui.get('--tag')] if '--tag' in ui else [])
-    gathered_tags = gatherTags()
+    gathered_tags = sorted(set(gatherTags()[0]))
     for t in tags:
         if t not in gathered_tags[0]:
             print('fatal: tag "{0}" does not exist'.format(t))
@@ -941,6 +936,11 @@ def commandOpen(ui):
             exit(1)
 
     milestones = ([m[0] for m in ui.get('--milestone')] if '--milestone' in ui else [])
+
+    message = (getMessage('issue_message') if len(operands) < 1 else operands[0])
+    if not message:
+        print('fatal: aborting due to empty message')
+        exit(1)
 
     issue_sha1 = '{0}{1}{2}{3}'.format(message, tags, milestones, random.random())
     issue_sha1 = hashlib.sha1(issue_sha1.encode('utf-8')).hexdigest()
