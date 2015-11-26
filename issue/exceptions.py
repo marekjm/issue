@@ -21,3 +21,6 @@ class RepositoryExists(IssueException):
 
 class TagExists(IssueException):
     pass
+
+class TagDoesNotExist(IssueException):
+    pass

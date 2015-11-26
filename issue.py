@@ -317,6 +317,32 @@ def dropIssue(issue_sha1):
     os.unlink(issue_file_path)
     shutil.rmtree(os.path.join(issue_group_path, issue_sha1))
 
+def tagIssue(issue_sha1, issue_tag, remove=False):
+    if issue_tag not in gatherTags()[0]:
+        raise issue.exceptions.TagDoesNotExist(issue_tag)
+
+    repo_config = getConfig()
+
+    issue_differences = [
+        {
+            'action': ('remove-tags' if remove else 'push-tags'),
+            'params': {
+                'tags': [issue_tag],
+            },
+            'author': {
+                'author.email': repo_config['author.email'],
+                'author.name': repo_config['author.name'],
+            },
+            'timestamp': timestamp(),
+        }
+    ]
+
+    issue_diff_sha1 = '{0}{1}{2}{3}'.format(repo_config['author.email'], repo_config['author.name'], timestamp(), random.random())
+    issue_diff_sha1 = hashlib.sha1(issue_diff_sha1.encode('utf-8')).hexdigest()
+    issue_diff_file_path = os.path.join(ISSUES_PATH, issue_sha1[:2], issue_sha1, 'diff', '{0}.json'.format(issue_diff_sha1))
+    with open(issue_diff_file_path, 'w') as ofstream:
+        ofstream.write(json.dumps(issue_differences))
+
 def sluggify(issue_message):
     return '-'.join(re.compile('[^ a-z]').sub(' ', unidecode.unidecode(issue_message).lower()).split())
 
@@ -1320,39 +1346,18 @@ def commandTag(ui):
             exit(1)
 
         issue_tag = operands[0]
-
-        if issue_tag not in gatherTags()[0]:
-            print('fatal: tag "{0}" does not exist'.format(issue_tag))
-            print('hint: use "issue tag new {0}" to create it'.format(issue_tag))
-            exit(1)
-
         if not issue_tag:
             print('fatal: aborting due to empty tag')
             exit(1)
 
-        repo_config = getConfig()
-
-        issue_differences = [
-            {
-                'action': ('remove-tags' if '--remove' in ui else 'push-tags'),
-                'params': {
-                    'tags': [issue_tag],
-                },
-                'author': {
-                    'author.email': repo_config['author.email'],
-                    'author.name': repo_config['author.name'],
-                },
-                'timestamp': timestamp(),
-            }
-        ]
-
-        issue_diff_sha1 = '{0}{1}{2}{3}'.format(repo_config['author.email'], repo_config['author.name'], timestamp(), random.random())
-        issue_diff_sha1 = hashlib.sha1(issue_diff_sha1.encode('utf-8')).hexdigest()
-        issue_diff_file_path = os.path.join(ISSUES_PATH, issue_sha1[:2], issue_sha1, 'diff', '{0}.json'.format(issue_diff_sha1))
-        with open(issue_diff_file_path, 'w') as ofstream:
-            ofstream.write(json.dumps(issue_differences))
-        markLastIssue(issue_sha1)
-        indexIssue(issue_sha1, issue_diff_sha1)
+        try:
+            tagIssue(issue_sha1, tag_name, ('--remove' in ui))
+            markLastIssue(issue_sha1)
+            indexIssue(issue_sha1, issue_diff_sha1)
+        except issue.exceptions.TagDoesNotExist as e:
+            print('fatal: tag "{0}" does not exist'.format(t))
+            print('hint: use "issue tag new {0}" to create it'.format(t))
+            exit(1)
     else:
         print('fatal: unrecognized subcommand: {0}'.format(subcommand))
         exit(1)
