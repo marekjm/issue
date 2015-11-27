@@ -617,7 +617,13 @@ def fetchRemote(remote_name, remote_data=None, local_pack=None):
         if not new_diffs[issue_sha1]:
             continue
 
-        for cmt_sha1 in new_diffs[issue_sha1]:
+        if '--verbose' in ui:
+            print(' -> fetching issue: {0}'.format(issue_sha1))
+
+        total_diffs = len(new_diffs[issue_sha1])
+        for i, cmt_sha1 in enumerate(new_diffs[issue_sha1]):
+            if '--verbose' in ui:
+                print('    + diff: {0}: {1}/{2}'.format(cmt_sha1, (i+1), total_diffs))
             exit_code, output, error = runShell(
                 'scp',
                 '{0}/objects/issues/{1}/{2}/diff/{3}.json'.format(
@@ -732,7 +738,10 @@ def publishToRemote(remote_name, remote_data=None, local_pack=None):
         if not new_diffs[issue_sha1]:
             continue
 
-        for diff_sha1 in new_diffs[issue_sha1]:
+        total_diffs = len(new_diffs[issue_sha1])
+        for i, diff_sha1 in enumerate(new_diffs[issue_sha1]):
+            if '--verbose' in ui:
+                print('    + diff: {0}: {1}/{2}'.format(diff_sha1, (i+1), total_diffs))
             exit_code, output, error = runShell(
                 'scp',
                 os.path.join(ISSUES_PATH, issue_sha1[:2], issue_sha1, 'diff', '{0}.json'.format(diff_sha1)),
