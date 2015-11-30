@@ -1687,8 +1687,17 @@ def commandClone(ui):
 
     remotes[remote_name] = {}
     remotes[remote_name]['url'] = remote_url
-    saveRemotes(remotes)
     fetchRemote(remote_name, remotes[remote_name])
+
+    remote_status_path = os.path.join(REPOSITORY_TMP_PATH, 'status')
+    remote_pack_fetch_command = ('scp', '{0}/status'.format(remotes[remote_name]['url']), remote_status_path)
+    exit_code, output, error = runShell(*remote_pack_fetch_command)
+    if exit_code:
+        print('  could not fetch status, use "issue fetch -U" to try again')
+    if exit_code == 0:
+        with open(remote_status_path) as ifstream:
+            remotes[remote_name]['status'] = ifstream.read().strip()
+    saveRemotes(remotes)
 
 def commandWork(ui):
     ui = ui.down()
