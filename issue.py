@@ -1309,11 +1309,21 @@ def commandTag(ui):
                 tag_marker = '!'
             print(s.format(tag_marker, t, len(tag_to_issue_map[t])))
     elif subcommand == 'new':
-        try:
-            createTag(ui.operands()[0])
-        except issue.exceptions.TagExists as e:
-            print('fatal: tag exists: {0}'.format(e))
-            exit(1)
+        if '--missing' in ui:
+            available_tags, tag_to_issue_map = gatherTags()
+            created_tags = set(listTags())
+            missing_tags = (set(available_tags) - created_tags)
+            n = 0
+            for t in missing_tags:
+                createTag(t)
+            if '--verbose' in ui:
+                print('created {0} tag(s): {1}'.format(len(missing_tags), ', '.join(sorted(missing_tags))))
+        else:
+            try:
+                createTag(ui.operands()[0])
+            except issue.exceptions.TagExists as e:
+                print('fatal: tag exists: {0}'.format(e))
+                exit(1)
     elif subcommand == 'rm':
         print('removed tag: {0}'.format(ui.operands()[0]))
     elif subcommand == 'show':
