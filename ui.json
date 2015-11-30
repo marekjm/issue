@@ -375,11 +375,19 @@
                                 "short": "f",
                                 "long": "force",
                                 "help": "force tag creation overwriting all previously recorded changes"
+                            },
+                            {
+                                "short": "m",
+                                "long": "missing",
+                                "help": "create missing tags"
                             }
                         ]
                     },
                     "operands": {
-                        "no": [1, 1]
+                        "no": [1, 1],
+                        "with": {
+                            "--missing": [0, 0]
+                        }
                     }
                 },
                 "rm": {
