@@ -792,6 +792,7 @@
                     {
                         "short": "n",
                         "long": "name",
+                        "arguments": ["str"],
                         "help": "set name for initial remote, by default it is 'origin'"
                     },
                     {
