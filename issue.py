@@ -390,6 +390,50 @@ def indexTag(tag_sha1, *diffs):
     with open(tag_file_path, 'w') as ofstream:
         ofstream.write(json.dumps(tag_data))
 
+def createTag(tag_name, force=False):
+    tag_path = os.path.join(TAGS_PATH, tag_name)
+    if os.path.isdir(tag_path) and force:
+        shutil.rmtree(tag_path)
+    if os.path.isdir(tag_path):
+        raise issue.exceptions.TagExists(tag_name)
+
+    os.mkdir(tag_path)
+    os.mkdir(os.path.join(tag_path, 'diff'))
+
+    repo_config = getConfig()
+
+    tag_differences = [
+        {
+            'action': 'tag-open',
+            'params': {
+                'name': tag_name,
+            },
+            'author': {
+                'author.email': repo_config['author.email'],
+                'author.name': repo_config['author.name'],
+            },
+            'timestamp': timestamp(),
+        },
+    ]
+    if 'project.name' in repo_config:
+        tag_differences.append({
+            'action': 'tag-set-project-name',
+            'params': {
+                'name': repo_config['project.name'],
+            },
+            'author': {
+                'author.email': repo_config['author.email'],
+                'author.name': repo_config['author.name'],
+            },
+            'timestamp': timestamp(),
+        })
+
+    tag_diff_sha1 = '{0}{1}{2}{3}{4}'.format(tag_name, repo_config['author.email'], repo_config['author.name'], timestamp(), random.random())
+    tag_diff_sha1 = hashlib.sha1(tag_diff_sha1.encode('utf-8')).hexdigest()
+    tag_diff_file_path = os.path.join(tag_path, 'diff', '{0}.json'.format(tag_diff_sha1))
+    with open(tag_diff_file_path, 'w') as ofstream:
+        ofstream.write(json.dumps(tag_differences))
+
 
 # configuration-related utility functions
 def getConfig():
@@ -1265,52 +1309,11 @@ def commandTag(ui):
                 tag_marker = '!'
             print(s.format(tag_marker, t, len(tag_to_issue_map[t])))
     elif subcommand == 'new':
-        tag_name = ui.operands()[0]
-
-        tag_path = os.path.join(TAGS_PATH, tag_name)
-        if os.path.isdir(tag_path) and '--force' in ui:
-            shutil.rmtree(tag_path)
-        if os.path.isdir(tag_path):
-            print('tag exists')
+        try:
+            createTag(ui.operands()[0])
+        except issue.exceptions.TagExists as e:
+            print('fatal: tag exists: {0}'.format(e))
             exit(1)
-
-        os.mkdir(tag_path)
-        os.mkdir(os.path.join(tag_path, 'diff'))
-
-        repo_config = getConfig()
-
-        tag_differences = [
-            {
-                'action': 'tag-open',
-                'params': {
-                    'name': tag_name,
-                },
-                'author': {
-                    'author.email': repo_config['author.email'],
-                    'author.name': repo_config['author.name'],
-                },
-                'timestamp': timestamp(),
-            },
-        ]
-        if 'project.name' in repo_config:
-            tag_differences.append({
-                'action': 'tag-set-project-name',
-                'params': {
-                    'name': repo_config['project.name'],
-                },
-                'author': {
-                    'author.email': repo_config['author.email'],
-                    'author.name': repo_config['author.name'],
-                },
-                'timestamp': timestamp(),
-            })
-
-        tag_diff_sha1 = '{0}{1}{2}{3}{4}'.format(tag_name, repo_config['author.email'], repo_config['author.name'], timestamp(), random.random())
-        tag_diff_sha1 = hashlib.sha1(tag_diff_sha1.encode('utf-8')).hexdigest()
-        tag_diff_file_path = os.path.join(tag_path, 'diff', '{0}.json'.format(tag_diff_sha1))
-        with open(tag_diff_file_path, 'w') as ofstream:
-            ofstream.write(json.dumps(tag_differences))
-        # indexTag(tag_sha1)
     elif subcommand == 'rm':
         print('removed tag: {0}'.format(ui.operands()[0]))
     elif subcommand == 'show':
