@@ -682,7 +682,7 @@ def fetchRemote(remote_name, remote_data=None, local_pack=None):
                 print('  * fail ({0}): diff {1}.{2}: {3}'.format(exit_code, issue_sha1, cmt_sha1, error))
                 continue
 
-def publishToRemote(remote_name, remote_data=None, local_pack=None):
+def publishToRemote(remote_name, remote_data=None, local_pack=None, republish=False):
     if remote_data is None:
         remote_data = getRemotes()[remote_name]
     if local_pack is None:
@@ -701,13 +701,15 @@ def publishToRemote(remote_name, remote_data=None, local_pack=None):
         return 1
     print('publishing objects to remote: {0}'.format(remote_name))
 
-    remote_pack_fetch_command = ('scp', '{0}/pack.json'.format(remote_data['url']), REMOTE_PACK_PATH)
-    exit_code, output, error = runShell(*remote_pack_fetch_command)
-
     remote_pack = {'issues': [], 'comments': {}}
-    if exit_code == 0:
-        with open(REMOTE_PACK_PATH) as ifstream:
-            remote_pack = json.loads(ifstream.read())
+
+    if not republish:
+        remote_pack_fetch_command = ('scp', '{0}/pack.json'.format(remote_data['url']), REMOTE_PACK_PATH)
+        exit_code, output, error = runShell(*remote_pack_fetch_command)
+
+        if exit_code == 0:
+            with open(REMOTE_PACK_PATH) as ifstream:
+                remote_pack = json.loads(ifstream.read())
 
     new_issues = set(local_pack['issues']) - set(remote_pack['issues'])
     # print(new_issues)
@@ -1653,7 +1655,7 @@ def commandPublish(ui):
         savePack()
 
     for remote_name in publish_to_remotes:
-        publishToRemote(remote_name, remotes[remote_name], local_pack)
+        publishToRemote(remote_name, remotes[remote_name], local_pack, republish=('--republish' in ui))
 
 def commandIndex(ui):
     ui = ui.down()

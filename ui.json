@@ -748,6 +748,11 @@
                         "short": "p",
                         "long": "pack",
                         "help": "pack objects before publishing"
+                    },
+                    {
+                        "short": "r",
+                        "long": "republish",
+                        "help": "republish full pack, i.e. push all objects to the remote and don't check if they exist there or not"
                     }
                 ]
             },
