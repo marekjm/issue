@@ -1436,6 +1436,9 @@ def commandShow(ui):
     except issue.exceptions.NotAnIssue as e:
         print('fatal: {0} does not identify a valid object'.format(repr(issue_sha1)))
         exit(1)
+    except issue.exceptions.NotIndexed as e:
+        print('fatal: object {0} is not indexed'.format(repr(issue_sha1)))
+        exit(1)
 
     if str(ui) == 'show':
         issue_message_lines = issue_data['message'].splitlines()
