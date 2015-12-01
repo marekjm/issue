@@ -1438,6 +1438,7 @@ def commandShow(ui):
         exit(1)
     except issue.exceptions.NotIndexed as e:
         print('fatal: object {0} is not indexed'.format(repr(issue_sha1)))
+        print('hint: run "issue index {0}"'.format(ui.operands()[0]))
         exit(1)
 
     if str(ui) == 'show':
