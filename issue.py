@@ -590,7 +590,6 @@ def fetchRemote(remote_name, remote_data=None, local_pack=None):
         remote_data = getRemotes()[remote_name]
     if local_pack is None:
         local_pack = getPack()
-    print('fetching objects from remote: {0}'.format(remote_name))
     remote_pack_fetch_command = ('scp', '{0}/pack.json'.format(remote_data['url']), REMOTE_PACK_PATH)
     exit_code, output, error = runShell(*remote_pack_fetch_command)
 
@@ -1615,7 +1614,6 @@ def commandRemote(ui):
 
 def commandFetch(ui):
     ui = ui.down()
-    local_pack = getPack()
     remotes = getRemotes()
     fetch_from_remotes = (ui.operands() or sorted(remotes.keys()))
     if '--status' in ui:
@@ -1635,7 +1633,8 @@ def commandFetch(ui):
         saveRemotes(remotes)
     else:
         for remote_name in fetch_from_remotes:
-            fetchRemote(remote_name, remotes[remote_name], local_pack)
+            print('{1} objects from remote: {0}'.format(remote_name, ('probing' if '--probe' in ui else 'fetching')))
+            fetchRemote(remote_name, remotes[remote_name])
         if '--index' in ui:
             for issue_sha1 in listIssues():
                 indexIssue(issue_sha1)
