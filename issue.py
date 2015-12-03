@@ -1057,6 +1057,10 @@ def commandClose(ui):
         issue_sha1 = expandIssueUID(issue_sha1)
     except issue.exceptions.IssueUIDAmbiguous:
         print('fail: issue uid {0} is ambiguous'.format(repr(issue_sha1)))
+        exit(1)
+    except issue.exceptions.IssueUIDNotMatched:
+        print('fail: uid {0} does not match anything'.format(repr(issue_sha1)))
+        exit(1)
     issue_data = getIssue(issue_sha1)
 
     if issue_data['status'] == 'closed':
