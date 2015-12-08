@@ -1,4 +1,4 @@
-# Filtering issues
+# Issue user manual: Filtering issues
 
 When you're looking for a specific issue, you usually apply filters to the list of issues
 stored in the repository.
