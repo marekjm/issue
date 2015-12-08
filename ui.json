@@ -97,14 +97,14 @@
                     {
                         "long": "tag",
                         "short": "t",
-                        "arguments": ["str"],
+                        "arguments": ["name:str"],
                         "plural": 1,
                         "help": "add tag to the issue"
                     },
                     {
                         "long": "milestone",
                         "short": "M",
-                        "arguments": ["str"],
+                        "arguments": ["name:str"],
                         "plural": 1,
                         "help": "attach the issue to a milestone"
                     },
@@ -116,7 +116,7 @@
                     {
                         "long": "param",
                         "short": "p",
-                        "arguments": ["str", "str"],
+                        "arguments": ["key:str", "value:str"],
                         "plural": true,
                         "help": "set a parameter on the issue"
                     }
@@ -281,7 +281,7 @@
                     {
                         "short": "f",
                         "long": "format",
-                        "arguments": ["str"],
+                        "arguments": ["format:str"],
                         "conflicts": ["--git"],
                         "help": "use custom slug format"
                     },
