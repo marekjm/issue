@@ -1079,6 +1079,18 @@ def commandClose(ui):
         print('fatal: issue already closed by {0}{1}'.format(issue_data.get('close.author.name', 'Unknown author'), (' ({0})'.format(issue_data['close.author.email']) if 'close.author.email' else '')))
         exit(1)
 
+    chained_issues = issue_data.get('chained', [])
+    unclosed_chained_issues = []
+    for c in chained_issues:
+        ci = getIssue(c, index=True)
+        if ci['status'] != 'closed':
+            unclosed_chained_issues.append((c, ci['message'].splitlines()[0]))
+    if unclosed_chained_issues:
+        print('fatal: unclosed chained issues exist:')
+        for ui_sha1, ui_msg in unclosed_chained_issues:
+            print('  {0}: {1}'.format(ui_sha1, ui_msg))
+        exit(1)
+
     issue_differences = [
         {
             'action': 'close',
