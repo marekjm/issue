@@ -1896,4 +1896,5 @@ dispatch(ui,        # first: pass the UI object to dispatch
     commandIndex,
     commandClone,
     commandWork,
+    commandChain,
 )
