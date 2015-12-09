@@ -214,6 +214,16 @@ def indexIssue(issue_sha1, *diffs):
             if issue_work_started.get(d['author']['author.email']) is not None:
                 issue_work_in_progress_time_deltas.append((datetime.datetime.fromtimestamp(d['params']['timestamp']) - issue_work_started[d['author']['author.email']]))
             issue_work_started[d['author']['author.email']] = None
+        elif diff_action == 'chain-link':
+            if 'chained' not in issue_data:
+                issue_data['chained'] = []
+            issue_data['chained'].extend(d['params']['sha1'])
+        elif diff_action == 'chain-unlink':
+            if 'chained' not in issue_data:
+                issue_data['chained'] = []
+                continue
+            for s in d['params']['sha1']:
+                issue_data['chained'].remove(s)
 
     # remove duplicated tags
     issue_data['tags'] = list(set(issue_data.get('tags', [])))
