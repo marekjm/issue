@@ -810,6 +810,34 @@
             "operands": {
                 "no": [1, 1]
             }
+        },
+        "chain": {
+            "doc": {
+                "help": "Chain issues together"
+            },
+            "options": {
+                "global": [
+                    {
+                        "long": "last",
+                        "help": "chain to last active issue"
+                    }
+                ]
+            },
+            "commands": {
+                "link": {
+                    "operands": {
+                        "no": [2, 2],
+                        "with": {
+                            "--last": [1, 1]
+                        }
+                    }
+                },
+                "unlink": {
+                }
+            },
+            "operands": {
+                "no": [0, 0]
+            }
         }
     },
     "operands": {
