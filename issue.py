@@ -86,7 +86,9 @@ LS_KEYWORD_MATCH_THRESHOLD = 1
 
 
 # issue-related utility functions
-def getIssue(issue_sha1):
+def getIssue(issue_sha1, index=False):
+    if index:
+        indexIssue(issue_sha1)
     issue_group = issue_sha1[:2]
     issue_file_path = os.path.join(ISSUES_PATH, issue_group, '{0}.json'.format(issue_sha1))
     issue_data = {}
