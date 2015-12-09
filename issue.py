@@ -1253,7 +1253,7 @@ def commandSlug(ui):
         r = os.system('git checkout {0}'.format(issue_slug))
         if r != 0:
             exit(r)
-    if ('--git-new-branch' not in ui) and ('--git-checkout' not in ui):
+    if ('--git-branch' not in ui) and ('--git-checkout' not in ui):
         print(issue_slug)
     markLastIssue(issue_sha1)
 
