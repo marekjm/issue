@@ -1551,6 +1551,10 @@ def commandShow(ui):
                 print('{0}: work started by {1} ({2})'.format(diff_datetime, d['author']['author.name'], d['author']['author.email']))
             elif diff_action == 'work-stop':
                 print('{0}: work stopped by {1} ({2})'.format(diff_datetime, d['author']['author.name'], d['author']['author.email']))
+            elif diff_action == 'chain-link':
+                print('{0}: chained with {3} by {1} ({2})'.format(diff_datetime, d['author']['author.name'], d['author']['author.email'], ', '.join(d['params']['sha1'])))
+            elif diff_action == 'chain-unlink':
+                print('{0}: unchained from {3} by {1} ({2})'.format(diff_datetime, d['author']['author.name'], d['author']['author.email'], ', '.join(d['params']['sha1'])))
 
 def commandConfig(ui):
     ui = ui.down()
