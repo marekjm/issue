@@ -1479,6 +1479,12 @@ def commandShow(ui):
             for key in sorted(issue_data['parameters'].keys()):
                 print('    {0} = {1}'.format(key, issue_data['parameters'][key]))
 
+        chained_issues = issue_data.get('chained', [])
+        if chained_issues:
+            print('\n---- CHAINED ISSUES')
+            for s in sorted(chained_issues):
+                print('    {0}'.format(s))
+
         print('\n---- MESSAGE')
         print('\n  {0}\n'.format('\n  '.join(issue_message_lines)))
 
