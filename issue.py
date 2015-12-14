@@ -1770,6 +1770,13 @@ def commandWork(ui):
         exit(1)
 
     if str(ui) == 'start':
+        issue_differences = sortIssueDifferences(getIssueDifferences(issue_sha1, *listIssueDifferences(issue_sha1)))
+        for diff in issue_differences[::-1]:
+            if diff['action'] == 'work-stop':
+                break
+            if diff['action'] == 'work-start':
+                print('fatal: work on issue {0} already started'.format(issue_sha1))
+                exit(1)
         repo_config = getConfig()
 
         ts = timestamp()
@@ -1795,6 +1802,13 @@ def commandWork(ui):
         markLastIssue(issue_sha1)
         indexIssue(issue_sha1, issue_diff_sha1)
     elif str(ui) == 'stop':
+        issue_differences = sortIssueDifferences(getIssueDifferences(issue_sha1, *listIssueDifferences(issue_sha1)))
+        for diff in issue_differences[::-1]:
+            if diff['action'] == 'work-stop':
+                print('fatal: work on issue {0} already stopped'.format(issue_sha1))
+                exit(1)
+            if diff['action'] == 'work-start':
+                break
         repo_config = getConfig()
 
         ts = timestamp()
