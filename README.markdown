@@ -15,7 +15,7 @@ All of basic concepts map to a command:
 - `issue close <unique-id>` to close an issue,
 - `issue comment <unique-id> "<comment>"` to comment on an issue,
 
-### No-bulshit philosophy?
+### No-bullshit philosophy?
 
 Issue provides machinery for those few things that are really neccessary:
 
