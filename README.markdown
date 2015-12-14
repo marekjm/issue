@@ -39,6 +39,19 @@ Written with the UNIX spirit in mind, it does one thing and (hopefully) does it 
 All the extra features are written while keeping in mind that the target group are programmers.
 For example, there is a `issue slug` command that generates branch names based on issue messages.
 
+### Quick to start and almost configuration-free
+
+These are the only commands you have to run before you can initialise a repository and
+start creating issues:
+
+```
+# set your credentials
+$ issue config --global set author.email "john.doe@example.com"
+$ issue config --global set author.name "John Doe"
+```
+
+And you are ready to run.
+
 ----
 
 ## It's really dead simple
@@ -64,7 +77,7 @@ A comment can be put on an issue:
 
 - `issue comment deadbeef "User input could use better validation..."`,
 
-Issues can be lister with `ls` command:
+Issues can be listed with `ls` command:
 
 - `issue ls` - list all issues,
 - `issue ls --open` - list all open issues,
