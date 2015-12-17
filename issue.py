@@ -855,6 +855,7 @@ def repositoryInit(force=False, up=False):
         issue_diffs_path = os.path.join(ISSUES_PATH, issue_sha1[:2], issue_sha1, 'diff')
         if not os.path.isdir(issue_diffs_path):
             os.mkdir(issue_diffs_path)
+    return os.path.abspath(REPOSITORY_PATH)
 
 
 ######################################################################
