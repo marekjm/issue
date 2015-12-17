@@ -921,7 +921,9 @@ def commandInit(ui):
     if os.path.isdir(REPOSITORY_PATH) and '--up' not in ui:
         print('fatal: repository already exists')
         exit(1)
-    repositoryInit(force=('--force' in ui), up=('--up' in ui))
+    initialised_in = repositoryInit(force=('--force' in ui), up=('--up' in ui))
+    if '--verbose' in ui:
+        print('repository initialised in {0}'.format(initialised_in))
 
 def commandOpen(ui):
     tags = ([l[0] for l in ui.get('--tag')] if '--tag' in ui else [])
