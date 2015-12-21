@@ -1500,7 +1500,8 @@ def commandShow(ui):
         if chained_issues:
             print('\n---- CHAINED ISSUES')
             for s in sorted(chained_issues):
-                print('    {0}'.format(s))
+                chained_issue = getIssue(s)
+                print('    {0} ({1}): {2}'.format(s, chained_issue.get('status'), chained_issue.get('message', '').splitlines()[0]))
 
         print('\n---- MESSAGE')
         print('\n  {0}\n'.format('\n  '.join(issue_message_lines)))
