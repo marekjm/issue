@@ -1777,13 +1777,14 @@ def commandWork(ui):
 
     if str(ui) == 'start':
         issue_differences = sortIssueDifferences(getIssueDifferences(issue_sha1, *listIssueDifferences(issue_sha1)))
+        repo_config = getConfig()
+        wip_of = repo_config['author.email']
         for diff in issue_differences[::-1]:
-            if diff['action'] == 'work-stop':
+            if diff['action'] == 'work-stop' and diff['author']['author.email'] == wip_of:
                 break
-            if diff['action'] == 'work-start':
+            if diff['action'] == 'work-start' and diff['author']['author.email'] == wip_of:
                 print('fatal: work on issue {0} already started'.format(issue_sha1))
                 exit(1)
-        repo_config = getConfig()
 
         ts = timestamp()
         issue_differences = [
@@ -1809,13 +1810,14 @@ def commandWork(ui):
         indexIssue(issue_sha1, issue_diff_sha1)
     elif str(ui) == 'stop':
         issue_differences = sortIssueDifferences(getIssueDifferences(issue_sha1, *listIssueDifferences(issue_sha1)))
+        repo_config = getConfig()
+        wip_of = repo_config['author.email']
         for diff in issue_differences[::-1]:
-            if diff['action'] == 'work-stop':
+            if diff['action'] == 'work-stop' and diff['author']['author.email'] == wip_of:
                 print('fatal: work on issue {0} already stopped'.format(issue_sha1))
                 exit(1)
-            if diff['action'] == 'work-start':
+            if diff['action'] == 'work-start' and diff['author']['author.email'] == wip_of:
                 break
-        repo_config = getConfig()
 
         ts = timestamp()
         issue_differences = [
