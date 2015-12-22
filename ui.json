@@ -832,9 +832,9 @@
             "commands": {
                 "link": {
                     "operands": {
-                        "no": [2, 2],
+                        "no": [2],
                         "with": {
-                            "--last": [1, 1]
+                            "--last": [1]
                         }
                     }
                 },

@@ -1857,37 +1857,44 @@ def commandChain(ui):
         print('fail: issue uid {0} is ambiguous'.format(repr(issue_sha1)))
         exit(1)
 
-    link_issue_sha1 = ui.operands()[int(not ('--last' in ui))]
-    try:
-        link_issue_sha1 = expandIssueUID(link_issue_sha1)
-    except issue.exceptions.IssueUIDAmbiguous:
-        print('fail: link issue uid {0} is ambiguous'.format(repr(link_issue_sha1)))
-        exit(1)
+    link_issue_sha1s = ui.operands()
+    if '--last' not in ui:
+        link_issue_sha1s = link_issue_sha1s[1:]
+    for i, link_issue_sha1 in enumerate(link_issue_sha1s):
+        try:
+            link_issue_sha1s[i] = expandIssueUID(link_issue_sha1)
+        except issue.exceptions.IssueUIDAmbiguous:
+            print('fail: link issue uid {0} is ambiguous'.format(repr(link_issue_sha1)))
+            exit(1)
+        except issue.exceptions.IssueUIDNotMatched:
+            print('fail: uid {0} does not match anything'.format(repr(link_issue_sha1)))
+            exit(1)
 
     if str(ui) == 'link':
         repo_config = getConfig()
 
-        issue_differences = [
-            {
-                'action': 'chain-link',
-                'params': {
-                    'sha1': [link_issue_sha1],
-                },
-                'author': {
-                    'author.email': repo_config['author.email'],
-                    'author.name': repo_config['author.name'],
-                },
-                'timestamp': timestamp(),
-            }
-        ]
+        for link_issue_sha1 in link_issue_sha1s:
+            issue_differences = [
+                {
+                    'action': 'chain-link',
+                    'params': {
+                        'sha1': [link_issue_sha1],
+                    },
+                    'author': {
+                        'author.email': repo_config['author.email'],
+                        'author.name': repo_config['author.name'],
+                    },
+                    'timestamp': timestamp(),
+                }
+            ]
 
-        issue_diff_sha1 = '{0}{1}{2}{3}'.format(repo_config['author.email'], repo_config['author.name'], timestamp(), random.random())
-        issue_diff_sha1 = hashlib.sha1(issue_diff_sha1.encode('utf-8')).hexdigest()
-        issue_diff_file_path = os.path.join(ISSUES_PATH, issue_sha1[:2], issue_sha1, 'diff', '{0}.json'.format(issue_diff_sha1))
-        with open(issue_diff_file_path, 'w') as ofstream:
-            ofstream.write(json.dumps(issue_differences))
-        markLastIssue(issue_sha1)
-        indexIssue(issue_sha1, issue_diff_sha1)
+            issue_diff_sha1 = '{0}{1}{2}{3}'.format(repo_config['author.email'], repo_config['author.name'], timestamp(), random.random())
+            issue_diff_sha1 = hashlib.sha1(issue_diff_sha1.encode('utf-8')).hexdigest()
+            issue_diff_file_path = os.path.join(ISSUES_PATH, issue_sha1[:2], issue_sha1, 'diff', '{0}.json'.format(issue_diff_sha1))
+            with open(issue_diff_file_path, 'w') as ofstream:
+                ofstream.write(json.dumps(issue_differences))
+            markLastIssue(issue_sha1)
+            indexIssue(issue_sha1, issue_diff_sha1)
     elif str(ui) == 'unlink':
         print(ui)
     else:
