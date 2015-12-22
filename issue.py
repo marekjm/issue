@@ -1750,13 +1750,15 @@ def commandWork(ui):
     ui = ui.down()
 
     if '--in-progress' in ui:
+        repo_config = getConfig()
         work_in_progress = []
+        wip_of = (ui.get('--of') if '--of' in ui else repo_config['author.email'])
         for issue_sha1 in sorted(listIssues()):
             issue_differences = sortIssueDifferences(getIssueDifferences(issue_sha1, *listIssueDifferences(issue_sha1)))
             for diff in issue_differences[::-1]:
-                if diff['action'] == 'work-stop':
+                if diff['action'] == 'work-stop' and diff['author']['author.email'] == wip_of:
                     break
-                if diff['action'] == 'work-start':
+                if diff['action'] == 'work-start' and diff['author']['author.email'] == wip_of:
                     work_in_progress.append(issue_sha1)
                     break
         for wip in work_in_progress:

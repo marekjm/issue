@@ -502,6 +502,12 @@
                         "short": "i",
                         "long": "in-progress",
                         "help": "list issues with started work"
+                    },
+                    {
+                        "long": "of",
+                        "requires": ["--in-progress"],
+                        "arguments": ["author's email:str"],
+                        "help": "list \"work-in-progress\" issues of given author"
                     }
                 ]
             },
