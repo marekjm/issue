@@ -1812,12 +1812,17 @@ def commandWork(ui):
         issue_differences = sortIssueDifferences(getIssueDifferences(issue_sha1, *listIssueDifferences(issue_sha1)))
         repo_config = getConfig()
         wip_of = repo_config['author.email']
+        work_not_started = True
         for diff in issue_differences[::-1]:
             if diff['action'] == 'work-stop' and diff['author']['author.email'] == wip_of:
                 print('fatal: work on issue {0} already stopped'.format(issue_sha1))
                 exit(1)
             if diff['action'] == 'work-start' and diff['author']['author.email'] == wip_of:
+                work_not_started = False
                 break
+        if work_not_started:
+            print('fatal: work on issue {0} not started'.format(issue_sha1))
+            exit(1)
 
         ts = timestamp()
         issue_differences = [
