@@ -54,7 +54,7 @@ except clap.errors.UIDesignError as e:
 except clap.errors.AmbiguousCommandError as e:
     name, candidates = str(e).split(': ')
     print("ambiguous shortened command name: '{0}', candidates are: {1}".format(name, candidates))
-    print("hint: if this is a false positive use '--' operand separator")
+    print("note: if this is a false positive use '--' operand separator")
     fail = True
 except Exception as e:
     print('fatal: unhandled exception: {0}: {1}'.format(str(type(e))[8:-2], e))
@@ -931,7 +931,7 @@ def commandOpen(ui):
     for t in tags:
         if t not in gathered_tags[0]:
             print('fatal: tag "{0}" does not exist'.format(t))
-            print('hint: use "issue tag new {0}" to create it'.format(t))
+            print('note: use "issue tag new {0}" to create it'.format(t))
             exit(1)
 
     milestones = ([m[0] for m in ui.get('--milestone')] if '--milestone' in ui else [])
@@ -1372,7 +1372,7 @@ def commandTag(ui):
 
         if issue_tag not in gatherTags()[0]:
             print('fatal: tag "{0}" does not exist'.format(issue_tag))
-            print('hint: use "issue tag new {0}" to create it'.format(issue_tag))
+            print('note: use "issue tag new {0}" to create it'.format(issue_tag))
             exit(1)
 
         if not issue_tag:
@@ -1471,7 +1471,7 @@ def commandShow(ui):
         exit(1)
     except issue.exceptions.NotIndexed as e:
         print('fatal: object {0} is not indexed'.format(repr(issue_sha1)))
-        print('hint: run "issue index {0}"'.format(ui.operands()[0]))
+        print('note: run "issue index {0}"'.format(ui.operands()[0]))
         exit(1)
 
     if str(ui) == 'show':
