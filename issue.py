@@ -1252,7 +1252,10 @@ def commandSlug(ui):
     issue_message = issue_data['message'].splitlines()[0].strip()
     issue_slug = sluggify(issue_message)
 
-    slug_format = ''
+    slug_format = getConfig().get('slug.format.default', '')
+    if slug_format.startswith('@'):
+        slug_format = getConfig().get('slug.format.{0}'.format(slug_format[1:]), '')
+
     slug_parameters = issue_data.get('parameters', {})
     if '--param' in ui:
         for k, v in ui.get('--param'):
