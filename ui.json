@@ -222,6 +222,11 @@
                         "long": "recent",
                         "conflicts": ["--since"],
                         "help": "show recently changed (opened or closed) issues, defaults to 1 day but can be adjusted with \"defaults.time.recent\" config"
+                    },
+                    {
+                        "short": "p",
+                        "long": "priority",
+                        "help": "order issues by priority (priority 0 is the highest)"
                     }
                 ]
             }

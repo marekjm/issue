@@ -1177,6 +1177,9 @@ def commandLs(ui):
                 continue
         issues_to_list.append((short, i, issue_data))
 
+    if '--priority' in ui:
+        issues_to_list = sorted(issues_to_list, key=lambda t: int(t[2].get('parameters', {}).get('priority', 1024)))
+
     for short, i, issue_data in issues_to_list:
         if since is not None:
             issue_timestamp = ('close.timestamp' if '--closed' in ui else 'open.timestamp')
