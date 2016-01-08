@@ -1703,6 +1703,9 @@ def commandPublish(ui):
         savePack()
 
     for remote_name in publish_to_remotes:
+        if '--fetch' in ui:
+            print('fetching remote "{0}" before publishing'.format(remote_name))
+            fetchRemote(remote_name, remotes[remote_name])
         publishToRemote(remote_name, remotes[remote_name], local_pack, republish=('--republish' in ui))
 
 def commandIndex(ui):

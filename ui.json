@@ -764,6 +764,11 @@
                         "short": "r",
                         "long": "republish",
                         "help": "republish full pack, i.e. push all objects to the remote and don't check if they exist there or not"
+                    },
+                    {
+                        "short": "f",
+                        "long": "fetch",
+                        "help": "fetch objects from remote before publishing"
                     }
                 ]
             },
