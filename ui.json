@@ -227,6 +227,12 @@
                         "short": "p",
                         "long": "priority",
                         "help": "order issues by priority (priority 0 is the highest)"
+                    },
+                    {
+                        "short": "C",
+                        "long": "chained-to",
+                        "arguments": ["str"],
+                        "help": "list only issues chained to selected one"
                     }
                 ]
             }

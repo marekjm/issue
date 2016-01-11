@@ -1177,6 +1177,10 @@ def commandLs(ui):
                 continue
         issues_to_list.append((short, i, issue_data))
 
+    if '--chained-to' in ui:
+        chained_issues = getIssue(expandIssueUID(ui.get('--chained-to'))).get('chained', [])
+        issues_to_list = list(filter(lambda i: (i[1] in chained_issues), issues_to_list))
+
     if '--priority' in ui:
         issues_to_list = sorted(issues_to_list, key=lambda t: int(t[2].get('parameters', {}).get('priority', 1024)))
 
