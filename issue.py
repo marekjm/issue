@@ -330,7 +330,7 @@ def dropIssue(issue_sha1):
     shutil.rmtree(os.path.join(issue_group_path, issue_sha1))
 
 def sluggify(issue_message):
-    return '-'.join(re.compile('[^ a-z]').sub(' ', unidecode.unidecode(issue_message).lower()).split())
+    return '-'.join(re.compile('[^ a-zA-Z0-9_]').sub(' ', unidecode.unidecode(issue_message).lower()).split())
 
 
 # tag-related utility functions
