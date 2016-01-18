@@ -1060,6 +1060,33 @@ def commandOpen(ui):
     indexIssue(issue_sha1)
     markLastIssue(issue_sha1)
 
+    if '--chain-to' in ui:
+        for link_issue_sha1 in ui.get('--chain-to'):
+            try:
+                link_issue_sha1 = expandIssueUID(link_issue_sha1)
+                issue_differences = [
+                    {
+                        'action': 'chain-link',
+                        'params': {
+                            'sha1': [issue_sha1],
+                        },
+                        'author': {
+                            'author.email': repo_config['author.email'],
+                            'author.name': repo_config['author.name'],
+                        },
+                        'timestamp': timestamp(),
+                    }
+                ]
+
+                issue_diff_sha1 = '{0}{1}{2}{3}'.format(repo_config['author.email'], repo_config['author.name'], timestamp(), random.random())
+                issue_diff_sha1 = hashlib.sha1(issue_diff_sha1.encode('utf-8')).hexdigest()
+                issue_diff_file_path = os.path.join(ISSUES_PATH, link_issue_sha1[:2], link_issue_sha1, 'diff', '{0}.json'.format(issue_diff_sha1))
+                with open(issue_diff_file_path, 'w') as ofstream:
+                    ofstream.write(json.dumps(issue_differences))
+                indexIssue(link_issue_sha1, issue_diff_sha1)
+            except Exception as e:
+                print('warning: could not link issue identified by "{0}":'.format(link_issue_sha1), e)
+
     if '--git' in ui:
         print('issue/{0}'.format(sluggify(message)))
     elif '--verbose' in ui:

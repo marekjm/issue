@@ -119,6 +119,13 @@
                         "arguments": ["key:str", "value:str"],
                         "plural": true,
                         "help": "set a parameter on the issue"
+                    },
+                    {
+                        "long": "chain-to",
+                        "short": "c",
+                        "arguments": ["issue-uid:str"],
+                        "plural": 1,
+                        "help": "chain opened issue to the one identified by this parameter"
                     }
                 ]
             },
