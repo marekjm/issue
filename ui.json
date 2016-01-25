@@ -867,6 +867,14 @@
             "operands": {
                 "no": [0, 0]
             }
+        },
+        "statistics": {
+            "doc": {
+                "help": "Display statistical information about issues inside repository.",
+                "usage": [
+                    "statistics [--verbose]"
+                ]
+            }
         }
     },
     "operands": {

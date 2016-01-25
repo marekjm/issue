@@ -1951,6 +1951,41 @@ def commandChain(ui):
     else:
         print(ui)
 
+def commandStatistics(ui):
+    ui = ui.down()
+    issue_list = listIssuesUsingShortestPossibleUIDs(with_full=True)
+
+    issues = [getIssue(i[1]) for i in issue_list]
+
+    open_issues = list(filter(lambda i: i['status'] == 'open', issues))
+    closed_issues = list(filter(lambda i: i['status'] == 'closed', issues))
+
+    issues_count = len(issues)
+    open_issues_count = len(open_issues)
+    closed_issues_count = len(closed_issues)
+
+    if True:
+        percentage_closed = round((closed_issues_count/issues_count*100), 2)
+        N = 40
+        limit = int(percentage_closed * N / 100)
+        print('|', end='')
+        for i in range(limit):
+            print('#', end='')
+        for i in range(N-limit):
+            print(' ', end='')
+        print('| {0}/{1} issues closed ({2}%)'.format(closed_issues_count, issues_count, percentage_closed))
+
+    if True:
+        avg_tags_per_issue = (sum(map(lambda i: len(i.get('tags', [])), issues)) / issues_count)
+        print('avg. tags per issue: {0}'.format(round(avg_tags_per_issue, 1)))
+
+    if True:
+        avg_lifetime_of_an_issue = list(map(lambda i: (datetime.datetime.fromtimestamp(i['close.timestamp']) - datetime.datetime.fromtimestamp(i['open.timestamp'])), filter(lambda i: 'close.timestamp' in i, issues)))
+        total_lifetime_of_closed_issues = avg_lifetime_of_an_issue[0]
+        for i in range(i, len(avg_lifetime_of_an_issue)):
+            total_lifetime_of_closed_issues += avg_lifetime_of_an_issue[i]
+        print('avg. lifetime of an issue: {0}'.format(str(total_lifetime_of_closed_issues / closed_issues_count).rsplit('.')[0]))
+
 
 def dispatch(ui, *commands, overrides = {}, default_command=''):
     """Semi-automatic command dispatcher.
@@ -1996,4 +2031,5 @@ dispatch(ui,        # first: pass the UI object to dispatch
     commandClone,
     commandWork,
     commandChain,
+    commandStatistics,
 )
