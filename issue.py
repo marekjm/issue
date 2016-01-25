@@ -1195,10 +1195,21 @@ def commandLs(ui):
         if '--closed' in ui and (issue_data['status'] if 'status' in issue_data else '') != 'closed': continue
         if '--status' in ui and (issue_data['status'] if 'status' in issue_data else '') not in accepted_statuses: continue
         if '--tag' in ui:
+            issue_tags = (issue_data['tags'] if 'tags' in issue_data else [])
+            tags_positive = list(filter(lambda x: x[0] != '^', accepted_tags))
+            tags_negative = list(filter(lambda x: x[0] == '^', accepted_tags))
+
             tags_match = False
-            for l in (issue_data['tags'] if 'tags' in issue_data else []):
-                if l in accepted_tags:
+            if (not tags_positive) and tags_negative:
+                tags_match = True
+
+            for l in tags_positive:
+                if l in issue_tags:
                     tags_match = True
+                    break
+            for l in tags_negative:
+                if l[1:] in issue_tags:
+                    tags_match = False
                     break
             if not tags_match:
                 continue
