@@ -1741,13 +1741,15 @@ def commandPublish(ui):
     remotes = getRemotes()
     publish_to_remotes = (ui.operands() or sorted([k for k in remotes.keys() if remotes[k].get('status', 'unknow') == 'exchange']))
 
+    if '--fetch' in ui:
+        for remote_name in publish_to_remotes:
+            print('fetching remote "{0}" before publishing'.format(remote_name))
+            fetchRemote(remote_name, remotes[remote_name])
+
     if '--pack' in ui:
         savePack()
 
     for remote_name in publish_to_remotes:
-        if '--fetch' in ui:
-            print('fetching remote "{0}" before publishing'.format(remote_name))
-            fetchRemote(remote_name, remotes[remote_name])
         publishToRemote(remote_name, remotes[remote_name], local_pack, republish=('--republish' in ui))
 
 def commandIndex(ui):
