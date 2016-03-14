@@ -1343,7 +1343,9 @@ def commandComment(ui):
     issue_data = getIssue(issue_sha1)
 
     issue_comment = ''
-    if len(operands) < (1 if '--last' in ui else 2):
+    if '--message' in ui:
+        issue_comment = ui.get('--message')
+    elif len(operands) < (1 if '--last' in ui else 2):
         issue_comment = getMessage('issue_comment_message', fmt={'issue_sha1': issue_sha1, 'issue_message': '\n'.join(['#  > {0}'.format(l) for l in issue_data['message'].splitlines()])})
     else:
         # True evaluates to 1 and
@@ -1741,13 +1743,15 @@ def commandPublish(ui):
     remotes = getRemotes()
     publish_to_remotes = (ui.operands() or sorted([k for k in remotes.keys() if remotes[k].get('status', 'unknow') == 'exchange']))
 
+    if '--fetch' in ui:
+        for remote_name in publish_to_remotes:
+            print('fetching remote "{0}" before publishing'.format(remote_name))
+            fetchRemote(remote_name, remotes[remote_name])
+
     if '--pack' in ui:
         savePack()
 
     for remote_name in publish_to_remotes:
-        if '--fetch' in ui:
-            print('fetching remote "{0}" before publishing'.format(remote_name))
-            fetchRemote(remote_name, remotes[remote_name])
         publishToRemote(remote_name, remotes[remote_name], local_pack, republish=('--republish' in ui))
 
 def commandIndex(ui):
