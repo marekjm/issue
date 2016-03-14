@@ -1343,7 +1343,9 @@ def commandComment(ui):
     issue_data = getIssue(issue_sha1)
 
     issue_comment = ''
-    if len(operands) < (1 if '--last' in ui else 2):
+    if '--message' in ui:
+        issue_comment = ui.get('--message')
+    elif len(operands) < (1 if '--last' in ui else 2):
         issue_comment = getMessage('issue_comment_message', fmt={'issue_sha1': issue_sha1, 'issue_message': '\n'.join(['#  > {0}'.format(l) for l in issue_data['message'].splitlines()])})
     else:
         # True evaluates to 1 and

@@ -344,13 +344,20 @@
                     {
                         "long": "last",
                         "help": "make a commant on last active issue"
+                    },
+                    {
+                        "short": "m",
+                        "long": "message",
+                        "arguments": ["message text:str"],
+                        "help": "use this message"
                     }
                 ]
             },
             "operands": {
                 "no": [1, 2],
                 "with": {
-                    "--last": [0, 1]
+                    "--last": [0, 1],
+                    "--message": [0, 1]
                 }
             }
         },
