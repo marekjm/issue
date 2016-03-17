@@ -516,6 +516,8 @@ def listIssues():
     return list_of_issues
 
 def expandIssueUID(issue_sha1_part):
+    if issue_sha1_part == '-':
+        return getLastIssue()
     issue_sha1 = []
     issues = listIssues()
     for i_sha1 in issues:
