@@ -1534,21 +1534,40 @@ def commandShow(ui):
         issue_open_author_name = (issue_data['open.author.name'] if 'open.author.name' in issue_data else 'Unknown Author')
         issue_open_author_email = (issue_data['open.author.email'] if 'open.author.email' in issue_data else 'Unknown email')
         issue_open_timestamp = (datetime.datetime.fromtimestamp(issue_data['open.timestamp']) if 'open.timestamp' in issue_data else 'unknown date')
-        print('{0}: {1}'.format(issue_sha1, issue_message_lines[0]))
-        print('    opened by:  {0} ({1}), on {2}'.format(issue_open_author_name, issue_open_author_email, issue_open_timestamp))
+        print('issue {0}'.format(issue_sha1, issue_message_lines[0]))
+        print('opened by:   {0} ({1}), on {2}'.format(issue_open_author_name, issue_open_author_email, issue_open_timestamp))
         if issue_data['status'] == 'closed':
             issue_close_author_name = (issue_data['close.author.name'] if 'close.author.name' in issue_data else 'Unknown Author')
             issue_close_author_email = (issue_data['close.author.email'] if 'close.author.email' in issue_data else 'Unknown email')
             issue_close_timestamp = (datetime.datetime.fromtimestamp(issue_data['close.timestamp']) if 'close.timestamp' in issue_data else 'unknown date')
-            print('    closed by:  {0} ({1}), on {2}'.format(issue_close_author_name, issue_close_author_email, issue_close_timestamp))
-        print('    total time spent:  {0}'.format(issue_data.get('total_time_spent', '0:00:00')))
-        print('    milestones: {0}'.format(', '.join(issue_data['milestones'])))
-        print('    tags:       {0}'.format(', '.join(issue_data['tags'])))
-        print('    project:    {0} ({1})'.format(issue_data.get('project.name', 'Unknown'), issue_data.get('project.tag', '')))
-        if 'parameters' in issue_data and issue_data['parameters']:
+            print('closed by:   {0} ({1}), on {2}'.format(issue_close_author_name, issue_close_author_email, issue_close_timestamp))
+
+        default_time_spent = '0:00:00'
+        time_spent = issue_data.get('total_time_spent', default_time_spent)
+        if time_spent != default_time_spent:
+            print('time spent:  {0}'.format(time_spent))
+
+        milestones = issue_data.get('milestones', [])
+        if milestones:
+            print('milestones:  {0}'.format(', '.join(milestones)))
+
+        tags = issue_data.get('tags', [])
+        if tags:
+            print('tags:        {0}'.format(', '.join(tags)))
+
+        default_project = 'Unknown'
+        project = issue_data.get('project.name', 'Unknown')
+        if project != default_project:
+            print('project:     {0} ({1})'.format(project, issue_data.get('project.tag', '')))
+
+        indented_message_lines = ['    {}'.format(l) for l in issue_message_lines]
+        print('\n{}'.format('\n'.join(indented_message_lines)))
+
+        parameters = issue_data.get('parameters', [])
+        if parameters:
             print('\n---- PARAMETERS')
-            for key in sorted(issue_data['parameters'].keys()):
-                print('    {0} = {1}'.format(key, issue_data['parameters'][key]))
+            for key in sorted(parameters.keys()):
+                print('    {0} = {1}'.format(key, parameters[key]))
 
         chained_issues = issue_data.get('chained', [])
         if chained_issues:
@@ -1556,9 +1575,6 @@ def commandShow(ui):
             for s in sorted(chained_issues):
                 chained_issue = getIssue(s)
                 print('    {0} ({1}): {2}'.format(s, chained_issue.get('status'), chained_issue.get('message', '').splitlines()[0]))
-
-        print('\n---- MESSAGE')
-        print('\n  {0}\n'.format('\n  '.join(issue_message_lines)))
 
         if 'closing_git_commit' in issue_data:
             print('\n---- CLOSING GIT COMMIT: {0}\n'.format(issue_data['closing_git_commit']))
