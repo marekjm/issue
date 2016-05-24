@@ -861,6 +861,14 @@ def repositoryInit(force=False, up=False):
 
 
 ######################################################################
+# DETECT ISSUE REPOSITORY PATH BEFORE DOING ANYTHING ELSE
+#
+while not os.path.isdir(REPOSITORY_PATH) and os.path.abspath(REPOSITORY_PATH) != '/.issue':
+    REPOSITORY_PATH = os.path.join('..', REPOSITORY_PATH)
+REPOSITORY_PATH = os.path.abspath(REPOSITORY_PATH)
+
+
+######################################################################
 # LOGIC CODE
 #
 if '--pack' in ui:
@@ -901,9 +909,6 @@ ui = ui.down() # go down a mode
 operands = ui.operands()
 
 if str(ui) not in ('clone', 'init', 'help') and not os.path.isdir(REPOSITORY_PATH):
-    while not os.path.isdir(REPOSITORY_PATH) and os.path.abspath(REPOSITORY_PATH) != '/.issue':
-        REPOSITORY_PATH = os.path.join('..', REPOSITORY_PATH)
-    REPOSITORY_PATH = os.path.abspath(REPOSITORY_PATH)
     if REPOSITORY_PATH == '/.issue':
         print('fatal: not inside issues repository')
         exit(1)
