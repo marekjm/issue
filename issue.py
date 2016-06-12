@@ -100,7 +100,10 @@ def getIssue(issue_sha1, index=False):
         issue_data['comments'] = {}
         for cmt in os.listdir(issue_comments_dir):
             with open(os.path.join(issue_comments_dir, cmt)) as ifstream:
-                issue_data['comments'][cmt.split('.')[0]] = json.loads(ifstream.read())
+                try:
+                    issue_data['comments'][cmt.split('.')[0]] = json.loads(ifstream.read())
+                except json.decoder.JSONDecodeError as e:
+                    print('error: diff (comment) {}.{} corrupted: {}'.format(issue_sha1, cmt.split('.', 1)[0], e))
     except FileNotFoundError as e:
         if os.path.isdir(os.path.join(ISSUES_PATH, issue_group, issue_sha1)):
             raise issue.exceptions.NotIndexed(issue_file_path)
