@@ -1280,7 +1280,12 @@ def commandLs(ui):
                 print('    tags:       {0}'.format(', '.join(issue_data['tags'])))
                 print()
             else:
-                print('{0}: {1}'.format(short, issue_data['message'].splitlines()[0]))
+                msg = '{0}: {1}'.format(short, issue_data['message'].splitlines()[0])
+                if '--verbose' in ui:
+                    tags = ' '.join(['#{}'.format(t) for t in issue_data['tags']])
+                    if tags:
+                        msg = '{} ({})'.format(msg, tags)
+                print(msg)
         except (KeyError, IndexError) as e:
             print('{0}: [broken index]'.format(i))
 
