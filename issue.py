@@ -1290,7 +1290,7 @@ def commandLs(ui):
                 if colored:
                     short = (colored.fg('yellow') + short + colored.attr('reset'))
                 msg = '{0}: {1}'.format(short, issue_data['message'].splitlines()[0])
-                if '--verbose' in ui:
+                if '--verbose' in ui or accepted_tags:
                     tags = [t for t in issue_data['tags']]
                     if colored:
                         tags = [(colored.fg(('blue' if t in accepted_tags else 'cyan')) + t + colored.attr('reset')) for t in tags]
