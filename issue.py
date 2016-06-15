@@ -1293,7 +1293,7 @@ def commandLs(ui):
                 if '--verbose' in ui or accepted_tags:
                     tags = [t for t in issue_data['tags']]
                     if colored:
-                        tags = [(colored.fg(('blue' if t in accepted_tags else 'cyan')) + t + colored.attr('reset')) for t in tags]
+                        tags = [(colored.fg('cyan') + t + colored.attr('reset')) for t in tags]
                     tags = ' '.join(['#{}'.format(t) for t in tags])
                     if tags:
                         msg = '{} ({})'.format(msg, tags)
