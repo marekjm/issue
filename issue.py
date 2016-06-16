@@ -1556,7 +1556,12 @@ def commandShow(ui):
         issue_open_author_name = (issue_data['open.author.name'] if 'open.author.name' in issue_data else 'Unknown Author')
         issue_open_author_email = (issue_data['open.author.email'] if 'open.author.email' in issue_data else 'Unknown email')
         issue_open_timestamp = (datetime.datetime.fromtimestamp(issue_data['open.timestamp']) if 'open.timestamp' in issue_data else 'unknown date')
-        print('issue {0}'.format(issue_sha1, issue_message_lines[0]))
+
+        issue_heading = 'issue {0}'.format(issue_sha1)
+        if colored:
+            issue_heading = (colored.fg('yellow') + issue_heading + colored.attr('reset'))
+        print(issue_heading)
+
         print('opened by:   {0} ({1}), on {2}'.format(issue_open_author_name, issue_open_author_email, issue_open_timestamp))
         if issue_data['status'] == 'closed':
             issue_close_author_name = (issue_data['close.author.name'] if 'close.author.name' in issue_data else 'Unknown Author')
