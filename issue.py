@@ -1592,23 +1592,35 @@ def commandShow(ui):
 
         parameters = issue_data.get('parameters', [])
         if parameters:
-            print('\n---- PARAMETERS')
+            parameters_heading = '---- PARAMETERS'
+            if colored:
+                parameters_heading = (colored.fg('white') + parameters_heading + colored.attr('reset'))
+            print('\n{}'.format(parameters_heading))
             for key in sorted(parameters.keys()):
                 print('    {0} = {1}'.format(key, parameters[key]))
 
         chained_issues = issue_data.get('chained', [])
         if chained_issues:
-            print('\n---- CHAINED ISSUES')
+            chained_issues_heading = '---- CHAINED ISSUES'
+            if colored:
+                chained_issues_heading = (colored.fg('white') + chained_issues_heading + colored.attr('reset'))
+            print('\n{}'.format(chained_issues_heading))
             for s in sorted(chained_issues):
                 chained_issue = getIssue(s)
                 print('    {0} ({1}): {2}'.format(s, chained_issue.get('status'), chained_issue.get('message', '').splitlines()[0]))
 
         if 'closing_git_commit' in issue_data:
-            print('\n---- CLOSING GIT COMMIT: {0}\n'.format(issue_data['closing_git_commit']))
+            closing_git_commit_heading = '---- CLOSING GIT COMMIT'
+            if colored:
+                closing_git_commit_heading = (colored.fg('white') + closing_git_commit_heading + colored.attr('reset'))
+            print('\n{}: {}\n'.format(closing_git_commit_heading, issue_data['closing_git_commit']))
 
         issue_comment_thread = dict((issue_data['comments'][key]['timestamp'], key) for key in issue_data['comments'])
         if issue_comment_thread:
-            print('\n---- COMMENT THREAD:\n')
+            comment_thread_heading = '---- COMMENT THREAD:'
+            if colored:
+                comment_thread_heading = (colored.fg('white') + comment_thread_heading + colored.attr('reset'))
+            print('\n{}'.format(comment_thread_heading))
             for i, timestamp in enumerate(sorted(issue_comment_thread.keys())):
                 issue_comment = issue_data['comments'][issue_comment_thread[timestamp]]
                 print('>>>> {0}. {1} ({2}) at {3}\n'.format(i, issue_comment['author.name'], issue_comment['author.email'], datetime.datetime.fromtimestamp(issue_comment['timestamp'])))
