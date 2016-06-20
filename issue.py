@@ -1597,7 +1597,9 @@ def commandShow(ui):
                 parameters_heading = (colored.fg('white') + parameters_heading + colored.attr('reset'))
             print('\n{}'.format(parameters_heading))
             for key in sorted(parameters.keys()):
-                print('    {0} = {1}'.format(key, parameters[key]))
+                value = parameters[key]
+                if colored: key = (colored.fg('green') + key + colored.attr('reset'))
+                print('    {0} = {1}'.format(key, value))
 
         chained_issues = issue_data.get('chained', [])
         if chained_issues:
