@@ -1613,9 +1613,11 @@ def commandShow(ui):
 
         if 'closing_git_commit' in issue_data:
             closing_git_commit_heading = '---- CLOSING GIT COMMIT'
+            closing_git_commit = issue_data['closing_git_commit']
             if colored:
                 closing_git_commit_heading = (colored.fg('white') + closing_git_commit_heading + colored.attr('reset'))
-            print('\n{}: {}\n'.format(closing_git_commit_heading, issue_data['closing_git_commit']))
+                closing_git_commit = (colored.fg('yellow') + closing_git_commit + colored.attr('reset'))
+            print('\n{}: {}\n'.format(closing_git_commit_heading, closing_git_commit))
 
         issue_comment_thread = dict((issue_data['comments'][key]['timestamp'], key) for key in issue_data['comments'])
         if issue_comment_thread:
