@@ -1272,6 +1272,8 @@ def commandLs(ui):
             if found < LS_KEYWORD_MATCH_THRESHOLD:
                 continue
         try:
+            if colored:
+                short = (colored.fg('yellow') + short + colored.attr('reset'))
             if '--details' in ui:
                 print('{0}: {1}'.format(short, issue_data['message'].splitlines()[0]))
                 issue_open_author_name = (issue_data['open.author.name'] if 'open.author.name' in issue_data else 'Unknown Author')
@@ -1287,8 +1289,6 @@ def commandLs(ui):
                 print('    tags:       {0}'.format(', '.join(issue_data['tags'])))
                 print()
             else:
-                if colored:
-                    short = (colored.fg('yellow') + short + colored.attr('reset'))
                 msg = '{0}: {1}'.format(short, issue_data['message'].splitlines()[0])
                 if '--verbose' in ui or accepted_tags:
                     tags = [t for t in issue_data['tags']]
