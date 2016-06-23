@@ -2037,10 +2037,20 @@ def commandStatistics(ui):
         limit = int(percentage_closed * N / 100)
         print('|', end='')
         for i in range(limit):
-            print('#', end='')
+            print((colored.fg('green') + '#' + colored.attr('reset') if colored else '#'), end='')
         for i in range(N-limit):
-            print(' ', end='')
-        print('| {0}/{1} issues closed ({2}%)'.format(closed_issues_count, issues_count, percentage_closed))
+            print((colored.fg('red') + '#' + colored.attr('reset') if colored else ' '), end='')
+
+        closed_issues_count_heading = str(closed_issues_count)
+        open_issues_count_heading = str(issues_count - closed_issues_count)
+        issues_count_heading = str(issues_count)
+        percentage_closed_heading = '{}%'.format(percentage_closed)
+        if colored:
+            closed_issues_count_heading = (colored.fg('green') + closed_issues_count_heading + colored.attr('reset'))
+            open_issues_count_heading = (colored.fg('red') + open_issues_count_heading + colored.attr('reset'))
+            issues_count_heading = (colored.fg('cyan') + issues_count_heading + colored.attr('reset'))
+            percentage_closed_heading = (colored.fg('white') + percentage_closed_heading + colored.attr('reset'))
+        print('| {0}/{1}/{2} ({3} closed)'.format(closed_issues_count_heading, open_issues_count_heading, issues_count_heading, percentage_closed_heading))
 
     if True:
         avg_tags_per_issue = (sum(map(lambda i: len(i.get('tags', [])), issues)) / issues_count)
