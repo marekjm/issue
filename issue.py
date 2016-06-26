@@ -1342,7 +1342,11 @@ def commandSlug(ui):
             exit(1)
 
     if slug_format:
-        issue_slug = slug_format.format(slug=issue_slug, **slug_parameters)
+        try:
+            issue_slug = slug_format.format(slug=issue_slug, **slug_parameters)
+        except KeyError as e:
+            print('error: required parameter not found: {}'.format(str(e)))
+            exit(1)
 
     if '--git-branch' in ui:
         r = os.system('git branch {0}'.format(issue_slug))
