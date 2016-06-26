@@ -1654,44 +1654,60 @@ def commandShow(ui):
         for d in issue_differences_sorted:
             diff_datetime = str(datetime.datetime.fromtimestamp(d['timestamp'])).rsplit('.', 1)[0]
             diff_action = d['action']
+
+            diff_datetime_heading = diff_datetime
+            action_heading = ''
+            author_heading = '{} ({})'.format(d['author']['author.name'], d['author']['author.email'])
+            message_heading = ''
+
             if diff_action == 'open':
-                print('{0}: opened by: {1} ({2})'.format(diff_datetime, d['author']['author.name'], d['author']['author.email']))
+                action_heading = 'opened'
             elif diff_action == 'close':
-                print('{0}: closed by: {1} ({2})'.format(diff_datetime, d['author']['author.name'], d['author']['author.email']), end='')
+                action_heading = 'closed'
                 if 'closing_git_commit' in d['params'] and d['params']['closing_git_commit']:
-                    print(' with Git commit {0}'.format(d['params']['closing_git_commit']))
-                else:
-                    print()
+                    message_heading = ' with Git commit {0}'.format(d['params']['closing_git_commit'])
             elif diff_action == 'set-message':
-                print('{0}: message set by: {1} ({2})'.format(diff_datetime, d['author']['author.name'], d['author']['author.email']))
+                action_heading = 'message set'
             # support both -tags and -labels ("labels" name has been used in pre-0.1.5 versions)
             # FIXME: this support should be removed after early repositories are converted
             elif diff_action == 'push-tags' or diff_action == 'push-labels':
-                print('{0}: tagged by: {1} ({2}) with {3}'.format(diff_datetime, d['author']['author.name'], d['author']['author.email'], ', '.join(d['params'][('tags' if 'tags' in d['params'] else 'labels')])))
+                action_heading = 'tagged'
+                message_heading = 'with {}'.format(', '.join(d['params'][('tags' if 'tags' in d['params'] else 'labels')]))
             # support both -tags and -labels ("labels" name has been used in pre-0.1.5 versions)
             # FIXME: this support should be removed after early repositories are converted
             elif diff_action == 'remove-tags' or diff_action == 'remove-labels':
-                print('{0}: tags removed by: {1} ({2}) with {3}'.format(diff_datetime, d['author']['author.name'], d['author']['author.email'], ', '.join(d['params'][('tags' if 'tags' in d['params'] else 'labels')])))
+                action_heading = 'tags removed'
+                message_heading = 'with {}'.format(', '.join(d['params'][('tags' if 'tags' in d['params'] else 'labels')]))
             elif diff_action == 'parameter-set':
-                print('{0}: parameter set by: {1} ({2}): {3} = {4}'.format(diff_datetime, d['author']['author.name'], d['author']['author.email'], d['params']['key'], repr(d['params']['value'])))
+                action_heading = 'parameter set'
+                message_heading = '{} = {}'.format(d['params']['key'], repr(d['params']['value']))
             elif diff_action == 'parameter-remove':
-                print('{0}: parameter removed by: {1} ({2}): {3}'.format(diff_datetime, d['author']['author.name'], d['author']['author.email'], d['params']['key']))
+                action_heading = 'parameter removed'
+                message_heading = d['params']['key']
             elif diff_action == 'push-milestones':
-                print('{0}: milestones set by: {1} ({2}): {3}'.format(diff_datetime, d['author']['author.name'], d['author']['author.email'], ', '.join(d['params']['milestones'])))
+                action_heading = 'milestones set'
+                message_heading = ', '.join(d['params']['milestones'])
             elif diff_action == 'set-status':
-                print('{0}: status set by: {1} ({2}): {3}'.format(diff_datetime, d['author']['author.name'], d['author']['author.email'], d['params']['status']))
+                action_heading = 'status set'
+                message_heading = d['params']['status']
             elif diff_action == 'set-project-tag':
-                print('{0}: project tag set by: {1} ({2}): {3}'.format(diff_datetime, d['author']['author.name'], d['author']['author.email'], d['params']['tag']))
+                action_heading = 'project tag set'
+                message_heading = d['params']['tag']
             elif diff_action == 'set-project-name':
-                print('{0}: project name set by: {1} ({2}): {3}'.format(diff_datetime, d['author']['author.name'], d['author']['author.email'], d['params']['name']))
+                action_heading = 'project name set'
+                message_heading = d['params']['name']
             elif diff_action == 'work-start':
-                print('{0}: work started by {1} ({2})'.format(diff_datetime, d['author']['author.name'], d['author']['author.email']))
+                action_heading = 'work started'
             elif diff_action == 'work-stop':
-                print('{0}: work stopped by {1} ({2})'.format(diff_datetime, d['author']['author.name'], d['author']['author.email']))
+                action_heading = 'work stopped'
             elif diff_action == 'chain-link':
-                print('{0}: chained with {3} by {1} ({2})'.format(diff_datetime, d['author']['author.name'], d['author']['author.email'], ', '.join(d['params']['sha1'])))
+                action_heading = 'chained'
+                message_heading = 'with issue(s) {}'.format(', '.join(d['params']['sha1']))
             elif diff_action == 'chain-unlink':
-                print('{0}: unchained from {3} by {1} ({2})'.format(diff_datetime, d['author']['author.name'], d['author']['author.email'], ', '.join(d['params']['sha1'])))
+                action_heading = 'unchained'
+                message_heading = 'from issue(s) {}'.format(', '.join(d['params']['sha1']))
+
+            print('{}: {} by {}: {}'.format(diff_datetime_heading, action_heading, author_heading, message_heading))
 
 def commandConfig(ui):
     ui = ui.down()
