@@ -1657,7 +1657,8 @@ def commandShow(ui):
 
             diff_datetime_heading = diff_datetime
             action_heading = ''
-            author_heading = '{} ({})'.format(d['author']['author.name'], d['author']['author.email'])
+            author_heading = '{}'.format(d['author']['author.name'])
+            author_email_heading = d['author']['author.email'].strip()
             message_heading = ''
 
             if diff_action == 'open':
@@ -1707,7 +1708,20 @@ def commandShow(ui):
                 action_heading = 'unchained'
                 message_heading = 'from issue(s) {}'.format(', '.join(d['params']['sha1']))
 
-            print('{}: {} by {}: {}'.format(diff_datetime_heading, action_heading, author_heading, message_heading))
+            if colored:
+                diff_datetime_heading = (colored.fg('grey_53') + diff_datetime_heading + colored.attr('reset'))
+                action_heading = (colored.fg('magenta') + action_heading + colored.attr('reset'))
+                author_heading = (colored.fg('white') + author_heading + colored.attr('reset'))
+                if author_email_heading:
+                    author_email_heading = (colored.fg('white') + author_email_heading + colored.attr('reset'))
+
+            if author_email_heading:
+                author_heading = '{} ({})'.format(author_heading, author_email_heading)
+
+            if message_heading:
+                message_heading = ': {}'.format(message_heading)
+
+            print('{}: {} by {}{}'.format(diff_datetime_heading, action_heading, author_heading, message_heading))
 
 def commandConfig(ui):
     ui = ui.down()
