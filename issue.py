@@ -1636,7 +1636,9 @@ def commandShow(ui):
                 print()
         markLastIssue(issue_sha1)
     elif str(ui) == 'log':
-        print('showing log of issue: {0}'.format(issue_sha1))
+        issue_sha1_heading = issue_sha1
+        if colored: issue_sha1_heading = (colored.fg('yellow') + issue_sha1_heading + colored.attr('reset'))
+        print('showing log of issue: {0}'.format(issue_sha1_heading))
         issue_differences = getIssueDifferences(issue_sha1, *listIssueDifferences(issue_sha1))
 
         issue_differences_sorted = []
