@@ -1275,7 +1275,8 @@ def commandLs(ui):
             if colored:
                 short = (colored.fg('yellow') + short + colored.attr('reset'))
             if '--details' in ui:
-                print('{0}: {1}'.format(short, issue_data['message'].splitlines()[0]))
+                first_message_line = issue_data['message'].splitlines()[0]
+                print('{0}: {1}'.format(short, first_message_line))
                 issue_open_author_name = (issue_data['open.author.name'] if 'open.author.name' in issue_data else 'Unknown Author')
                 issue_open_author_email = (issue_data['open.author.email'] if 'open.author.email' in issue_data else 'Unknown email')
                 issue_open_timestamp = (datetime.datetime.fromtimestamp(issue_data['open.timestamp']) if 'open.timestamp' in issue_data else 'unknown date')
@@ -1289,7 +1290,11 @@ def commandLs(ui):
                 print('    tags:       {0}'.format(', '.join(issue_data['tags'])))
                 print()
             else:
-                msg = '{0}: {1}'.format(short, issue_data['message'].splitlines()[0])
+                first_message_line = issue_data['message'].splitlines()[0]
+                if colored:
+                    for kw in ls_keywords:
+                        first_message_line = first_message_line.replace(kw, (colored.fg('light_green') + kw + colored.attr('reset')))
+                msg = '{0}: {1}'.format(short, first_message_line)
                 if '--verbose' in ui or accepted_tags:
                     tags = [t for t in issue_data['tags']]
                     if colored:
