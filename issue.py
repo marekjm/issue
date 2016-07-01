@@ -1618,6 +1618,8 @@ def commandShow(ui):
             print('\n{}'.format(chained_issues_heading))
             for s in sorted(chained_issues):
                 chained_issue = getIssue(s)
+                if colored:
+                    s = (colored.fg('yellow') + s + colored.attr('reset'))
                 print('    {0} ({1}): {2}'.format(s, chained_issue.get('status'), chained_issue.get('message', '').splitlines()[0]))
 
         if 'closing_git_commit' in issue_data:
