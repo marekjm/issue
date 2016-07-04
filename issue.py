@@ -2100,11 +2100,12 @@ def commandStatistics(ui):
         print('avg. tags per issue: {0}'.format(round(avg_tags_per_issue, 1)))
 
     if True:
-        avg_lifetime_of_an_issue = list(map(lambda i: (datetime.datetime.fromtimestamp(i['close.timestamp']) - datetime.datetime.fromtimestamp(i['open.timestamp'])), filter(lambda i: 'close.timestamp' in i, issues)))
-        total_lifetime_of_closed_issues = avg_lifetime_of_an_issue[0]
-        for i in range(i, len(avg_lifetime_of_an_issue)):
-            total_lifetime_of_closed_issues += avg_lifetime_of_an_issue[i]
-        print('avg. lifetime of an issue: {0}'.format(str(total_lifetime_of_closed_issues / closed_issues_count).rsplit('.')[0]))
+        if closed_issues_count:
+            avg_lifetime_of_an_issue = list(map(lambda i: (datetime.datetime.fromtimestamp(i['close.timestamp']) - datetime.datetime.fromtimestamp(i['open.timestamp'])), filter(lambda i: 'close.timestamp' in i, issues)))
+            total_lifetime_of_closed_issues = avg_lifetime_of_an_issue[0]
+            for i in range(i, len(avg_lifetime_of_an_issue)):
+                total_lifetime_of_closed_issues += avg_lifetime_of_an_issue[i]
+            print('avg. lifetime of an issue: {0}'.format(str(total_lifetime_of_closed_issues / closed_issues_count).rsplit('.')[0]))
 
 
 def dispatch(ui, *commands, overrides = {}, default_command=''):
