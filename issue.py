@@ -851,6 +851,7 @@ def getMessage(template='', fmt={}):
     return message
 
 def repositoryInit(force=False, up=False):
+    REPOSITORY_PATH = '.issue'
     if force and os.path.isdir(REPOSITORY_PATH):
         shutil.rmtree(REPOSITORY_PATH)
     if not up and os.path.isdir(REPOSITORY_PATH):
