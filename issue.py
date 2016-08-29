@@ -1572,12 +1572,18 @@ def commandShow(ui):
             issue_heading = (colored.fg('yellow') + issue_heading + colored.attr('reset'))
         print(issue_heading)
 
-        print('opened by:   {0} ({1}), on {2}'.format(issue_open_author_name, issue_open_author_email, issue_open_timestamp))
+        opened_by_heading = 'opened by'
+        if colored:
+            opened_by_heading = (colored.fg('red') + opened_by_heading + colored.attr('reset'))
+        print('{}:   {} ({}), on {}'.format(opened_by_heading, issue_open_author_name, issue_open_author_email, issue_open_timestamp))
         if issue_data['status'] == 'closed':
+            closed_by_heading = 'closed by'
+            if colored:
+                closed_by_heading = (colored.fg('green') + closed_by_heading + colored.attr('reset'))
             issue_close_author_name = (issue_data['close.author.name'] if 'close.author.name' in issue_data else 'Unknown Author')
             issue_close_author_email = (issue_data['close.author.email'] if 'close.author.email' in issue_data else 'Unknown email')
             issue_close_timestamp = (datetime.datetime.fromtimestamp(issue_data['close.timestamp']) if 'close.timestamp' in issue_data else 'unknown date')
-            print('closed by:   {0} ({1}), on {2}'.format(issue_close_author_name, issue_close_author_email, issue_close_timestamp))
+            print('{}:   {} ({}), on {}'.format(closed_by_heading, issue_close_author_name, issue_close_author_email, issue_close_timestamp))
 
         default_time_spent = '0:00:00'
         time_spent = issue_data.get('total_time_spent', default_time_spent)
@@ -1717,8 +1723,8 @@ def commandShow(ui):
                 message_heading = 'from issue(s) {}'.format(', '.join(d['params']['sha1']))
 
             if colored:
-                diff_datetime_heading = (colored.fg('grey_53') + diff_datetime_heading + colored.attr('reset'))
-                action_heading = (colored.fg('magenta') + action_heading + colored.attr('reset'))
+                diff_datetime_heading = (colored.fg('white') + diff_datetime_heading + colored.attr('reset'))
+                action_heading = (colored.fg('green') + action_heading + colored.attr('reset'))
                 author_heading = (colored.fg('white') + author_heading + colored.attr('reset'))
                 if author_email_heading:
                     author_email_heading = (colored.fg('white') + author_email_heading + colored.attr('reset'))
