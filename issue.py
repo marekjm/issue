@@ -75,8 +75,14 @@ if clap.helper.HelpRunner(ui=ui, program=sys.argv[0]).adjust(options=['-h', '--h
 
 
 
-# ensure the repository exists
+######################################################################
+# DETECT ISSUE REPOSITORY PATH BEFORE DOING ANYTHING ELSE
+#
 REPOSITORY_PATH = '.issue'
+while not os.path.isdir(REPOSITORY_PATH) and os.path.abspath(REPOSITORY_PATH) != '/.issue':
+    REPOSITORY_PATH = os.path.join('..', REPOSITORY_PATH)
+REPOSITORY_PATH = os.path.abspath(REPOSITORY_PATH)
+
 OBJECTS_PATH = os.path.join(REPOSITORY_PATH, 'objects')
 REPOSITORY_TMP_PATH = os.path.join(REPOSITORY_PATH, 'tmp')
 ISSUES_PATH = os.path.join(OBJECTS_PATH, 'issues')
@@ -866,14 +872,6 @@ def repositoryInit(force=False, up=False):
         if not os.path.isdir(issue_diffs_path):
             os.mkdir(issue_diffs_path)
     return os.path.abspath(REPOSITORY_PATH)
-
-
-######################################################################
-# DETECT ISSUE REPOSITORY PATH BEFORE DOING ANYTHING ELSE
-#
-while not os.path.isdir(REPOSITORY_PATH) and os.path.abspath(REPOSITORY_PATH) != '/.issue':
-    REPOSITORY_PATH = os.path.join('..', REPOSITORY_PATH)
-REPOSITORY_PATH = os.path.abspath(REPOSITORY_PATH)
 
 
 ######################################################################
