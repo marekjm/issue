@@ -1198,12 +1198,19 @@ def commandLs(ui):
 
     issues_to_list = []
     for short, i in issues:
+        if colored:
+            short = (colored.fg('yellow') + short + colored.attr('reset'))
+
         issue_sha1 = i.split('.', 1)[0]
         try:
             issue_data = getIssue(issue_sha1)
         except issue.exceptions.NotIndexed as e:
-            print('{0}: [not indexed]'.format(short))
+            not_indexed_message = '[not indexed]'
+            if colored:
+                not_indexed_message = (colored.fg('red') + not_indexed_message + colored.attr('reset'))
+            print('{0} {1}'.format(short, not_indexed_message))
             continue
+
         if '--open' in ui and (issue_data['status'] if 'status' in issue_data else '') not in ('open', ''): continue
         if '--closed' in ui and (issue_data['status'] if 'status' in issue_data else '') != 'closed': continue
         if '--status' in ui and (issue_data['status'] if 'status' in issue_data else '') not in accepted_statuses: continue
@@ -1270,6 +1277,10 @@ def commandLs(ui):
                     found += 1
             if found < LS_KEYWORD_MATCH_THRESHOLD:
                 continue
+
+        full = i
+        if colored:
+            full = (colored.fg('yellow') + full + colored.attr('reset'))
         try:
             if colored:
                 short = (colored.fg('yellow') + short + colored.attr('reset'))
@@ -1293,7 +1304,7 @@ def commandLs(ui):
                 if colored:
                     for kw in ls_keywords:
                         first_message_line = first_message_line.replace(kw, (colored.fg('light_green') + kw + colored.attr('reset')))
-                msg = '{0}: {1}'.format(short, first_message_line)
+                msg = '{0} {1}'.format(short, first_message_line)
                 if '--verbose' in ui or accepted_tags:
                     tags = [t for t in issue_data['tags']]
                     if colored:
@@ -1303,7 +1314,10 @@ def commandLs(ui):
                         msg = '{} ({})'.format(msg, tags)
                 print(msg)
         except (KeyError, IndexError) as e:
-            print('{0}: [broken index]'.format(i))
+            broken_index_message = '[broken index]'
+            if colored:
+                broken_index_message = (colored.fg('red') + broken_index_message + colored.attr('reset'))
+            print('{0} {1}'.format(full, broken_index_message))
 
 def commandDrop(ui):
     issue_list = ([getLastIssue()] if '--last' in ui else operands)
