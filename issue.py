@@ -2222,7 +2222,7 @@ def commandReleaseClose(ui):
 
 def commandReleaseLs(ui):
     ui = ui.down()
-    print('{}: listing releases'.format(ui))
+    print('\n'.join(sorted(os.listdir(os.path.join(RELEASES_PATH, 'r')))))
 
 def commandReleaseNotes(ui):
     ui = ui.down()
