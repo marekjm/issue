@@ -2131,6 +2131,45 @@ def commandStatistics(ui):
             print('avg. lifetime of an issue: {0}'.format(str(total_lifetime_of_closed_issues / closed_issues_count).rsplit('.')[0]))
 
 
+def get_release_path(release_name):
+    return os.path.join(RELEASES_PATH, 'r', release_name)
+
+def release_name_exists(release_name):
+    return os.path.isdir(get_release_path(release_name))
+
+def get_release_notes_path(release_name):
+    return os.path.join(get_release_path(release_name), 'notes')
+
+
+def commandReleaseOpen(ui):
+    ui = ui.down()
+    release_name = ui.operands()[0]
+    print('opening release: {}'.format(release_name))
+
+def commandReleaseClose(ui):
+    ui = ui.down()
+    release_name = ui.operands()[0]
+    print('closing release: {}'.format(release_name))
+
+def commandReleaseLs(ui):
+    ui = ui.down()
+    print('{}: listing releases'.format(ui))
+
+def commandReleaseNotes(ui):
+    ui = ui.down()
+
+def commandRelease(ui):
+    ui = ui.down()
+    if str(ui) == 'open':
+        commandReleaseOpen(ui)
+    elif str(ui) == 'close':
+        commandReleaseClose(ui)
+    elif str(ui) == 'ls':
+        commandReleaseLs(ui)
+    elif str(ui) == 'notes':
+        commandReleaseNotes(ui)
+
+
 def dispatch(ui, *commands, overrides = {}, default_command=''):
     """Semi-automatic command dispatcher.
 
@@ -2176,4 +2215,5 @@ dispatch(ui,        # first: pass the UI object to dispatch
     commandWork,
     commandChain,
     commandStatistics,
+    commandRelease,
 )
