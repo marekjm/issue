@@ -88,6 +88,14 @@ Additional frequently used commands are `publish`, `fetch` and `show`.
 On the lowest level Issue is a distributed, domain-specific data exchange system with fat, feature-packed client that
 requires either very dumb or no exchange servers.
 
+> **Distribution method advice**: While issue is *fast* when run locally, synchronisation over the network is
+> painfully slow (only dumb SSH copying is implemented).
+> It is advised to track Issue repository changes with a VCS used in the project, and
+> to piggyback on its transport method to distribute the diffs.
+> Issue diffs are JSON-encoded text files so no binary blobs will appear in the VCS repository.
+>
+> This may, however, alter the distributed nature of Issue if your VCS of choice is not distributed.
+
 Every issue is represented as an *object* under a *class namespace* within the network.
 A class namespace is a separator between different object classes, e.g. issues, milestones, tags and
 can be thought of as a *type* (i.e. a class) of an object.
