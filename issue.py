@@ -1155,7 +1155,7 @@ def commandOpen(ui):
     if next_relese_pointer:
         store_release_diff(next_relese_pointer, 'open-issue', {
             'id': issue_sha1,
-            'message': message,
+            'message': message.splitlines()[0],
         })
 
     indexIssue(issue_sha1)
