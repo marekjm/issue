@@ -2206,6 +2206,28 @@ def commandReleaseClose(ui):
         print('error: aborting due to empty release notes')
         exit(1)
 
+    with open(get_release_notes_path(release_name), 'w') as ofstream:
+        ofstream.write(release_notes)
+
+    repo_config = getConfig()
+    release_differences = [
+        {
+            'action': 'close',
+            'author': {
+                'author.email': repo_config['author.email'],
+                'author.name': repo_config['author.name'],
+            },
+            'timestamp': timestamp(),
+        },
+    ]
+    release_diff_sha1 = '{0}{1}{2}{3}'.format(repo_config['author.email'], repo_config['author.name'], timestamp(), random.random())
+    release_diff_sha1 = hashlib.sha1(release_diff_sha1.encode('utf-8')).hexdigest()
+    release_diff_file_path = os.path.join(get_release_path(release_name), 'diff', '{0}.json'.format(release_diff_sha1))
+    with open(release_diff_file_path, 'w') as ofstream:
+        ofstream.write(json.dumps(release_differences))
+
+    store_next_release_pointer('')
+
 def commandReleaseLs(ui):
     ui = ui.down()
     print('{}: listing releases'.format(ui))
