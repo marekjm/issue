@@ -931,9 +931,10 @@ if str(ui) not in ('clone', 'init', 'help') and not os.path.isdir(REPOSITORY_PAT
 
 
 def commandInit(ui):
-    if '--force' in ui and os.path.isdir(REPOSITORY_PATH):
-        shutil.rmtree(REPOSITORY_PATH)
-    if os.path.isdir(REPOSITORY_PATH) and '--up' not in ui:
+    HERE_REPOSITORY_PATH = os.path.join('.', '.issue')
+    if '--force' in ui and os.path.isdir(HERE_REPOSITORY_PATH):
+        shutil.rmtree(HERE_REPOSITORY_PATH)
+    if os.path.isdir(HERE_REPOSITORY_PATH) and '--up' not in ui:
         print('fatal: repository already exists')
         exit(1)
     initialised_in = repositoryInit(force=('--force' in ui), up=('--up' in ui))
