@@ -1142,6 +1142,13 @@ def commandOpen(ui):
     with open(issue_diff_file_path, 'w') as ofstream:
         ofstream.write(json.dumps(issue_differences))
 
+    next_relese_pointer = get_next_release_pointer()
+    if next_relese_pointer:
+        store_release_diff(next_relese_pointer, 'open-issue', {
+            'id': issue_sha1,
+            'message': message,
+        })
+
     indexIssue(issue_sha1)
     markLastIssue(issue_sha1)
 
@@ -1237,6 +1244,12 @@ def commandClose(ui):
     issue_diff_file_path = os.path.join(ISSUES_PATH, issue_sha1[:2], issue_sha1, 'diff', '{0}.json'.format(issue_diff_sha1))
     with open(issue_diff_file_path, 'w') as ofstream:
         ofstream.write(json.dumps(issue_differences))
+
+    next_relese_pointer = get_next_release_pointer()
+    if next_relese_pointer:
+        store_release_diff(next_relese_pointer, 'close-issue', {
+            'id': issue_sha1,
+        })
     markLastIssue(issue_sha1)
     indexIssue(issue_sha1, issue_diff_sha1)
 
