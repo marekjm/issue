@@ -2140,11 +2140,39 @@ def release_name_exists(release_name):
 def get_release_notes_path(release_name):
     return os.path.join(get_release_path(release_name), 'notes')
 
+def store_next_release_pointer(release_name):
+    with open(os.path.join(RELEASES_PATH, 'next'), 'w') as ofstream:
+        ofstream.write(release_name)
+
 
 def commandReleaseOpen(ui):
     ui = ui.down()
     release_name = ui.operands()[0]
     print('opening release: {}'.format(release_name))
+    if release_name_exists(release_name) and not '--force' in ui:
+        print('error: release already exists: {}'.format(repr(release_name)))
+        exit(1)
+    release_base_path = get_release_path(release_name)
+    os.makedirs(release_base_path, exist_ok=True)
+    os.makedirs(os.path.join(release_base_path, 'diff'), exist_ok=True)
+
+    repo_config = getConfig()
+    release_differences = [
+        {
+            'action': 'open',
+            'author': {
+                'author.email': repo_config['author.email'],
+                'author.name': repo_config['author.name'],
+            },
+            'timestamp': timestamp(),
+        },
+    ]
+    release_diff_sha1 = '{0}{1}{2}{3}'.format(repo_config['author.email'], repo_config['author.name'], timestamp(), random.random())
+    release_diff_sha1 = hashlib.sha1(release_diff_sha1.encode('utf-8')).hexdigest()
+    release_diff_file_path = os.path.join(release_base_path, 'diff', '{0}.json'.format(release_diff_sha1))
+    with open(release_diff_file_path, 'w') as ofstream:
+        ofstream.write(json.dumps(release_differences))
+    store_next_release_pointer(release_name)
 
 def commandReleaseClose(ui):
     ui = ui.down()

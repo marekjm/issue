@@ -897,6 +897,15 @@
                 "open": {
                     "operands": {
                         "no": [1, 1]
+                    },
+                    "options": {
+                        "local": [
+                            {
+                                "long": "force",
+                                "short": "f",
+                                "help": "force opening a release (possibly overwriting old release with the same name)"
+                            }
+                        ]
                     }
                 },
                 "close": {
