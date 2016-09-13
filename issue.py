@@ -2189,7 +2189,14 @@ def commandReleaseOpen(ui):
 def commandReleaseClose(ui):
     ui = ui.down()
     release_name = ui.operands()[0]
-    print('closing release: {}'.format(release_name))
+    current_next_release = get_next_release_pointer()
+    if release_name != current_next_release:
+        print('error: not an opened release: {}'.format(release_name))
+        if current_next_release:
+            print('note: {} is the currently opened release'.format(current_next_release))
+        else:
+            print('note: no release is currently opened')
+        exit(1)
 
 def commandReleaseLs(ui):
     ui = ui.down()
