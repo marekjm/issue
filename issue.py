@@ -2157,6 +2157,12 @@ def commandReleaseLs(ui):
 
 def commandReleaseNotes(ui):
     ui = ui.down()
+    release_name = ui.operands()[0]
+    if not release_name_exists(release_name):
+        print('error: release does not exist: {}'.format(repr(release_name)))
+        exit(1)
+    pager = os.getenv('PAGER', 'less')
+    os.system('{} {}'.format(pager, get_release_notes_path(release_name)))
 
 def commandRelease(ui):
     ui = ui.down()
