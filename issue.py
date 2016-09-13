@@ -2222,6 +2222,8 @@ def commandReleaseClose(ui):
     ui = ui.down()
     release_name = ui.operands()[0]
     current_next_release = get_next_release_pointer()
+    if current_next_release and release_name == '-':
+        release_name = current_next_release
     if release_name != current_next_release:
         print('error: not an opened release: {}'.format(release_name))
         if current_next_release:
