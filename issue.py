@@ -75,8 +75,14 @@ if clap.helper.HelpRunner(ui=ui, program=sys.argv[0]).adjust(options=['-h', '--h
 
 
 
-# ensure the repository exists
+######################################################################
+# DETECT ISSUE REPOSITORY PATH BEFORE DOING ANYTHING ELSE
+#
 REPOSITORY_PATH = '.issue'
+while not os.path.isdir(REPOSITORY_PATH) and os.path.abspath(REPOSITORY_PATH) != '/.issue':
+    REPOSITORY_PATH = os.path.join('..', REPOSITORY_PATH)
+REPOSITORY_PATH = os.path.abspath(REPOSITORY_PATH)
+
 OBJECTS_PATH = os.path.join(REPOSITORY_PATH, 'objects')
 REPOSITORY_TMP_PATH = os.path.join(REPOSITORY_PATH, 'tmp')
 ISSUES_PATH = os.path.join(OBJECTS_PATH, 'issues')
@@ -869,14 +875,6 @@ def repositoryInit(force=False, up=False):
 
 
 ######################################################################
-# DETECT ISSUE REPOSITORY PATH BEFORE DOING ANYTHING ELSE
-#
-while not os.path.isdir(REPOSITORY_PATH) and os.path.abspath(REPOSITORY_PATH) != '/.issue':
-    REPOSITORY_PATH = os.path.join('..', REPOSITORY_PATH)
-REPOSITORY_PATH = os.path.abspath(REPOSITORY_PATH)
-
-
-######################################################################
 # LOGIC CODE
 #
 if '--pack' in ui:
@@ -1201,12 +1199,19 @@ def commandLs(ui):
 
     issues_to_list = []
     for short, i in issues:
+        if colored:
+            short = (colored.fg('yellow') + short + colored.attr('reset'))
+
         issue_sha1 = i.split('.', 1)[0]
         try:
             issue_data = getIssue(issue_sha1)
         except issue.exceptions.NotIndexed as e:
-            print('{0}: [not indexed]'.format(short))
+            not_indexed_message = '[not indexed]'
+            if colored:
+                not_indexed_message = (colored.fg('red') + not_indexed_message + colored.attr('reset'))
+            print('{0} {1}'.format(short, not_indexed_message))
             continue
+
         if '--open' in ui and (issue_data['status'] if 'status' in issue_data else '') not in ('open', ''): continue
         if '--closed' in ui and (issue_data['status'] if 'status' in issue_data else '') != 'closed': continue
         if '--status' in ui and (issue_data['status'] if 'status' in issue_data else '') not in accepted_statuses: continue
@@ -1273,6 +1278,10 @@ def commandLs(ui):
                     found += 1
             if found < LS_KEYWORD_MATCH_THRESHOLD:
                 continue
+
+        full = i
+        if colored:
+            full = (colored.fg('yellow') + full + colored.attr('reset'))
         try:
             if colored:
                 short = (colored.fg('yellow') + short + colored.attr('reset'))
@@ -1296,7 +1305,7 @@ def commandLs(ui):
                 if colored:
                     for kw in ls_keywords:
                         first_message_line = first_message_line.replace(kw, (colored.fg('light_green') + kw + colored.attr('reset')))
-                msg = '{0}: {1}'.format(short, first_message_line)
+                msg = '{0} {1}'.format(short, first_message_line)
                 if '--verbose' in ui or accepted_tags:
                     tags = [t for t in issue_data['tags']]
                     if colored:
@@ -1306,7 +1315,10 @@ def commandLs(ui):
                         msg = '{} ({})'.format(msg, tags)
                 print(msg)
         except (KeyError, IndexError) as e:
-            print('{0}: [broken index]'.format(i))
+            broken_index_message = '[broken index]'
+            if colored:
+                broken_index_message = (colored.fg('red') + broken_index_message + colored.attr('reset'))
+            print('{0} {1}'.format(full, broken_index_message))
 
 def commandDrop(ui):
     issue_list = ([getLastIssue()] if '--last' in ui else operands)
@@ -1573,12 +1585,18 @@ def commandShow(ui):
             issue_heading = (colored.fg('yellow') + issue_heading + colored.attr('reset'))
         print(issue_heading)
 
-        print('opened by:   {0} ({1}), on {2}'.format(issue_open_author_name, issue_open_author_email, issue_open_timestamp))
+        opened_by_heading = 'opened by'
+        if colored:
+            opened_by_heading = (colored.fg('red') + opened_by_heading + colored.attr('reset'))
+        print('{}:   {} ({}), on {}'.format(opened_by_heading, issue_open_author_name, issue_open_author_email, issue_open_timestamp))
         if issue_data['status'] == 'closed':
+            closed_by_heading = 'closed by'
+            if colored:
+                closed_by_heading = (colored.fg('green') + closed_by_heading + colored.attr('reset'))
             issue_close_author_name = (issue_data['close.author.name'] if 'close.author.name' in issue_data else 'Unknown Author')
             issue_close_author_email = (issue_data['close.author.email'] if 'close.author.email' in issue_data else 'Unknown email')
             issue_close_timestamp = (datetime.datetime.fromtimestamp(issue_data['close.timestamp']) if 'close.timestamp' in issue_data else 'unknown date')
-            print('closed by:   {0} ({1}), on {2}'.format(issue_close_author_name, issue_close_author_email, issue_close_timestamp))
+            print('{}:   {} ({}), on {}'.format(closed_by_heading, issue_close_author_name, issue_close_author_email, issue_close_timestamp))
 
         default_time_spent = '0:00:00'
         time_spent = issue_data.get('total_time_spent', default_time_spent)
@@ -1718,8 +1736,8 @@ def commandShow(ui):
                 message_heading = 'from issue(s) {}'.format(', '.join(d['params']['sha1']))
 
             if colored:
-                diff_datetime_heading = (colored.fg('grey_53') + diff_datetime_heading + colored.attr('reset'))
-                action_heading = (colored.fg('magenta') + action_heading + colored.attr('reset'))
+                diff_datetime_heading = (colored.fg('white') + diff_datetime_heading + colored.attr('reset'))
+                action_heading = (colored.fg('green') + action_heading + colored.attr('reset'))
                 author_heading = (colored.fg('white') + author_heading + colored.attr('reset'))
                 if author_email_heading:
                     author_email_heading = (colored.fg('white') + author_email_heading + colored.attr('reset'))
