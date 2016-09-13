@@ -2144,11 +2144,23 @@ def store_next_release_pointer(release_name):
     with open(os.path.join(RELEASES_PATH, 'next'), 'w') as ofstream:
         ofstream.write(release_name)
 
+def get_next_release_pointer():
+    next_relese_pointer_path = os.path.join(RELEASES_PATH, 'next')
+    if not os.path.isfile(next_relese_pointer_path):
+        return ''
+    with open(next_relese_pointer_path) as ifstream:
+        return ifstream.read().strip()
+
 
 def commandReleaseOpen(ui):
     ui = ui.down()
     release_name = ui.operands()[0]
-    print('opening release: {}'.format(release_name))
+    current_next_release = get_next_release_pointer()
+    if current_next_release:
+        print('error: a release is currently opened: {}'.format(repr(current_next_release)))
+        print('note: only one release can be opened at a time')
+        print('note: close release {} before opening new one'.format(current_next_release))
+        exit(1)
     if release_name_exists(release_name) and not '--force' in ui:
         print('error: release already exists: {}'.format(repr(release_name)))
         exit(1)
