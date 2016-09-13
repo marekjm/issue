@@ -2151,6 +2151,29 @@ def get_next_release_pointer():
     with open(next_relese_pointer_path) as ifstream:
         return ifstream.read().strip()
 
+def _store_release_diff_simple_named_action(release_name, action_name):
+    repo_config = getConfig()
+    release_differences = [
+        {
+            'action': action_name,
+            'author': {
+                'author.email': repo_config['author.email'],
+                'author.name': repo_config['author.name'],
+            },
+            'timestamp': timestamp(),
+        },
+    ]
+    release_diff_sha1 = '{0}{1}{2}{3}'.format(repo_config['author.email'], repo_config['author.name'], timestamp(), random.random())
+    release_diff_sha1 = hashlib.sha1(release_diff_sha1.encode('utf-8')).hexdigest()
+    release_diff_file_path = os.path.join(get_release_path(release_name), 'diff', '{0}.json'.format(release_diff_sha1))
+    with open(release_diff_file_path, 'w') as ofstream:
+        ofstream.write(json.dumps(release_differences))
+
+def store_release_diff_open(release_name):
+    _store_release_diff_simple_named_action(release_name, 'open')
+
+def store_release_diff_close(release_name):
+    _store_release_diff_simple_named_action(release_name, 'close')
 
 def commandReleaseOpen(ui):
     ui = ui.down()
@@ -2168,22 +2191,7 @@ def commandReleaseOpen(ui):
     os.makedirs(release_base_path, exist_ok=True)
     os.makedirs(os.path.join(release_base_path, 'diff'), exist_ok=True)
 
-    repo_config = getConfig()
-    release_differences = [
-        {
-            'action': 'open',
-            'author': {
-                'author.email': repo_config['author.email'],
-                'author.name': repo_config['author.name'],
-            },
-            'timestamp': timestamp(),
-        },
-    ]
-    release_diff_sha1 = '{0}{1}{2}{3}'.format(repo_config['author.email'], repo_config['author.name'], timestamp(), random.random())
-    release_diff_sha1 = hashlib.sha1(release_diff_sha1.encode('utf-8')).hexdigest()
-    release_diff_file_path = os.path.join(release_base_path, 'diff', '{0}.json'.format(release_diff_sha1))
-    with open(release_diff_file_path, 'w') as ofstream:
-        ofstream.write(json.dumps(release_differences))
+    store_release_diff_open(release_name)
     store_next_release_pointer(release_name)
 
 def commandReleaseClose(ui):
@@ -2209,23 +2217,7 @@ def commandReleaseClose(ui):
     with open(get_release_notes_path(release_name), 'w') as ofstream:
         ofstream.write(release_notes)
 
-    repo_config = getConfig()
-    release_differences = [
-        {
-            'action': 'close',
-            'author': {
-                'author.email': repo_config['author.email'],
-                'author.name': repo_config['author.name'],
-            },
-            'timestamp': timestamp(),
-        },
-    ]
-    release_diff_sha1 = '{0}{1}{2}{3}'.format(repo_config['author.email'], repo_config['author.name'], timestamp(), random.random())
-    release_diff_sha1 = hashlib.sha1(release_diff_sha1.encode('utf-8')).hexdigest()
-    release_diff_file_path = os.path.join(get_release_path(release_name), 'diff', '{0}.json'.format(release_diff_sha1))
-    with open(release_diff_file_path, 'w') as ofstream:
-        ofstream.write(json.dumps(release_differences))
-
+    store_release_diff_close(release_name)
     store_next_release_pointer('')
 
 def commandReleaseLs(ui):
