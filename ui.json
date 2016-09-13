@@ -882,6 +882,49 @@
                     "statistics [--verbose]"
                 ]
             }
+        },
+        "release": {
+            "doc": {
+                "help": "Manage releases.",
+                "usage": [
+                    "release open <version>",
+                    "release close -m \"<message>\" <version>",
+                    "release ls",
+                    "release notes <version>"
+                ]
+            },
+            "commands": {
+                "open": {
+                    "operands": {
+                        "no": [1, 1]
+                    }
+                },
+                "close": {
+                    "operands": {
+                        "no": [1, 1]
+                    },
+                    "options": {
+                        "local": [
+                            {
+                                "long": "message",
+                                "short": "m",
+                                "arguments": ["str"],
+                                "help": "release message"
+                            }
+                        ]
+                    }
+                },
+                "ls": {
+                    "operands": {
+                        "no": [0, 0]
+                    }
+                },
+                "notes": {
+                    "operands": {
+                        "no": [1, 1]
+                    }
+                }
+            }
         }
     },
     "operands": {
