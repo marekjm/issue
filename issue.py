@@ -944,6 +944,15 @@ def store_release_diff(release_name, action, params=None):
     with open(release_diff_file_path, 'w') as ofstream:
         ofstream.write(json.dumps(release_differences))
 
+def get_release_diffs(release_name):
+    release_diff_path = os.path.join(get_release_path(release_name), 'diff')
+    release_diff_files = os.listdir(release_diff_path)
+    release_diffs = []
+    for p in release_diff_files:
+        with open(os.path.join(release_diff_path, p)) as ifstream:
+            release_diffs.extend(json.loads(ifstream.read()))
+    return release_diffs
+
 
 ######################################################################
 # LOGIC CODE
@@ -2268,8 +2277,29 @@ def commandReleaseNotes(ui):
     if not release_name_exists(release_name):
         print('error: release does not exist: {}'.format(repr(release_name)))
         exit(1)
-    pager = os.getenv('PAGER', 'less')
-    os.system('{} {}'.format(pager, get_release_notes_path(release_name)))
+    if '--closed' not in ui and '--opened' not in ui:
+        pager = os.getenv('PAGER', 'less')
+        os.system('{} {}'.format(pager, get_release_notes_path(release_name)))
+        return
+    release_diffs = get_release_diffs(release_name)
+    opened_issues = filter(lambda _: _['action'] == 'open-issue', release_diffs)
+    closed_issues = filter(lambda _: _['action'] == 'close-issue', release_diffs)
+    if '--opened' in ui:
+        if '--closed' in ui:
+            print('opened issues:')
+        for i in opened_issues:
+            print('{} {}'.format(i['params']['id'], i['params']['message']))
+        if not opened_issues:
+            print('no opened issues')
+    if '--opened' in ui and '--closed' in ui:
+        print()
+    if '--closed' in ui:
+        if '--opened' in ui:
+            print('closed issues:')
+        for i in closed_issues:
+            print('{}'.format(i['params']['id']))
+        if not closed_issues:
+            print('no closed issues')
 
 def commandRelease(ui):
     ui = ui.down()

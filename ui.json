@@ -931,6 +931,26 @@
                 "notes": {
                     "operands": {
                         "no": [1, 1]
+                    },
+                    "options": {
+                        "local": [
+                            {
+                                "long": "closed",
+                                "short": "c",
+                                "help": "list issues closed in a release"
+                            },
+                            {
+                                "long": "opened",
+                                "short": "o",
+                                "help": "list issues opened in a release"
+                            },
+                            {
+                                "long": "issues",
+                                "short": "i",
+                                "help": "list both closed and opened issues (shortcut for -oc)",
+                                "implies": ["--closed", "--opened"]
+                            }
+                        ]
                     }
                 }
             }
