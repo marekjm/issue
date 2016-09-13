@@ -1,0 +1,5 @@
+%% Enter release notes.
+%%
+%% Due to populatrity of Markdown, comments in release notes
+%% do not begin with '#' character.
+%% Instead, lines beginning with '%%' will be ignored.

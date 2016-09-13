@@ -840,7 +840,7 @@ def publishToRemote(remote_name, remote_data=None, local_pack=None, republish=Fa
 def timestamp(dt=None):
     return (dt or datetime.datetime.now()).timestamp()
 
-def getMessage(template='', fmt={}):
+def getMessage(template='', fmt={}, ignore='#'):
     editor = os.getenv('EDITOR', 'vi')
     message_path = os.path.join(REPOSITORY_PATH, 'message')
     if template and format:
@@ -854,7 +854,7 @@ def getMessage(template='', fmt={}):
     message = ''
     with open(message_path) as ifstream:
         message_lines = ifstream.readlines()
-        message = ''.join([l for l in message_lines if not l.startswith('#')]).strip()
+        message = ''.join([l for l in message_lines if not l.startswith(ignore)]).strip()
     return message
 
 def repositoryInit(force=False, up=False):
@@ -2196,6 +2196,14 @@ def commandReleaseClose(ui):
             print('note: {} is the currently opened release'.format(current_next_release))
         else:
             print('note: no release is currently opened')
+        exit(1)
+    release_notes = ''
+    if '--message' in ui:
+        release_notes = ui.get('-m').strip()
+    if not release_notes:
+        release_notes = getMessage('release_notes_message', fmt={'release_name': release_name}, ignore='%%')
+    if not release_notes:
+        print('error: aborting due to empty release notes')
         exit(1)
 
 def commandReleaseLs(ui):
