@@ -1238,7 +1238,6 @@ def commandClose(ui):
     with open(issue_diff_file_path, 'w') as ofstream:
         ofstream.write(json.dumps(issue_differences))
     markLastIssue(issue_sha1)
-    # indexIssue(issue_sha1, issue_diff_sha1)
     indexIssue(issue_sha1, issue_diff_sha1)
 
 def commandLs(ui):
