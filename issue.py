@@ -88,6 +88,7 @@ REPOSITORY_TMP_PATH = os.path.join(REPOSITORY_PATH, 'tmp')
 ISSUES_PATH = os.path.join(OBJECTS_PATH, 'issues')
 TAGS_PATH = os.path.join(OBJECTS_PATH, 'tags')
 MILESTONES_PATH = os.path.join(OBJECTS_PATH, 'milestones')
+RELEASES_PATH = os.path.join(OBJECTS_PATH, 'releases')
 PACK_PATH = os.path.join(REPOSITORY_PATH, 'pack.json')
 REMOTE_PACK_PATH = os.path.join(REPOSITORY_PATH, 'remote_pack.json')
 LAST_ISSUE_PATH = os.path.join(REPOSITORY_PATH, 'last')
@@ -862,7 +863,7 @@ def repositoryInit(force=False, up=False):
         shutil.rmtree(REPOSITORY_PATH)
     if not up and os.path.isdir(REPOSITORY_PATH):
         raise issue.exceptions.RepositoryExists(REPOSITORY_PATH)
-    for pth in (REPOSITORY_PATH, OBJECTS_PATH, REPOSITORY_TMP_PATH, ISSUES_PATH, TAGS_PATH, MILESTONES_PATH):
+    for pth in (REPOSITORY_PATH, OBJECTS_PATH, REPOSITORY_TMP_PATH, ISSUES_PATH, TAGS_PATH, MILESTONES_PATH, RELEASES_PATH):
         if not os.path.isdir(pth):
             os.mkdir(pth)
     with open(os.path.join(REPOSITORY_PATH, 'status'), 'w') as ofstream:
@@ -871,6 +872,8 @@ def repositoryInit(force=False, up=False):
         issue_diffs_path = os.path.join(ISSUES_PATH, issue_sha1[:2], issue_sha1, 'diff')
         if not os.path.isdir(issue_diffs_path):
             os.mkdir(issue_diffs_path)
+
+    os.makedirs(os.path.join(RELEASES_PATH, 'r'), exist_ok=True)
     return os.path.abspath(REPOSITORY_PATH)
 
 
