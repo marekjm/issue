@@ -1431,6 +1431,7 @@ def commandSlug(ui):
         exit(1)
     issue_message = issue_data['message'].splitlines()[0].strip()
     issue_slug = sluggify(issue_message)
+    issue_uid, issue_short_uid = issue_sha1, issue_sha1[:8]
 
     slug_format = getConfig().get('slug.format.default', '')
     if slug_format.startswith('@'):
@@ -1454,7 +1455,12 @@ def commandSlug(ui):
 
     if slug_format:
         try:
-            issue_slug = slug_format.format(slug=issue_slug, **slug_parameters)
+            issue_slug = slug_format.format(
+                slug = issue_slug,
+                uid = issue_uid,
+                short_uid = issue_short_uid,
+                **slug_parameters,
+            )
         except KeyError as e:
             print('error: required parameter not found: {}'.format(str(e)))
             exit(1)
