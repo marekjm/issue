@@ -1443,7 +1443,7 @@ def commandSlug(ui):
             slug_parameters[k] = v
 
     if '--git' in ui:
-        slug_format = 'issue/{slug}'
+        slug_format = 'issue/{short_uid}/{slug}'
     if '--format' in ui:
         slug_format = ui.get('--format')
     if '--use-format' in ui:
