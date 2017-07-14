@@ -40,7 +40,7 @@ def append_event(event_type: str, content: typing.Dict, noise: int = 0) -> None:
 
 
 def append_event_issue_opened(issue_id: str, message: str) -> None:
-    append_event(issue_id, 'issue-open', {
+    append_event(issue_id, 'issue-opened', {
         'issue': issue_id,
         'message': message,
     })
