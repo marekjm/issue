@@ -74,11 +74,6 @@ if '--version' in ui:
 if clap.helper.HelpRunner(ui=ui, program=sys.argv[0]).adjust(options=['-h', '--help']).run().displayed(): exit(0)
 
 
-print(issue.util.get_repository_path())
-print(issue.shortlog.get_path())
-print(issue.util.timestamp())
-
-
 
 ######################################################################
 # DETECT ISSUE REPOSITORY PATH BEFORE DOING ANYTHING ELSE
