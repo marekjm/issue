@@ -1,3 +1,4 @@
+import datetime
 import os
 
 import issue
@@ -12,7 +13,7 @@ def first(seq):
     return seq[0]
 
 
-def get_repository_path():
+def get_repository_path() -> str:
     global _ISSUE_REPOSITORY_PATH
     if _ISSUE_REPOSITORY_PATH is None:
         repository_path = os.getcwd()
@@ -23,3 +24,7 @@ def get_repository_path():
             raise issue.exceptions.RepositoryNotFound()
         _ISSUE_REPOSITORY_PATH = repository_path
     return _ISSUE_REPOSITORY_PATH
+
+
+def timestamp(dt: datetime.datetime = None) -> float:
+    return (dt or datetime.datetime.now()).timestamp()

@@ -76,6 +76,7 @@ if clap.helper.HelpRunner(ui=ui, program=sys.argv[0]).adjust(options=['-h', '--h
 
 print(issue.util.get_repository_path())
 print(issue.shortlog.get_path())
+print(issue.util.timestamp())
 
 
 
