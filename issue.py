@@ -74,14 +74,15 @@ if '--version' in ui:
 if clap.helper.HelpRunner(ui=ui, program=sys.argv[0]).adjust(options=['-h', '--help']).run().displayed(): exit(0)
 
 
+print(issue.util.get_repository_path())
+print(issue.shortlog.get_path())
+
+
 
 ######################################################################
 # DETECT ISSUE REPOSITORY PATH BEFORE DOING ANYTHING ELSE
 #
-REPOSITORY_PATH = '.issue'
-while not os.path.isdir(REPOSITORY_PATH) and os.path.abspath(REPOSITORY_PATH) != '/.issue':
-    REPOSITORY_PATH = os.path.join('..', REPOSITORY_PATH)
-REPOSITORY_PATH = os.path.abspath(REPOSITORY_PATH)
+REPOSITORY_PATH = issue.util.get_repository_path()
 
 OBJECTS_PATH = os.path.join(REPOSITORY_PATH, 'objects')
 REPOSITORY_TMP_PATH = os.path.join(REPOSITORY_PATH, 'tmp')
