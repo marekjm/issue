@@ -25,3 +25,14 @@ def write(shortlog: typing.List) -> None:
         os.makedirs(issue.util.first(os.path.split(pth)))
     with open(pth) as ofstream:
         ofstream.write(json.dumps(shortlog))
+
+
+def append_event(issue_id: str, event: typing.Dict, noise: int = 0) -> None:
+    event['issue'] = issue_id
+    event['timestamp'] = issue.util.timestamp()
+    event['noise'] = noise
+    shortlog = read()
+    if shortlog and shortlog[-1].get('event') == event.get('event') and shortlog[-1].get('issue') == issue_id:
+        return
+    shortlog.append(event)
+    write(shortlog)
