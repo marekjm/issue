@@ -1232,10 +1232,16 @@ def commandOpen(ui):
     indexIssue(issue_sha1)
     markLastIssue(issue_sha1)
 
+    issue.shortlog.append_event_issue_opened(issue_sha1, message)
+    issue.shortlog.append_event_issue_tagged(issue_sha1, tags)
+    issue.shortlog.append_event_issue_milestoned(issue_sha1, milestones)
+
     if '--chain-to' in ui or '--parent' in ui:
+        chained_to = []
         for link_issue_sha1 in ui.get('--chain-to') + [parent_uid,]:
             try:
                 link_issue_sha1 = expandIssueUID(link_issue_sha1)
+                chained_to.append(link_issue_sha1)
                 issue_differences = [
                     {
                         'action': 'chain-link',
@@ -1258,6 +1264,7 @@ def commandOpen(ui):
                 indexIssue(link_issue_sha1, issue_diff_sha1)
             except Exception as e:
                 print('warning: could not link issue identified by "{0}":'.format(link_issue_sha1), e)
+        issue.shortlog.append_event_issue_chained_to(issue_sha1, chained_to)
 
     if '--git' in ui:
         print('issue/{0}'.format(sluggify(message)))

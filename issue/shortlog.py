@@ -23,16 +23,45 @@ def write(shortlog: typing.List) -> None:
     pth = get_path()
     if not os.path.isdir(issue.util.first(os.path.split(pth))):
         os.makedirs(issue.util.first(os.path.split(pth)))
-    with open(pth) as ofstream:
+    with open(pth, 'w') as ofstream:
         ofstream.write(json.dumps(shortlog))
 
 
-def append_event(issue_id: str, event: typing.Dict, noise: int = 0) -> None:
-    event['issue'] = issue_id
-    event['timestamp'] = issue.util.timestamp()
-    event['noise'] = noise
+def append_event(event_type: str, content: typing.Dict, noise: int = 0) -> None:
+    event = {
+        'event': event_type,
+        'timestamp': issue.util.timestamp(),
+        'noise': noise,
+        'content': content,
+    }
     shortlog = read()
-    if shortlog and shortlog[-1].get('event') == event.get('event') and shortlog[-1].get('issue') == issue_id:
-        return
     shortlog.append(event)
     write(shortlog)
+
+
+def append_event_issue_opened(issue_id: str, message: str) -> None:
+    append_event(issue_id, 'issue-open', {
+        'issue': issue_id,
+        'message': message,
+    })
+
+
+def append_event_issue_tagged(issue_id: str, tags: typing.List) -> None:
+    append_event(issue_id, 'issue-tagged', {
+        'issue': issue_id,
+        'tags': tags,
+    })
+
+
+def append_event_issue_milestoned(issue_id: str, milestones: typing.List) -> None:
+    append_event(issue_id, 'issue-milestoned', {
+        'issue': issue_id,
+        'milestones': milestones,
+    })
+
+
+def append_event_issue_chained_to(issue_id: str, chained_to_these_issues: typing.List) -> None:
+    append_event(issue_id, 'issue-chained-to', {
+        'issue': issue_id,
+        'chained_to': chained_to_these_issues,
+    })
