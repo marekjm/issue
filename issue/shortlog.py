@@ -65,3 +65,10 @@ def append_event_issue_chained_to(issue_id: str, chained_to_these_issues: typing
         'issue': issue_id,
         'chained_to': chained_to_these_issues,
     })
+
+
+def append_event_issue_closed(issue_id: str, closing_git_commit: str) -> None:
+    append_event(issue_id, 'issue-closed', {
+        'issue': issue_id,
+        'closing_git_commit': closing_git_commit,
+    })

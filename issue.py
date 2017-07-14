@@ -1339,6 +1339,7 @@ def commandClose(ui):
         })
     markLastIssue(issue_sha1)
     indexIssue(issue_sha1, issue_diff_sha1)
+    issue.shortlog.append_event_issue_closed(issue_sha1, issue_differences[0].get('params', {}).get('closing_git_commit'))
 
 def ls_with_details(unique_id, data):
     first_message_line = data['message'].splitlines()[0]
