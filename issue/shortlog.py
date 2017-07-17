@@ -72,3 +72,9 @@ def append_event_issue_closed(issue_id: str, closing_git_commit: str) -> None:
         'issue': issue_id,
         'closing_git_commit': closing_git_commit,
     })
+
+
+def append_event_repository_initialised(initialised_in: str) -> None:
+    append_event('repository-initialised', {
+        'where': initialised_in,
+    }, noise = 100)

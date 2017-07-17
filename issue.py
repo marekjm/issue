@@ -1029,6 +1029,7 @@ def commandInit(ui):
     initialised_in = repositoryInit(force=('--force' in ui), up=('--up' in ui))
     if '--verbose' in ui:
         print('repository initialised in {0}'.format(initialised_in))
+    issue.shortlog.append_event_repository_initialised(initialised_in)
 
 def commandOpen(ui):
     tags = ([l[0] for l in ui.get('--tag')] if '--tag' in ui else [])
