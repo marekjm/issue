@@ -141,14 +141,6 @@ def getIssue(issue_sha1, index=False):
             raise issue.exceptions.NotAnIssue(issue_file_path)
     return issue_data
 
-def saveIssue(issue_sha1, issue_data):
-    issue_group = issue_sha1[:2]
-    issue_file_path = os.path.join(ISSUES_PATH, issue_group, '{0}.json'.format(issue_sha1))
-    if 'comments' in issue_data:
-        del issue_data['comments']
-    with open(issue_file_path, 'w') as ofstream:
-        ofstream.write(json.dumps(issue_data))
-
 def listIssueDifferences(issue_sha1):
     issue_group = issue_sha1[:2]
     issue_diffs_path = os.path.join(ISSUES_PATH, issue_group, issue_sha1, 'diff')
@@ -513,7 +505,7 @@ def getPack():
 
     pack_comments = {}
     for p in pack_issue_list:
-        pack_comments_path = os.path.join(ISSUES_PATH, p[:2], p, 'comments')
+        pack_comments_path = issue.util.paths.comments_path_of(p)
         pack_comments[p] = [sp.split('.')[0] for sp in os.listdir(pack_comments_path)]
     pack_data['comments'] = pack_comments
 
@@ -1407,7 +1399,7 @@ def commandLs(ui):
 
         issue_sha1 = i.split('.', 1)[0]
         try:
-            issue_data = getIssue(issue_sha1)
+            issue_data = issue.util.issues.getIssue(issue_sha1)
         except issue.exceptions.NotIndexed as e:
             not_indexed_message = '[not indexed]'
             if colored:

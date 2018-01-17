@@ -27,5 +27,17 @@ def get_repository_path() -> str:
     return _ISSUE_REPOSITORY_PATH
 
 
+def objects_path() -> str:
+    return os.path.join(get_repository_path(), 'objects')
+
+
+def issues_path() -> str:
+    return os.path.join(objects_path(), 'issues')
+
+
+def comments_path_of(issue_id: str) -> str:
+    return os.path.join(issues_path(), issue_id[:2], issue_id, 'comments')
+
+
 def timestamp(dt: datetime.datetime = None) -> float:
     return (dt or datetime.datetime.now()).timestamp()
