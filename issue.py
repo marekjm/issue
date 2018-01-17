@@ -358,7 +358,7 @@ def gatherTags():
     available_tags = []
     tag_to_issue_map = {}
     for issue_sha1 in sorted(listIssues()):
-        issue_differences = getIssueDifferences(issue_sha1, *listIssueDifferences(issue_sha1))
+        issue_differences = issue.util.issues.getIssueDifferences(issue_sha1, *issue.util.issues.listIssueDifferences(issue_sha1))
         for diff in issue_differences[::-1]:
             if diff['action'] == 'push-tags':
                 available_tags.extend(diff['params']['tags'])
@@ -1207,7 +1207,7 @@ def commandOpen(ui):
                 parent_uid = colorise(COLOR_HASH, parent_uid),
             ), e)
 
-    indexIssue(issue_sha1)
+    issue.util.issues.indexIssue(issue_sha1)
     markLastIssue(issue_sha1)
 
     issue.shortlog.append_event_issue_opened(issue_sha1, message)
@@ -1239,13 +1239,13 @@ def commandOpen(ui):
                 issue_diff_file_path = os.path.join(ISSUES_PATH, link_issue_sha1[:2], link_issue_sha1, 'diff', '{0}.json'.format(issue_diff_sha1))
                 with open(issue_diff_file_path, 'w') as ofstream:
                     ofstream.write(json.dumps(issue_differences))
-                indexIssue(link_issue_sha1, issue_diff_sha1)
+                issue.util.issues.indexIssue(link_issue_sha1, issue_diff_sha1)
             except Exception as e:
                 print('warning: could not link issue identified by "{0}":'.format(link_issue_sha1), e)
         issue.shortlog.append_event_issue_chained_to(issue_sha1, chained_to)
 
     if '--git' in ui:
-        print('issue/{0}'.format(sluggify(message)))
+        print('issue/{0}'.format(issue.util.issues.sluggify(message)))
     elif '--verbose' in ui:
         print(issue_sha1)
 
@@ -1260,7 +1260,7 @@ def commandClose(ui):
     except issue.exceptions.IssueUIDNotMatched:
         print('fail: uid {0} does not match anything'.format(repr(issue_sha1)))
         exit(1)
-    issue_data = getIssue(issue_sha1)
+    issue_data = issue.util.issues.getIssue(issue_sha1)
 
     if issue_data['status'] == 'closed':
         print('fatal: issue already closed by {0}{1}'.format(issue_data.get('close.author.name', 'Unknown author'), (' ({0})'.format(issue_data['close.author.email']) if 'close.author.email' else '')))
@@ -1269,7 +1269,7 @@ def commandClose(ui):
     chained_issues = issue_data.get('chained', [])
     unclosed_chained_issues = []
     for c in chained_issues:
-        ci = getIssue(c, index=True)
+        ci = issue.util.issues.getIssue(c, index=True)
         if ci['status'] != 'closed':
             unclosed_chained_issues.append((c, ci['message'].splitlines()[0]))
     if unclosed_chained_issues:
@@ -1316,7 +1316,7 @@ def commandClose(ui):
             'id': issue_sha1,
         })
     markLastIssue(issue_sha1)
-    indexIssue(issue_sha1, issue_diff_sha1)
+    issue.util.issues.indexIssue(issue_sha1, issue_diff_sha1)
     issue.shortlog.append_event_issue_closed(issue_sha1, issue_differences[0].get('params', {}).get('closing_git_commit'))
 
 def ls_with_details(unique_id, data):
@@ -1417,7 +1417,7 @@ def commandLs(ui):
         issues_to_list.append((short, i, issue_data))
 
     if '--chained-to' in ui:
-        chained_issues = getIssue(expandIssueUID(ui.get('--chained-to'))).get('chained', [])
+        chained_issues = issue.util.issues.getIssue(expandIssueUID(ui.get('--chained-to'))).get('chained', [])
         issues_to_list = list(filter(lambda i: (i[1] in chained_issues), issues_to_list))
 
     if '--priority' in ui:
@@ -1495,7 +1495,7 @@ def commandDrop(ui):
     issue_list = ([getLastIssue()] if '--last' in ui else operands)
     for issue_sha1 in issue_list:
         try:
-            dropIssue(expandIssueUID(issue_sha1))
+            issue.util.issues.dropIssue(expandIssueUID(issue_sha1))
         except issue.exceptions.IssueUIDAmbiguous:
             print('fail: issue uid {0} is ambiguous'.format(repr(issue_sha1)))
 
@@ -1507,12 +1507,12 @@ def commandSlug(ui):
     issue_sha1 = (getLastIssue() if '--last' in ui else operands[0])
     try:
         issue_sha1 = expandIssueUID(issue_sha1)
-        issue_data = getIssue(issue_sha1)
+        issue_data = issue.util.issues.getIssue(issue_sha1)
     except issue.exceptions.IssueUIDAmbiguous:
         print('fail: issue uid {0} is ambiguous'.format(repr(issue_sha1)))
         exit(1)
     issue_message = issue_data['message'].splitlines()[0].strip()
-    issue_slug = sluggify(issue_message)
+    issue_slug = issue.util.issues.sluggify(issue_message)
     issue_uid, issue_short_uid = issue_sha1, make_short_uid(issue_sha1)
 
     slug_format = issue.config.getConfig().get('slug.format.default', '')
@@ -1595,7 +1595,7 @@ def commandComment(ui):
         print('fail: issue uid {0} is ambiguous'.format(repr(issue_sha1)))
         exit(1)
 
-    issue_data = getIssue(issue_sha1)
+    issue_data = issue.util.issues.getIssue(issue_sha1)
 
     issue_comment = ''
     if '--message' in ui:
@@ -1706,7 +1706,7 @@ def commandTag(ui):
         with open(issue_diff_file_path, 'w') as ofstream:
             ofstream.write(json.dumps(issue_differences))
         markLastIssue(issue_sha1)
-        indexIssue(issue_sha1, issue_diff_sha1)
+        issue.util.issues.indexIssue(issue_sha1, issue_diff_sha1)
     else:
         print('fatal: unrecognized subcommand: {0}'.format(subcommand))
         exit(1)
@@ -1751,7 +1751,7 @@ def commandParam(ui):
     with open(issue_diff_file_path, 'w') as ofstream:
         ofstream.write(json.dumps(issue_differences))
     markLastIssue(issue_sha1)
-    indexIssue(issue_sha1, issue_diff_sha1)
+    issue.util.issues.indexIssue(issue_sha1, issue_diff_sha1)
 
 def commandShow(ui):
     ui = ui.down()
@@ -1880,7 +1880,7 @@ def commandShow(ui):
         issue_sha1_heading = issue_sha1
         if colored: issue_sha1_heading = (colored.fg('yellow') + issue_sha1_heading + colored.attr('reset'))
         print('showing log of issue: {0}'.format(issue_sha1_heading))
-        issue_differences = getIssueDifferences(issue_sha1, *listIssueDifferences(issue_sha1))
+        issue_differences = issue.util.issues.getIssueDifferences(issue_sha1, *issue.util.issues.listIssueDifferences(issue_sha1))
 
         issue_differences_sorted = []
         issue_differences_order = {}
@@ -2071,7 +2071,7 @@ def commandFetch(ui):
             fetchRemote(remote_name, remotes[remote_name])
         if '--index' in ui:
             for issue_sha1 in listIssues():
-                indexIssue(issue_sha1)
+                issue.util.issues.indexIssue(issue_sha1)
 
 def commandPublish(ui):
     ui = ui.down()
@@ -2103,9 +2103,9 @@ def commandIndex(ui):
         issue_sha1 = expandIssueUID(issue_sha1)
         if '--reverse' in ui:
             print('rev-indexing issue: {0}'.format(issue_sha1))
-            revindexIssue(issue_sha1)
+            issue.util.issues.revindexIssue(issue_sha1)
         else:
-            indexIssue(issue_sha1)
+            issue.util.issues.indexIssue(issue_sha1)
     if '--pack' in ui:
         savePack()
 
@@ -2184,7 +2184,7 @@ def commandChain(ui):
             with open(issue_diff_file_path, 'w') as ofstream:
                 ofstream.write(json.dumps(issue_differences))
             markLastIssue(issue_sha1)
-            indexIssue(issue_sha1, issue_diff_sha1)
+            issue.util.issues.indexIssue(issue_sha1, issue_diff_sha1)
     elif str(ui) == 'unlink':
         print(ui)
     else:
