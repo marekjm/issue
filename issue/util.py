@@ -17,7 +17,8 @@ def get_repository_path() -> str:
     global _ISSUE_REPOSITORY_PATH
     if _ISSUE_REPOSITORY_PATH is None:
         repository_path = os.getcwd()
-        while not os.path.isdir(os.path.join(repository_path, ISSUE_HIDDEN_DIRECTORY)) and repository_path != '/':
+        isdir = lambda d: os.path.isdir(os.path.join(d, ISSUE_HIDDEN_DIRECTORY))
+        while not isdir(repository_path) and repository_path != '/':
             repository_path = first(os.path.split(repository_path))
         repository_path = os.path.join(repository_path, ISSUE_HIDDEN_DIRECTORY)
         if not os.path.isdir(repository_path):
