@@ -39,5 +39,13 @@ def comments_path_of(issue_id: str) -> str:
     return os.path.join(issues_path(), issue_id[:2], issue_id, 'comments')
 
 
+def diffs_path_of(issue_id: str) -> str:
+    return os.path.join(issues_path(), issue_id[:2], issue_id, 'diff')
+
+
+def indexed_path_of(issue_id: str) -> str:
+    return os.path.join(issues_path(), issue_id[:2], '{0}.json'.format(issue_id))
+
+
 def timestamp(dt: datetime.datetime = None) -> float:
     return (dt or datetime.datetime.now()).timestamp()

@@ -429,7 +429,7 @@ def createTag(tag_name, force=False):
     os.mkdir(tag_path)
     os.mkdir(os.path.join(tag_path, 'diff'))
 
-    repo_config = getConfig()
+    repo_config = issue.config.getConfig()
 
     tag_differences = [
         {
@@ -462,21 +462,6 @@ def createTag(tag_name, force=False):
     tag_diff_file_path = os.path.join(tag_path, 'diff', '{0}.json'.format(tag_diff_sha1))
     with open(tag_diff_file_path, 'w') as ofstream:
         ofstream.write(json.dumps(tag_differences))
-
-
-# configuration-related utility functions
-def getConfig():
-    config_data = {}
-    config_path_global = os.path.expanduser('~/.issueconfig.json')
-    config_path_local = './.issue/config.json'
-    if os.path.isfile(config_path_global):
-        with open(config_path_global, 'r') as ifstream:
-            config_data = json.loads(ifstream.read())
-    if os.path.isfile(config_path_local):
-        with open(config_path_local, 'r') as ifstream:
-            for k, v in json.loads(ifstream.read()).items():
-                config_data[k] = v
-    return config_data
 
 
 # remote-related utility functions
@@ -904,7 +889,7 @@ def get_next_release_pointer():
         return ifstream.read().strip()
 
 def _store_release_diff_simple_named_action(release_name, action_name):
-    repo_config = getConfig()
+    repo_config = issue.config.getConfig()
     release_differences = [
         {
             'action': action_name,
@@ -928,7 +913,7 @@ def store_release_diff_close(release_name):
     _store_release_diff_simple_named_action(release_name, 'close')
 
 def store_release_diff(release_name, action, params=None):
-    repo_config = getConfig()
+    repo_config = issue.config.getConfig()
     release_differences = [
         {
             'action': action,
@@ -1064,7 +1049,7 @@ def commandOpen(ui):
     issue_sha1 = '{0}{1}{2}{3}{4}'.format(message, tags, milestones, parent_uid, random.random())
     issue_sha1 = hashlib.sha1(issue_sha1.encode('utf-8')).hexdigest()
 
-    repo_config = getConfig()
+    repo_config = issue.config.getConfig()
 
     issue_group_path = os.path.join(ISSUES_PATH, issue_sha1[:2])
     if not os.path.isdir(issue_group_path):
@@ -1119,7 +1104,7 @@ def commandOpen(ui):
         }
     ]
 
-    repo_config = getConfig()
+    repo_config = issue.config.getConfig()
     if 'project.tag' in repo_config:
         issue_differences.append({
             'action': 'push-tags',
@@ -1265,7 +1250,7 @@ def commandOpen(ui):
         print(issue_sha1)
 
 def commandClose(ui):
-    repo_config = getConfig()
+    repo_config = issue.config.getConfig()
     issue_sha1 = (getLastIssue() if '--last' in ui else operands[0])
     try:
         issue_sha1 = expandIssueUID(issue_sha1)
@@ -1384,7 +1369,7 @@ def commandLs(ui):
     if '--until' in ui:
         delta_mods_until = [s[0] for s in ui.get('--until')]
     if '--recent' in ui:
-        delta_mods_since = getConfig().get('default.time.recent', '1day').split(',')
+        delta_mods_since = issue.config.getConfig().get('default.time.recent', '1day').split(',')
 
     if '--since' in ui or '--recent' in ui:
         since = (datetime.datetime.now() - datetime.timedelta(**getTimeDeltaArguments(delta_mods_since)))
@@ -1530,10 +1515,9 @@ def commandSlug(ui):
     issue_slug = sluggify(issue_message)
     issue_uid, issue_short_uid = issue_sha1, make_short_uid(issue_sha1)
 
-    config = getConfig()
-    slug_format = config.get('slug.format.default', '')
+    slug_format = issue.config.getConfig().get('slug.format.default', '')
     if slug_format.startswith('@'):
-        slug_format = config.get('slug.format.{0}'.format(slug_format[1:]), '')
+        slug_format = issue.config.getConfig().get('slug.format.{0}'.format(slug_format[1:]), '')
 
     slug_parameters = issue_data.get('parameters', {})
     if '--param' in ui:
@@ -1545,7 +1529,7 @@ def commandSlug(ui):
     if '--format' in ui:
         slug_format = ui.get('--format')
     if '--use-format' in ui:
-        slug_format = config.get('slug.format.{0}'.format(ui.get('--use-format')), '')
+        slug_format = issue.config.getConfig().get('slug.format.{0}'.format(ui.get('--use-format')), '')
         if not slug_format:
             print('fatal: undefined slug format: {0}'.format(ui.get('--use-format')))
             exit(1)
@@ -1636,7 +1620,7 @@ def commandComment(ui):
         'message': issue_comment,
         'timestamp': issue_comment_timestamp,
     }
-    config_data = getConfig()
+    config_data = issue.config.getConfig()
     issue_comment_data = {
         'author.name': config_data['author.name'],
         'author.email': config_data['author.email'],
@@ -1700,7 +1684,7 @@ def commandTag(ui):
             print('fatal: aborting due to empty tag')
             exit(1)
 
-        repo_config = getConfig()
+        repo_config = issue.config.getConfig()
 
         issue_differences = [
             {
@@ -1741,7 +1725,7 @@ def commandParam(ui):
         print('fatal: aborting due to empty parameter key')
         exit(1)
 
-    repo_config = getConfig()
+    repo_config = issue.config.getConfig()
 
     issue_differences = [
         {
@@ -1782,11 +1766,11 @@ def commandShow(ui):
         exit(1)
 
     if str(ui) == 'show' and '--index' in ui:
-        indexIssue(issue_sha1)
+        issue.util.issues.indexIssue(issue_sha1)
 
     issue_data = {}
     try:
-        issue_data = getIssue(issue_sha1)
+        issue_data = issue.util.issues.getIssue(issue_sha1)
     except issue.exceptions.NotAnIssue as e:
         print('fatal: {0} does not identify a valid object'.format(repr(issue_sha1)))
         exit(1)
@@ -2177,7 +2161,7 @@ def commandChain(ui):
             exit(1)
 
     if str(ui) == 'link':
-        repo_config = getConfig()
+        repo_config = issue.config.getConfig()
 
         for link_issue_sha1 in link_issue_sha1s:
             issue_differences = [

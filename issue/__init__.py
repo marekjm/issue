@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+from . import config
 from . import framework
 from . import exceptions
 from . import shortlog
