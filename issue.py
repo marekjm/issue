@@ -79,7 +79,7 @@ if clap.helper.HelpRunner(ui=ui, program=sys.argv[0]).adjust(options=['-h', '--h
 ######################################################################
 # DETECT ISSUE REPOSITORY PATH BEFORE DOING ANYTHING ELSE
 #
-REPOSITORY_PATH = issue.util.get_repository_path()
+REPOSITORY_PATH = issue.util.paths.get_repository_path()
 
 OBJECTS_PATH = os.path.join(REPOSITORY_PATH, 'objects')
 REPOSITORY_TMP_PATH = os.path.join(REPOSITORY_PATH, 'tmp')
