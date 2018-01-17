@@ -218,18 +218,6 @@ def indexIssue(issue_sha1, *diffs):
             issue_data['project.tag'] = d['params']['tag']
         elif diff_action == 'set-project-name':
             issue_data['project.name'] = d['params']['name']
-        elif diff_action == 'work-start':
-            # FIXME: for now, if several 'work-start' events follow each other make the next one end
-            # the preceding one and set it as new start timestamp
-            # this should not happen - "work start" should check if there is an unmatched 'work-start' event
-            # and complain
-            if issue_work_started.get(d['author']['author.email']) is not None:
-                issue_work_in_progress_time_deltas.append((datetime.datetime.fromtimestamp(d['params']['timestamp']) - issue_work_started[d['author']['author.email']]))
-            issue_work_started[d['author']['author.email']] = datetime.datetime.fromtimestamp(d['params']['timestamp'])
-        elif diff_action == 'work-stop':
-            if issue_work_started.get(d['author']['author.email']) is not None:
-                issue_work_in_progress_time_deltas.append((datetime.datetime.fromtimestamp(d['params']['timestamp']) - issue_work_started[d['author']['author.email']]))
-            issue_work_started[d['author']['author.email']] = None
         elif diff_action == 'chain-link':
             if 'chained' not in issue_data:
                 issue_data['chained'] = []
@@ -1822,10 +1810,6 @@ def commandShow(ui):
             elif diff_action == 'set-project-name':
                 action_heading = 'project name set'
                 message_heading = d['params']['name']
-            elif diff_action == 'work-start':
-                action_heading = 'work started'
-            elif diff_action == 'work-stop':
-                action_heading = 'work stopped'
             elif diff_action == 'chain-link':
                 action_heading = 'chained'
                 message_heading = 'with issue(s) {}'.format(', '.join(d['params']['sha1']))
@@ -2024,107 +2008,6 @@ def commandClone(ui):
         with open(remote_status_path) as ifstream:
             remotes[remote_name]['status'] = ifstream.read().strip()
     saveRemotes(remotes)
-
-def commandWork(ui):
-    ui = ui.down()
-
-    if '--in-progress' in ui:
-        repo_config = getConfig()
-        work_in_progress = []
-        wip_of = (ui.get('--of') if '--of' in ui else repo_config['author.email'])
-        for issue_sha1 in sorted(listIssues()):
-            issue_differences = sortIssueDifferences(getIssueDifferences(issue_sha1, *listIssueDifferences(issue_sha1)))
-            for diff in issue_differences[::-1]:
-                if diff['action'] == 'work-stop' and diff['author']['author.email'] == wip_of:
-                    break
-                if diff['action'] == 'work-start' and diff['author']['author.email'] == wip_of:
-                    work_in_progress.append(issue_sha1)
-                    break
-        for wip in work_in_progress:
-            print(wip)
-        return
-
-    issue_sha1 = (getLastIssue() if '--last' in ui else ui.operands()[0])
-    try:
-        issue_sha1 = expandIssueUID(issue_sha1)
-    except issue.exceptions.IssueUIDAmbiguous:
-        print('fail: issue uid {0} is ambiguous'.format(repr(issue_sha1)))
-        exit(1)
-    except issue.exceptions.IssueUIDNotMatched:
-        print('fail: issue uid {0} did not match anything'.format(repr(issue_sha1)))
-        exit(1)
-
-    if str(ui) == 'start':
-        issue_differences = sortIssueDifferences(getIssueDifferences(issue_sha1, *listIssueDifferences(issue_sha1)))
-        repo_config = getConfig()
-        wip_of = repo_config['author.email']
-        for diff in issue_differences[::-1]:
-            if diff['action'] == 'work-stop' and diff['author']['author.email'] == wip_of:
-                break
-            if diff['action'] == 'work-start' and diff['author']['author.email'] == wip_of:
-                print('fatal: work on issue {0} already started'.format(issue_sha1))
-                exit(1)
-
-        ts = timestamp()
-        issue_differences = [
-            {
-                'action': 'work-start',
-                'params': {
-                    'timestamp': ts,
-                },
-                'author': {
-                    'author.email': repo_config['author.email'],
-                    'author.name': repo_config['author.name'],
-                },
-                'timestamp': ts,
-            }
-        ]
-
-        issue_diff_sha1 = '{0}{1}{2}{3}'.format(repo_config['author.email'], repo_config['author.name'], timestamp(), random.random())
-        issue_diff_sha1 = hashlib.sha1(issue_diff_sha1.encode('utf-8')).hexdigest()
-        issue_diff_file_path = os.path.join(ISSUES_PATH, issue_sha1[:2], issue_sha1, 'diff', '{0}.json'.format(issue_diff_sha1))
-        with open(issue_diff_file_path, 'w') as ofstream:
-            ofstream.write(json.dumps(issue_differences))
-        markLastIssue(issue_sha1)
-        indexIssue(issue_sha1, issue_diff_sha1)
-    elif str(ui) == 'stop':
-        issue_differences = sortIssueDifferences(getIssueDifferences(issue_sha1, *listIssueDifferences(issue_sha1)))
-        repo_config = getConfig()
-        wip_of = repo_config['author.email']
-        work_not_started = True
-        for diff in issue_differences[::-1]:
-            if diff['action'] == 'work-stop' and diff['author']['author.email'] == wip_of:
-                print('fatal: work on issue {0} already stopped'.format(issue_sha1))
-                exit(1)
-            if diff['action'] == 'work-start' and diff['author']['author.email'] == wip_of:
-                work_not_started = False
-                break
-        if work_not_started:
-            print('fatal: work on issue {0} not started'.format(issue_sha1))
-            exit(1)
-
-        ts = timestamp()
-        issue_differences = [
-            {
-                'action': 'work-stop',
-                'params': {
-                    'timestamp': ts,
-                },
-                'author': {
-                    'author.email': repo_config['author.email'],
-                    'author.name': repo_config['author.name'],
-                },
-                'timestamp': ts,
-            }
-        ]
-
-        issue_diff_sha1 = '{0}{1}{2}{3}'.format(repo_config['author.email'], repo_config['author.name'], timestamp(), random.random())
-        issue_diff_sha1 = hashlib.sha1(issue_diff_sha1.encode('utf-8')).hexdigest()
-        issue_diff_file_path = os.path.join(ISSUES_PATH, issue_sha1[:2], issue_sha1, 'diff', '{0}.json'.format(issue_diff_sha1))
-        with open(issue_diff_file_path, 'w') as ofstream:
-            ofstream.write(json.dumps(issue_differences))
-        markLastIssue(issue_sha1)
-        indexIssue(issue_sha1, issue_diff_sha1)
 
 def commandChain(ui):
     ui = ui.down()
@@ -2361,7 +2244,6 @@ dispatch(ui,        # first: pass the UI object to dispatch
     commandPublish,
     commandIndex,
     commandClone,
-    commandWork,
     commandChain,
     commandStatistics,
     commandRelease,
