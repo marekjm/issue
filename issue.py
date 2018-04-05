@@ -133,6 +133,8 @@ def saveIssue(issue_sha1, issue_data):
 def listIssueDifferences(issue_sha1):
     issue_group = issue_sha1[:2]
     issue_diffs_path = os.path.join(ISSUES_PATH, issue_group, issue_sha1, 'diff')
+    if not os.path.isdir(issue_diffs_path):
+        os.makedirs(issue_diffs_path, exist_ok = True)
     return [k.split('.')[0] for k in os.listdir(issue_diffs_path)]
 
 def getIssueDifferences(issue_sha1, *diffs):
