@@ -26,7 +26,8 @@ def getIssue(issue_sha1, index=False):
                 except json.decoder.JSONDecodeError as e:
                     print('error: diff (comment) {}.{} corrupted: {}'.format(issue_sha1, cmt.split('.', 1)[0], e))
     except FileNotFoundError as e:
-        if os.path.isdir(os.path.join(ISSUES_PATH, issue_group, issue_sha1)):
+        # if os.path.isdir(os.path.join(ISSUES_PATH, issue_group, issue_sha1)):
+        if os.path.isdir(os.path.join(issue.util.paths.issues_path(), issue_group, issue_sha1)):
             raise issue.exceptions.NotIndexed(issue_file_path)
         else:
             raise issue.exceptions.NotAnIssue(issue_file_path)
