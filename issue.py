@@ -2105,6 +2105,8 @@ def commandIndex(ui):
             print('rev-indexing issue: {0}'.format(issue_sha1))
             issue.util.issues.revindexIssue(issue_sha1)
         else:
+            if '--verbose' in ui:
+                print('indexing issue: {}'.format(issue_sha1))
             issue.util.issues.indexIssue(issue_sha1)
     if '--pack' in ui:
         savePack()
