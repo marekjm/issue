@@ -19,12 +19,13 @@ def getIssue(issue_sha1, index=False):
 
         issue_comments_dir = issue.util.paths.comments_path_of(issue_sha1)
         issue_data['comments'] = {}
-        for cmt in os.listdir(issue_comments_dir):
-            with open(os.path.join(issue_comments_dir, cmt)) as ifstream:
-                try:
-                    issue_data['comments'][cmt.split('.')[0]] = json.loads(ifstream.read())
-                except json.decoder.JSONDecodeError as e:
-                    print('error: diff (comment) {}.{} corrupted: {}'.format(issue_sha1, cmt.split('.', 1)[0], e))
+        if os.path.isdir(issue_comments_dir):
+            for cmt in os.listdir(issue_comments_dir):
+                with open(os.path.join(issue_comments_dir, cmt)) as ifstream:
+                    try:
+                        issue_data['comments'][cmt.split('.')[0]] = json.loads(ifstream.read())
+                    except json.decoder.JSONDecodeError as e:
+                        print('error: diff (comment) {}.{} corrupted: {}'.format(issue_sha1, cmt.split('.', 1)[0], e))
     except FileNotFoundError as e:
         # if os.path.isdir(os.path.join(ISSUES_PATH, issue_group, issue_sha1)):
         if os.path.isdir(os.path.join(issue.util.paths.issues_path(), issue_group, issue_sha1)):
