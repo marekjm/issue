@@ -2196,7 +2196,7 @@ def commandStatistics(ui):
     ui = ui.down()
     issue_list = listIssuesUsingShortestPossibleUIDs(with_full=True)
 
-    issues = [getIssue(i[1]) for i in issue_list]
+    issues = [issue.util.issues.getIssue(i[1]) for i in issue_list]
 
     open_issues = list(filter(lambda i: i['status'] == 'open', issues))
     closed_issues = list(filter(lambda i: i['status'] == 'closed', issues))
