@@ -5,6 +5,7 @@ from . import framework
 from . import exceptions
 from . import shortlog
 from . import util
+from . import repository
 
 
-__version__ = '0.2.4'
+__version__ = '0.2.5.1'

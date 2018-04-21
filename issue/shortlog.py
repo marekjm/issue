@@ -5,12 +5,8 @@ import typing
 import issue
 
 
-def get_path() -> str:
-    return os.path.join(issue.util.get_repository_path(), 'log', 'shortlog.json')
-
-
 def read() -> typing.List:
-    pth = get_path()
+    pth = issue.util.paths.get_shortlog_path()
     if not os.path.isfile(pth):
         return []
     shortlog = []
@@ -20,9 +16,9 @@ def read() -> typing.List:
 
 
 def write(shortlog: typing.List) -> None:
-    pth = get_path()
-    if not os.path.isdir(issue.util.first(os.path.split(pth))):
-        os.makedirs(issue.util.first(os.path.split(pth)))
+    pth = issue.util.paths.get_shortlog_path()
+    if not os.path.isdir(issue.util.misc.first(os.path.split(pth))):
+        os.makedirs(issue.util.misc.first(os.path.split(pth)))
     with open(pth, 'w') as ofstream:
         ofstream.write(json.dumps(shortlog))
 

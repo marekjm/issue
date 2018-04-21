@@ -76,21 +76,6 @@ if clap.helper.HelpRunner(ui=ui, program=sys.argv[0]).adjust(options=['-h', '--h
 
 
 
-######################################################################
-# DETECT ISSUE REPOSITORY PATH BEFORE DOING ANYTHING ELSE
-#
-REPOSITORY_PATH = issue.util.paths.get_repository_path()
-
-OBJECTS_PATH = os.path.join(REPOSITORY_PATH, 'objects')
-REPOSITORY_TMP_PATH = os.path.join(REPOSITORY_PATH, 'tmp')
-ISSUES_PATH = os.path.join(OBJECTS_PATH, 'issues')
-TAGS_PATH = os.path.join(OBJECTS_PATH, 'tags')
-MILESTONES_PATH = os.path.join(OBJECTS_PATH, 'milestones')
-RELEASES_PATH = os.path.join(OBJECTS_PATH, 'releases')
-PACK_PATH = os.path.join(REPOSITORY_PATH, 'pack.json')
-REMOTE_PACK_PATH = os.path.join(REPOSITORY_PATH, 'remote_pack.json')
-LAST_ISSUE_PATH = os.path.join(REPOSITORY_PATH, 'last')
-
 LS_KEYWORD_MATCH_THRESHOLD = 1
 
 
@@ -352,7 +337,7 @@ def sluggify(issue_message):
 
 # tag-related utility functions
 def listTags():
-    return os.listdir(TAGS_PATH)
+    return os.listdir(issue.util.paths.tags_path())
 
 def gatherTags():
     available_tags = []
@@ -374,12 +359,12 @@ def gatherTags():
 
 def listTagDifferences(tag_sha1):
     tag_group = tag_sha1[:2]
-    tag_diffs_path = os.path.join(TAGS_PATH, tag_group, tag_sha1, 'diff')
+    tag_diffs_path = os.path.join(issue.util.paths.tags_path(), tag_group, tag_sha1, 'diff')
     return [k.split('.')[0] for k in os.listdir(tag_diffs_path)]
 
 def getTagDifferences(tag_sha1, *diffs):
     tag_differences = []
-    tag_diff_path = os.path.join(TAGS_PATH, tag_sha1[:2], tag_sha1, 'diff')
+    tag_diff_path = os.path.join(issue.util.paths.tags_path(), tag_sha1[:2], tag_sha1, 'diff')
     for d in diffs:
         tag_diff_file_path = os.path.join(tag_diff_path, '{0}.json'.format(d))
         with open(tag_diff_file_path) as ifstream:
@@ -388,7 +373,7 @@ def getTagDifferences(tag_sha1, *diffs):
 
 def indexTag(tag_sha1, *diffs):
     tag_data = {}
-    tag_file_path = os.path.join(TAGS_PATH, tag_sha1[:2], '{0}.json'.format(tag_sha1))
+    tag_file_path = os.path.join(issue.util.paths.tags_path(), tag_sha1[:2], '{0}.json'.format(tag_sha1))
     if os.path.isfile(tag_file_path) and diffs:
         with open(tag_file_path) as ifstream:
             tag_data = json.loads(ifstream.read())
@@ -420,7 +405,7 @@ def indexTag(tag_sha1, *diffs):
         ofstream.write(json.dumps(tag_data))
 
 def createTag(tag_name, force=False):
-    tag_path = os.path.join(TAGS_PATH, tag_name)
+    tag_path = os.path.join(issue.util.paths.tags_path(), tag_name)
     if os.path.isdir(tag_path) and force:
         shutil.rmtree(tag_path)
     if os.path.isdir(tag_path):
@@ -467,14 +452,14 @@ def createTag(tag_name, force=False):
 # remote-related utility functions
 def getRemotes():
     remotes = {}
-    remotes_path = os.path.join(REPOSITORY_PATH, 'remotes.json')
+    remotes_path = os.path.join(issue.util.paths.get_repository_path(), 'remotes.json')
     if os.path.isfile(remotes_path):
         with open(remotes_path) as ifstream:
             remotes = json.loads(ifstream.read())
     return remotes
 
 def saveRemotes(remotes):
-    remotes_path = os.path.join(REPOSITORY_PATH, 'remotes.json')
+    remotes_path = os.path.join(issue.util.paths.get_repository_path(), 'remotes.json')
     with open(remotes_path, 'w') as ofstream:
         ofstream.write(json.dumps(remotes))
 
@@ -496,7 +481,7 @@ def getPack():
 
     pack_diffs = {}
     for p in pack_issue_list:
-        pack_diffs_path = os.path.join(ISSUES_PATH, p[:2], p, 'diff')
+        pack_diffs_path = os.path.join(issue.util.paths.issues_path(), p[:2], p, 'diff')
         pack_diffs[p] = [sp.split('.')[0] for sp in os.listdir(pack_diffs_path)]
     pack_data['diffs'] = pack_diffs
 
@@ -505,16 +490,16 @@ def getPack():
 def savePack(pack_data=None):
     if pack_data is None:
         pack_data = getPack()
-    with open(PACK_PATH, 'w') as ofstream:
+    with open(issue.util.paths.pack_path(), 'w') as ofstream:
         ofstream.write(json.dumps(pack_data))
 
 
 # misc utility functions
 def listIssues():
     list_of_issues = []
-    groups = os.listdir(ISSUES_PATH)
+    groups = os.listdir(issue.util.paths.issues_path())
     for g in groups:
-        list_of_issues.extend([p for p in os.listdir(os.path.join(ISSUES_PATH, g)) if not p.endswith('.json')])
+        list_of_issues.extend([p for p in os.listdir(os.path.join(issue.util.paths.issues_path(), g)) if not p.endswith('.json')])
     return list_of_issues
 
 def expandIssueUID(issue_sha1_part):
@@ -572,13 +557,13 @@ def listIssuesUsingShortestPossibleUIDs(with_full=False):
     return final_list_of_issues
 
 def markLastIssue(issue_sha1):
-    with open(LAST_ISSUE_PATH, 'w') as ofstream:
+    with open(issue.util.paths.last_issue_path(), 'w') as ofstream:
         ofstream.write(issue_sha1)
 
 def getLastIssue():
     last_issue_sha1 = ''
-    if os.path.isfile(LAST_ISSUE_PATH):
-        with open(LAST_ISSUE_PATH) as ifstream:
+    if os.path.isfile(issue.util.paths.last_issue_path()):
+        with open(issue.util.paths.last_issue_path()) as ifstream:
             last_issue_sha1 = ifstream.read()
     return last_issue_sha1
 
@@ -606,7 +591,8 @@ def fetchRemote(remote_name, remote_data=None, local_pack=None):
         remote_data = getRemotes()[remote_name]
     if local_pack is None:
         local_pack = getPack()
-    remote_pack_fetch_command = ('scp', '{0}/pack.json'.format(remote_data['url']), REMOTE_PACK_PATH)
+    remote_pack_fetch_command = ('scp', '{0}/pack.json'.format(remote_data['url']),
+            issue.util.paths.remote_pack_path())
     exit_code, output, error = runShell(*remote_pack_fetch_command)
 
     if exit_code:
@@ -614,7 +600,7 @@ def fetchRemote(remote_name, remote_data=None, local_pack=None):
         return 1
 
     remote_pack = {}
-    with open(REMOTE_PACK_PATH) as ifstream:
+    with open(issue.util.paths.remote_pack_path()) as ifstream:
         remote_pack = json.loads(ifstream.read())
 
     new_issues = set(remote_pack['issues']) - set(local_pack['issues'])
@@ -644,7 +630,7 @@ def fetchRemote(remote_name, remote_data=None, local_pack=None):
         return 0
 
     for issue_sha1 in new_issues:
-        issue_group_path = os.path.join(ISSUES_PATH, issue_sha1[:2])
+        issue_group_path = os.path.join(issue.util.paths.issues_path(), issue_sha1[:2])
         if not os.path.isdir(issue_group_path):
             os.mkdir(issue_group_path)
         # make directories for issue-specific objects
@@ -665,7 +651,7 @@ def fetchRemote(remote_name, remote_data=None, local_pack=None):
                     issue_sha1,
                     cmt_sha1,
                 ),
-                os.path.join(ISSUES_PATH, issue_sha1[:2], issue_sha1, 'comments', '{0}.json'.format(cmt_sha1))
+                os.path.join(issue.util.paths.issues_path(), issue_sha1[:2], issue_sha1, 'comments', '{0}.json'.format(cmt_sha1))
             )
 
             if exit_code:
@@ -691,7 +677,7 @@ def fetchRemote(remote_name, remote_data=None, local_pack=None):
                     issue_sha1,
                     cmt_sha1,
                 ),
-                os.path.join(ISSUES_PATH, issue_sha1[:2], issue_sha1, 'diff', '{0}.json'.format(cmt_sha1))
+                os.path.join(issue.util.paths.issues_path(), issue_sha1[:2], issue_sha1, 'diff', '{0}.json'.format(cmt_sha1))
             )
 
             if exit_code:
@@ -720,11 +706,11 @@ def publishToRemote(remote_name, remote_data=None, local_pack=None, republish=Fa
     remote_pack = {'issues': [], 'comments': {}}
 
     if not republish:
-        remote_pack_fetch_command = ('scp', '{0}/pack.json'.format(remote_data['url']), REMOTE_PACK_PATH)
+        remote_pack_fetch_command = ('scp', '{0}/pack.json'.format(remote_data['url']), issue.util.paths.remote_pack_path())
         exit_code, output, error = runShell(*remote_pack_fetch_command)
 
         if exit_code == 0:
-            with open(REMOTE_PACK_PATH) as ifstream:
+            with open(issue.util.paths.remote_pack_path()) as ifstream:
                 remote_pack = json.loads(ifstream.read())
 
     new_issues = set(local_pack['issues']) - set(remote_pack['issues'])
@@ -752,7 +738,7 @@ def publishToRemote(remote_name, remote_data=None, local_pack=None, republish=Fa
 
     for issue_sha1 in new_issues:
         print(' -> publishing issue: {0}'.format(issue_sha1))
-        issue_group_path = os.path.join(ISSUES_PATH, issue_sha1[:2])
+        issue_group_path = os.path.join(issue.util.paths.issues_path(), issue_sha1[:2])
 
         required_directories = [
             os.path.join('objects', 'issues', issue_sha1[:2]),
@@ -782,7 +768,7 @@ def publishToRemote(remote_name, remote_data=None, local_pack=None, republish=Fa
         for cmt_sha1 in new_comments[issue_sha1]:
             exit_code, output, error = runShell(
                 'scp',
-                os.path.join(ISSUES_PATH, issue_sha1[:2], issue_sha1, 'comments', '{0}.json'.format(cmt_sha1)),
+                os.path.join(issue.util.paths.issues_path(), issue_sha1[:2], issue_sha1, 'comments', '{0}.json'.format(cmt_sha1)),
                 '{0}/objects/issues/{1}/{2}/comments/{3}.json'.format(
                     remote_data['url'],
                     issue_sha1[:2],
@@ -805,7 +791,7 @@ def publishToRemote(remote_name, remote_data=None, local_pack=None, republish=Fa
                 print('    + diff: {0}: {1}/{2}'.format(diff_sha1, (i+1), total_diffs))
             exit_code, output, error = runShell(
                 'scp',
-                os.path.join(ISSUES_PATH, issue_sha1[:2], issue_sha1, 'diff', '{0}.json'.format(diff_sha1)),
+                os.path.join(issue.util.paths.issues_path(), issue_sha1[:2], issue_sha1, 'diff', '{0}.json'.format(diff_sha1)),
                 '{0}/objects/issues/{1}/{2}/diff/{3}.json'.format(
                     remote_data['url'],
                     issue_sha1[:2],
@@ -818,7 +804,7 @@ def publishToRemote(remote_name, remote_data=None, local_pack=None, republish=Fa
                 print('  * fail ({0}): diff {1}.{2}: {3}'.format(exit_code, issue_sha1, diff_sha1, error))
                 continue
 
-    remote_pack_publish_command = ('scp', os.path.join(PACK_PATH), '{0}/pack.json'.format(remote_data['url']))
+    remote_pack_publish_command = ('scp', os.path.join(issue.util.paths.pack_path()), '{0}/pack.json'.format(remote_data['url']))
     exit_code, output, error = runShell(*remote_pack_publish_command)
 
     if exit_code:
@@ -830,7 +816,7 @@ def timestamp(dt=None):
 
 def getMessage(template='', fmt={}, ignore='#'):
     editor = os.getenv('EDITOR', 'vi')
-    message_path = os.path.join(REPOSITORY_PATH, 'message')
+    message_path = os.path.join(issue.util.paths.get_repository_path(), 'message')
     if template and fmt:
         with open(os.path.expanduser('~/.local/share/issue/{0}'.format(template))) as ifstream:
             default_message_text = ifstream.read()
@@ -869,7 +855,7 @@ def repositoryInit(force=False, up=False):
 # BACKEND FUNCTIONS
 #
 def get_release_path(release_name):
-    return os.path.join(RELEASES_PATH, 'r', release_name)
+    return os.path.join(issue.util.paths.releases_path(), 'r', release_name)
 
 def release_name_exists(release_name):
     return os.path.isdir(get_release_path(release_name))
@@ -878,11 +864,11 @@ def get_release_notes_path(release_name):
     return os.path.join(get_release_path(release_name), 'notes')
 
 def store_next_release_pointer(release_name):
-    with open(os.path.join(RELEASES_PATH, 'next'), 'w') as ofstream:
+    with open(os.path.join(issue.util.paths.releases_path(), 'next'), 'w') as ofstream:
         ofstream.write(release_name)
 
 def get_next_release_pointer():
-    next_relese_pointer_path = os.path.join(RELEASES_PATH, 'next')
+    next_relese_pointer_path = os.path.join(issue.util.paths.releases_path(), 'next')
     if not os.path.isfile(next_relese_pointer_path):
         return ''
     with open(next_relese_pointer_path) as ifstream:
@@ -966,34 +952,21 @@ if '--pack' in ui:
     exit(0)
 
 if '--nuke' in ui:
-    repository_exists = os.path.isdir(REPOSITORY_PATH)
+    repository_exists = os.path.isdir(issue.util.paths.get_repository_path())
     if not repository_exists and ui.get('--nuke') <= 1:
         print('fatal: cannot remove nonexistent repository')
         exit(1)
     if repository_exists:
-        shutil.rmtree(REPOSITORY_PATH)
+        shutil.rmtree(issue.util.paths.get_repository_path())
     exit(0)
 
 if '--where' in ui:
-    print(REPOSITORY_PATH)
+    print(issue.util.paths.get_repository_path())
     exit(0)
 
 
 ui = ui.down() # go down a mode
 operands = ui.operands()
-
-if str(ui) not in ('clone', 'init', 'help') and not os.path.isdir(REPOSITORY_PATH):
-    if REPOSITORY_PATH == '/.issue':
-        print('fatal: not inside issues repository')
-        exit(1)
-    OBJECTS_PATH = os.path.join(REPOSITORY_PATH, 'objects')
-    REPOSITORY_TMP_PATH = os.path.join(REPOSITORY_PATH, 'tmp')
-    ISSUES_PATH = os.path.join(OBJECTS_PATH, 'issues')
-    TAGS_PATH = os.path.join(OBJECTS_PATH, 'tags')
-    MILESTONES_PATH = os.path.join(OBJECTS_PATH, 'milestones')
-    PACK_PATH = os.path.join(REPOSITORY_PATH, 'pack.json')
-    REMOTE_PACK_PATH = os.path.join(REPOSITORY_PATH, 'remote_pack.json')
-    LAST_ISSUE_PATH = os.path.join(REPOSITORY_PATH, 'last')
 
 
 def commandInit(ui):
@@ -1005,8 +978,8 @@ def commandInit(ui):
         exit(1)
     initialised_in = repositoryInit(force=('--force' in ui), up=('--up' in ui))
     if '--verbose' in ui:
-        print('repository initialised in {0}'.format(initialised_in))
-    issue.shortlog.append_event_repository_initialised(initialised_in)
+        print('repository initialised in {0}'.format(initialised_where))
+    issue.shortlog.append_event_repository_initialised(initialised_where)
 
 def commandOpen(ui):
     tags = ([l[0] for l in ui.get('--tag')] if '--tag' in ui else [])
@@ -1051,7 +1024,7 @@ def commandOpen(ui):
 
     repo_config = issue.config.getConfig()
 
-    issue_group_path = os.path.join(ISSUES_PATH, issue_sha1[:2])
+    issue_group_path = os.path.join(issue.util.paths.issues_path(), issue_sha1[:2])
     if not os.path.isdir(issue_group_path):
         os.mkdir(issue_group_path)
 
@@ -1236,7 +1209,7 @@ def commandOpen(ui):
 
                 issue_diff_sha1 = '{0}{1}{2}{3}'.format(repo_config['author.email'], repo_config['author.name'], timestamp(), random.random())
                 issue_diff_sha1 = hashlib.sha1(issue_diff_sha1.encode('utf-8')).hexdigest()
-                issue_diff_file_path = os.path.join(ISSUES_PATH, link_issue_sha1[:2], link_issue_sha1, 'diff', '{0}.json'.format(issue_diff_sha1))
+                issue_diff_file_path = os.path.join(issue.util.paths.issues_path(), link_issue_sha1[:2], link_issue_sha1, 'diff', '{0}.json'.format(issue_diff_sha1))
                 with open(issue_diff_file_path, 'w') as ofstream:
                     ofstream.write(json.dumps(issue_differences))
                 issue.util.issues.indexIssue(link_issue_sha1, issue_diff_sha1)
@@ -1306,7 +1279,7 @@ def commandClose(ui):
 
     issue_diff_sha1 = '{0}{1}{2}{3}'.format(repo_config['author.email'], repo_config['author.name'], timestamp(), random.random())
     issue_diff_sha1 = hashlib.sha1(issue_diff_sha1.encode('utf-8')).hexdigest()
-    issue_diff_file_path = os.path.join(ISSUES_PATH, issue_sha1[:2], issue_sha1, 'diff', '{0}.json'.format(issue_diff_sha1))
+    issue_diff_file_path = os.path.join(issue.util.paths.issues_path(), issue_sha1[:2], issue_sha1, 'diff', '{0}.json'.format(issue_diff_sha1))
     with open(issue_diff_file_path, 'w') as ofstream:
         ofstream.write(json.dumps(issue_differences))
 
@@ -1351,7 +1324,7 @@ def ls_with_details(unique_id, data):
     print('    {}'.format(first_message_line))
 
 def commandLs(ui):
-    groups = os.listdir(ISSUES_PATH)
+    groups = os.listdir(issue.util.paths.issues_path())
     issues = listIssuesUsingShortestPossibleUIDs(with_full=True)
 
     ls_keywords = [kw.lower() for kw in ui.operands() if len(kw) > 1]
@@ -1627,7 +1600,7 @@ def commandComment(ui):
         'message': issue_comment,
         'timestamp': issue_comment_timestamp,
     }
-    with open(os.path.join(ISSUES_PATH, issue_sha1[:2], issue_sha1, 'comments', '{0}.json'.format(issue_comment_sha1)), 'w') as ofstream:
+    with open(os.path.join(issue.util.paths.issues_path(), issue_sha1[:2], issue_sha1, 'comments', '{0}.json'.format(issue_comment_sha1)), 'w') as ofstream:
         ofstream.write(json.dumps(issue_comment_data))
     markLastIssue(issue_sha1)
 
@@ -1702,7 +1675,7 @@ def commandTag(ui):
 
         issue_diff_sha1 = '{0}{1}{2}{3}'.format(repo_config['author.email'], repo_config['author.name'], timestamp(), random.random())
         issue_diff_sha1 = hashlib.sha1(issue_diff_sha1.encode('utf-8')).hexdigest()
-        issue_diff_file_path = os.path.join(ISSUES_PATH, issue_sha1[:2], issue_sha1, 'diff', '{0}.json'.format(issue_diff_sha1))
+        issue_diff_file_path = os.path.join(issue.util.paths.issues_path(), issue_sha1[:2], issue_sha1, 'diff', '{0}.json'.format(issue_diff_sha1))
         with open(issue_diff_file_path, 'w') as ofstream:
             ofstream.write(json.dumps(issue_differences))
         markLastIssue(issue_sha1)
@@ -1747,7 +1720,7 @@ def commandParam(ui):
 
     issue_diff_sha1 = '{0}{1}{2}{3}'.format(repo_config['author.email'], repo_config['author.name'], timestamp(), random.random())
     issue_diff_sha1 = hashlib.sha1(issue_diff_sha1.encode('utf-8')).hexdigest()
-    issue_diff_file_path = os.path.join(ISSUES_PATH, issue_sha1[:2], issue_sha1, 'diff', '{0}.json'.format(issue_diff_sha1))
+    issue_diff_file_path = os.path.join(issue.util.paths.issues_path(), issue_sha1[:2], issue_sha1, 'diff', '{0}.json'.format(issue_diff_sha1))
     with open(issue_diff_file_path, 'w') as ofstream:
         ofstream.write(json.dumps(issue_differences))
     markLastIssue(issue_sha1)
@@ -2056,7 +2029,7 @@ def commandFetch(ui):
                 # if --unknown-status is specified fetch only when status is 'unknown'
                 continue
             print('fetching status from remote: {0}'.format(remote_name))
-            remote_status_path = os.path.join(REPOSITORY_TMP_PATH, 'status')
+            remote_status_path = os.path.join(issue.util.paths.tmp_path(), 'status')
             remote_pack_fetch_command = ('scp', '{0}/status'.format(remotes[remote_name]['url']), remote_status_path)
             exit_code, output, error = runShell(*remote_pack_fetch_command)
             if exit_code:
@@ -2097,7 +2070,7 @@ def commandIndex(ui):
         issue_list = listIssues()
     if '--reverse' in ui:
         for i in listIssues():
-            if not os.listdir(os.path.join(ISSUES_PATH, i[:2], i, 'diff')):
+            if not os.listdir(os.path.join(issue.util.paths.issues_path(), i[:2], i, 'diff')):
                 issue_list.append(i)
     for issue_sha1 in issue_list:
         issue_sha1 = expandIssueUID(issue_sha1)
@@ -2129,7 +2102,7 @@ def commandClone(ui):
     remotes[remote_name]['url'] = remote_url
     fetchRemote(remote_name, remotes[remote_name])
 
-    remote_status_path = os.path.join(REPOSITORY_TMP_PATH, 'status')
+    remote_status_path = os.path.join(issue.util.paths.tmp_path(), 'status')
     remote_pack_fetch_command = ('scp', '{0}/status'.format(remotes[remote_name]['url']), remote_status_path)
     exit_code, output, error = runShell(*remote_pack_fetch_command)
     if exit_code:
@@ -2182,7 +2155,7 @@ def commandChain(ui):
 
             issue_diff_sha1 = '{0}{1}{2}{3}'.format(repo_config['author.email'], repo_config['author.name'], timestamp(), random.random())
             issue_diff_sha1 = hashlib.sha1(issue_diff_sha1.encode('utf-8')).hexdigest()
-            issue_diff_file_path = os.path.join(ISSUES_PATH, issue_sha1[:2], issue_sha1, 'diff', '{0}.json'.format(issue_diff_sha1))
+            issue_diff_file_path = os.path.join(issue.util.paths.issues_path(), issue_sha1[:2], issue_sha1, 'diff', '{0}.json'.format(issue_diff_sha1))
             with open(issue_diff_file_path, 'w') as ofstream:
                 ofstream.write(json.dumps(issue_differences))
             markLastIssue(issue_sha1)
@@ -2363,7 +2336,7 @@ def commandReleaseClose(ui):
 
 def commandReleaseLs(ui):
     ui = ui.down()
-    print('\n'.join(sorted(os.listdir(os.path.join(RELEASES_PATH, 'r')))))
+    print('\n'.join(sorted(os.listdir(os.path.join(issue.util.paths.releases_path(), 'r')))))
 
 def commandReleaseNotes(ui):
     ui = ui.down()
