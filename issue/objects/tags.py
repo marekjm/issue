@@ -26,3 +26,8 @@ def gather():
         if t not in tag_to_issue_map:
             tag_to_issue_map[t] = []
     return (available_tags, tag_to_issue_map)
+
+def diffs_of(tag: str):
+    tag_group = tag_sha1[:2]
+    tag_diffs_path = os.path.join(issue.util.paths.tags_path(), tag_group, tag_sha1, 'diff')
+    return [k.split('.')[0] for k in os.listdir(tag_diffs_path)]

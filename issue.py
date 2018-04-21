@@ -336,11 +336,6 @@ def sluggify(issue_message):
 
 
 # tag-related utility functions
-def listTagDifferences(tag_sha1):
-    tag_group = tag_sha1[:2]
-    tag_diffs_path = os.path.join(issue.util.paths.tags_path(), tag_group, tag_sha1, 'diff')
-    return [k.split('.')[0] for k in os.listdir(tag_diffs_path)]
-
 def getTagDifferences(tag_sha1, *diffs):
     tag_differences = []
     tag_diff_path = os.path.join(issue.util.paths.tags_path(), tag_sha1[:2], tag_sha1, 'diff')
@@ -357,7 +352,7 @@ def indexTag(tag_sha1, *diffs):
         with open(tag_file_path) as ifstream:
             tag_data = json.loads(ifstream.read())
 
-    tag_differences = (diffs or listTagDifferences(tag_sha1))
+    tag_differences = (diffs or issue.objects.tags.diffs_of(tag_sha1))
     tag_differences = getTagDifferences(tag_sha1, *tag_differences)
 
     tag_differences_sorted = []
