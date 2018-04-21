@@ -9,11 +9,6 @@ def make_dir_if_not_exists(path):
         os.mkdir(path)
 
 def init(where: str, status: str, force: bool = False, up: bool = False):
-    print('test')
-    print('where: {}'.format(where))
-    print('force: {}'.format(force))
-    print('up: {}'.format(up))
-
     repository_path = issue.util.paths.get_repository_path(where = where)
 
     if force and os.path.isdir(repository_path):
