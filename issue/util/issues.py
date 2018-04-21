@@ -7,6 +7,17 @@ import unidecode
 
 import issue
 
+
+def ls():
+    list_of_issues = []
+    groups = os.listdir(issue.util.paths.issues_path())
+    for g in groups:
+        list_of_issues.extend(
+                [p for p
+                    in os.listdir(os.path.join(issue.util.paths.issues_path(), g))
+                    if not p.endswith('.json')])
+    return list_of_issues
+
 def getIssue(issue_sha1, index=False):
     if index:
         indexIssue(issue_sha1)

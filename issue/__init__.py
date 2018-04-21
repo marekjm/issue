@@ -9,4 +9,4 @@ from . import repository
 from . import objects
 
 
-__version__ = '0.2.5.2'
+__version__ = '0.2.5.3'

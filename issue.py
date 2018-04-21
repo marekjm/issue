@@ -467,7 +467,7 @@ def getPack():
         'diffs': {},
     }
 
-    pack_issue_list = listIssues()
+    pack_issue_list = issue.util.issues.ls()
     pack_data['issues'] = pack_issue_list
 
     pack_comments = {}
@@ -492,18 +492,11 @@ def savePack(pack_data=None):
 
 
 # misc utility functions
-def listIssues():
-    list_of_issues = []
-    groups = os.listdir(issue.util.paths.issues_path())
-    for g in groups:
-        list_of_issues.extend([p for p in os.listdir(os.path.join(issue.util.paths.issues_path(), g)) if not p.endswith('.json')])
-    return list_of_issues
-
 def expandIssueUID(issue_sha1_part):
     if issue_sha1_part == '-':
         return getLastIssue()
     issue_sha1 = []
-    issues = listIssues()
+    issues = issue.util.issues.ls()
     for i_sha1 in issues:
         if i_sha1.startswith(issue_sha1_part): issue_sha1.append(i_sha1)
     if len(issue_sha1) == 0:
@@ -545,7 +538,7 @@ def shortestUnique(lst):
     return n
 
 def listIssuesUsingShortestPossibleUIDs(with_full=False):
-    list_of_issues = listIssues()
+    list_of_issues = issue.util.issues.ls()
     n = shortestUnique(list_of_issues)
     if with_full:
         final_list_of_issues = [(i[:n], i) for i in list_of_issues]
@@ -2021,7 +2014,7 @@ def commandFetch(ui):
             print('{1} objects from remote: {0}'.format(remote_name, ('probing' if '--probe' in ui else 'fetching')))
             fetchRemote(remote_name, remotes[remote_name])
         if '--index' in ui:
-            for issue_sha1 in listIssues():
+            for issue_sha1 in issue.util.issues.ls():
                 issue.util.issues.indexIssue(issue_sha1)
 
 def commandPublish(ui):
@@ -2045,9 +2038,9 @@ def commandIndex(ui):
     ui = ui.down()
     issue_list = ui.operands()
     if '--reverse' not in ui and not issue_list:
-        issue_list = listIssues()
+        issue_list = issue.util.issues.ls()
     if '--reverse' in ui:
-        for i in listIssues():
+        for i in issue.util.issues.ls():
             if not os.listdir(os.path.join(issue.util.paths.issues_path(), i[:2], i, 'diff')):
                 issue_list.append(i)
     for issue_sha1 in issue_list:
