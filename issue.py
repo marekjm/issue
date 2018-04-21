@@ -336,9 +336,6 @@ def sluggify(issue_message):
 
 
 # tag-related utility functions
-def listTags():
-    return os.listdir(issue.util.paths.tags_path())
-
 def gatherTags():
     available_tags = []
     tag_to_issue_map = {}
@@ -351,7 +348,7 @@ def gatherTags():
                     if t not in tag_to_issue_map:
                         tag_to_issue_map[t] = []
                     tag_to_issue_map[t].append(issue_sha1)
-    for t in listTags():
+    for t in issue.objects.tags.ls():
         available_tags.append(t)
         if t not in tag_to_issue_map:
             tag_to_issue_map[t] = []
@@ -1590,7 +1587,7 @@ def commandTag(ui):
     subcommand = str(ui)
     if subcommand == 'ls':
         available_tags, tag_to_issue_map = gatherTags()
-        created_tags = set(listTags())
+        created_tags = set(issue.objects.tags.ls())
         for t in sorted(set(available_tags)):
             s = '{0}{1}'
             if '--verbose' in ui:
@@ -1602,7 +1599,7 @@ def commandTag(ui):
     elif subcommand == 'new':
         if '--missing' in ui:
             available_tags, tag_to_issue_map = gatherTags()
-            created_tags = set(listTags())
+            created_tags = set(issue.objects.tags.ls())
             missing_tags = (set(available_tags) - created_tags)
             n = 0
             for t in missing_tags:
