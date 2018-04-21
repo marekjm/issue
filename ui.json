@@ -83,6 +83,12 @@
                         "help": "upgrade repository to newer version, creating additional structures as needed"
                     }
                 ]
+            },
+            "operands": {
+                "no": [0, 1],
+                "help": {
+                    "names": ["where"]
+                }
             }
         },
         "open": {

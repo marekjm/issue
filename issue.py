@@ -831,25 +831,6 @@ def getMessage(template='', fmt={}, ignore='#'):
         message = ''.join([l for l in message_lines if not l.startswith(ignore)]).strip()
     return message
 
-def repositoryInit(force=False, up=False):
-    REPOSITORY_PATH = '.issue'
-    if force and os.path.isdir(REPOSITORY_PATH):
-        shutil.rmtree(REPOSITORY_PATH)
-    if not up and os.path.isdir(REPOSITORY_PATH):
-        raise issue.exceptions.RepositoryExists(REPOSITORY_PATH)
-    for pth in (REPOSITORY_PATH, OBJECTS_PATH, REPOSITORY_TMP_PATH, ISSUES_PATH, TAGS_PATH, MILESTONES_PATH, RELEASES_PATH):
-        if not os.path.isdir(pth):
-            os.mkdir(pth)
-    with open(os.path.join(REPOSITORY_PATH, 'status'), 'w') as ofstream:
-        ofstream.write('exchange' if '--exchange' in ui else 'endpoint')
-    for issue_sha1 in listIssues():
-        issue_diffs_path = os.path.join(ISSUES_PATH, issue_sha1[:2], issue_sha1, 'diff')
-        if not os.path.isdir(issue_diffs_path):
-            os.mkdir(issue_diffs_path)
-
-    os.makedirs(os.path.join(RELEASES_PATH, 'r'), exist_ok=True)
-    return os.path.abspath(REPOSITORY_PATH)
-
 
 ######################################################################
 # BACKEND FUNCTIONS
@@ -970,13 +951,13 @@ operands = ui.operands()
 
 
 def commandInit(ui):
-    HERE_REPOSITORY_PATH = os.path.join('.', '.issue')
-    if '--force' in ui and os.path.isdir(HERE_REPOSITORY_PATH):
-        shutil.rmtree(HERE_REPOSITORY_PATH)
-    if os.path.isdir(HERE_REPOSITORY_PATH) and '--up' not in ui:
-        print('fatal: repository already exists')
-        exit(1)
-    initialised_in = repositoryInit(force=('--force' in ui), up=('--up' in ui))
+    repository_where = issue.util.misc.first_or(ui.operands(), '.')
+    initialised_where = issue.repository.init(
+        where = repository_where,
+        status = ('exchange' if '--exchange' in ui else 'endpoint'),
+        force = ('--force' in ui),
+        up = ('--up' in ui),
+    )
     if '--verbose' in ui:
         print('repository initialised in {0}'.format(initialised_where))
     issue.shortlog.append_event_repository_initialised(initialised_where)
