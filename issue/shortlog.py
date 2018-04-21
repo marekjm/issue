@@ -26,7 +26,7 @@ def write(shortlog: typing.List) -> None:
 def append_event(event_type: str, content: typing.Dict, noise: int = 0) -> None:
     event = {
         'event': event_type,
-        'timestamp': issue.util.timestamp(),
+        'timestamp': issue.util.misc.timestamp(),
         'noise': noise,
         'content': content,
     }
