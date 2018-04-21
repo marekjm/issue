@@ -336,24 +336,6 @@ def sluggify(issue_message):
 
 
 # tag-related utility functions
-def gatherTags():
-    available_tags = []
-    tag_to_issue_map = {}
-    for issue_sha1 in sorted(listIssues()):
-        issue_differences = issue.util.issues.getIssueDifferences(issue_sha1, *issue.util.issues.listIssueDifferences(issue_sha1))
-        for diff in issue_differences[::-1]:
-            if diff['action'] == 'push-tags':
-                available_tags.extend(diff['params']['tags'])
-                for t in diff['params']['tags']:
-                    if t not in tag_to_issue_map:
-                        tag_to_issue_map[t] = []
-                    tag_to_issue_map[t].append(issue_sha1)
-    for t in issue.objects.tags.ls():
-        available_tags.append(t)
-        if t not in tag_to_issue_map:
-            tag_to_issue_map[t] = []
-    return (available_tags, tag_to_issue_map)
-
 def listTagDifferences(tag_sha1):
     tag_group = tag_sha1[:2]
     tag_diffs_path = os.path.join(issue.util.paths.tags_path(), tag_group, tag_sha1, 'diff')
@@ -954,7 +936,7 @@ def commandInit(ui):
 
 def commandOpen(ui):
     tags = ([l[0] for l in ui.get('--tag')] if '--tag' in ui else [])
-    gathered_tags = gatherTags()
+    gathered_tags = issue.objects.tags.gather()
     for t in tags:
         if t not in gathered_tags[0]:
             print('fatal: tag "{0}" does not exist'.format(t))
@@ -1579,7 +1561,7 @@ def commandTag(ui):
     ui = ui.down()
     subcommand = str(ui)
     if subcommand == 'ls':
-        available_tags, tag_to_issue_map = gatherTags()
+        available_tags, tag_to_issue_map = issue.objects.tags.gather()
         created_tags = set(issue.objects.tags.ls())
         for t in sorted(set(available_tags)):
             s = '{0}{1}'
@@ -1591,7 +1573,7 @@ def commandTag(ui):
             print(s.format(tag_marker, t, len(tag_to_issue_map[t])))
     elif subcommand == 'new':
         if '--missing' in ui:
-            available_tags, tag_to_issue_map = gatherTags()
+            available_tags, tag_to_issue_map = issue.objects.tags.gather()
             created_tags = set(issue.objects.tags.ls())
             missing_tags = (set(available_tags) - created_tags)
             n = 0
@@ -1619,7 +1601,7 @@ def commandTag(ui):
 
         issue_tag = operands[0]
 
-        if issue_tag not in gatherTags()[0]:
+        if issue_tag not in issue.objects.tags.gather()[0]:
             print('fatal: tag "{0}" does not exist'.format(issue_tag))
             print('note: use "issue tag new {0}" to create it'.format(issue_tag))
             exit(1)
