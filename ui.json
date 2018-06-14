@@ -124,8 +124,14 @@
                         "long": "chain-to",
                         "short": "c",
                         "arguments": ["issue-uid:str"],
-                        "plural": 1,
+                        "plural": true,
                         "help": "chain opened issue to the one identified by this parameter"
+                    },
+                    {
+                        "long": "parent",
+                        "short": "P",
+                        "arguments": ["uid of parent issue:str"],
+                        "help": "set a parent on the issue; what is the difference between this parameter and the --chain-to? there can be only one parent. An issue is automatically chained to its parent. Parent is a \"main\" chain."
                     }
                 ]
             },

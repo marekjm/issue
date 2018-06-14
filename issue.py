@@ -111,7 +111,7 @@ def colorise_repr(color, s):
 
 COLOR_ERROR = 'red'
 COLOR_FATAL = 'red'
-COLOR_WARNING = 'orange'
+COLOR_WARNING = 'red'
 COLOR_NOTE = 'blue'
 COLOR_HASH = 'yellow'
 COLOR_BRANCH_NAME = 'white'
@@ -1046,7 +1046,18 @@ def commandOpen(ui):
         print('fatal: aborting due to empty message')
         exit(1)
 
-    issue_sha1 = '{0}{1}{2}{3}'.format(message, tags, milestones, random.random())
+    parent_uid = None
+    if '--parent' in ui:
+        try:
+            parent_uid = expandIssueUID(ui.get('--parent'))
+        except Exception as e:
+            print('{error}: could not link issue identified by "{parent_uid}":'.format(
+                colorise(COLOR_ERROR, 'error'),
+                colorise(COLOR_HASH, parent_uid),
+            ), e)
+            exit(1)
+
+    issue_sha1 = '{0}{1}{2}{3}{4}'.format(message, tags, milestones, parent_uid, random.random())
     issue_sha1 = hashlib.sha1(issue_sha1.encode('utf-8')).hexdigest()
 
     repo_config = getConfig()
@@ -1169,11 +1180,49 @@ def commandOpen(ui):
             'message': message.splitlines()[0],
         })
 
+    if parent_uid is not None:
+        try:
+            issue_differences = [
+                {
+                    'action': 'set-parent',
+                    'params': {
+                        'uid': parent_uid,
+                    },
+                    'author': {
+                        'author.email': repo_config['author.email'],
+                        'author.name': repo_config['author.name'],
+                    },
+                    'timestamp': timestamp(),
+                }
+            ]
+
+            issue_diff_uid = '{0}{1}{2}{3}'.format(
+                repo_config['author.email'],
+                repo_config['author.name'],
+                timestamp(),
+                random.random(),
+            )
+            issue_diff_uid = hashlib.sha1(issue_diff_uid.encode('utf-8')).hexdigest()
+            issue_diff_file_path = os.path.join(
+                ISSUES_PATH,
+                issue_sha1[:2],
+                issue_sha1,
+                'diff',
+                '{0}.json'.format(issue_diff_uid),
+            )
+            with open(issue_diff_file_path, 'w') as ofstream:
+                ofstream.write(json.dumps(issue_differences))
+        except Exception as e:
+            print('{error}: could not set parent issue (identified by "{parent_uid}"):'.format(
+                error = colorise(COLOR_WARNING, 'warning'),
+                parent_uid = colorise(COLOR_HASH, parent_uid),
+            ), e)
+
     indexIssue(issue_sha1)
     markLastIssue(issue_sha1)
 
-    if '--chain-to' in ui:
-        for link_issue_sha1 in ui.get('--chain-to'):
+    if '--chain-to' in ui or '--parent' in ui:
+        for link_issue_sha1 in ui.get('--chain-to') + [parent_uid,]:
             try:
                 link_issue_sha1 = expandIssueUID(link_issue_sha1)
                 issue_differences = [
