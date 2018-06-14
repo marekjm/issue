@@ -2137,7 +2137,12 @@ def commandStatistics(ui):
             open_issues_count_heading = (colored.fg('red') + open_issues_count_heading + colored.attr('reset'))
             issues_count_heading = (colored.fg('cyan') + issues_count_heading + colored.attr('reset'))
             percentage_closed_heading = (colored.fg('white') + percentage_closed_heading + colored.attr('reset'))
-        print('| {0}/{1}/{2} ({3} closed)'.format(closed_issues_count_heading, open_issues_count_heading, issues_count_heading, percentage_closed_heading))
+        print('| {closed}/{still_open}/{total} ({perc_closed} closed)'.format(
+            closed = closed_issues_count_heading,
+            still_open = open_issues_count_heading,
+            total = issues_count_heading,
+            perc_closed = percentage_closed_heading,
+        ))
 
     if True:
         avg_tags_per_issue = (sum(map(lambda i: len(i.get('tags', [])), issues)) / issues_count)
@@ -2145,11 +2150,81 @@ def commandStatistics(ui):
 
     if True:
         if closed_issues_count:
-            avg_lifetime_of_an_issue = list(map(lambda i: (datetime.datetime.fromtimestamp(i['close.timestamp']) - datetime.datetime.fromtimestamp(i['open.timestamp'])), filter(lambda i: 'close.timestamp' in i, issues)))
-            total_lifetime_of_closed_issues = avg_lifetime_of_an_issue[0]
-            for i in range(i, len(avg_lifetime_of_an_issue)):
-                total_lifetime_of_closed_issues += avg_lifetime_of_an_issue[i]
-            print('avg. lifetime of an issue: {0}'.format(str(total_lifetime_of_closed_issues / closed_issues_count).rsplit('.')[0]))
+            open_closed_timestamps = list(map(lambda each: (
+                datetime.datetime.fromtimestamp(each['close.timestamp']),
+                datetime.datetime.fromtimestamp(each['open.timestamp']),
+            ), closed_issues))
+
+            current_datetime = datetime.datetime.now()
+            still_open_timestamps = list(map(lambda each: (
+                current_datetime,
+                datetime.datetime.fromtimestamp(each['open.timestamp']),
+            ), open_issues))
+
+            lifetimes_of_closed = list(map(lambda each: (each[0] - each[1]), open_closed_timestamps))
+            lifetimes_of_still_open = list(map(lambda each: (each[0] - each[1]), still_open_timestamps))
+
+            def sum_or_none_if_empty(seq):
+                if not seq:
+                    return None
+                if len(seq) == 1:
+                    return seq[1]
+                return sum(seq[1:], seq[0])
+
+            def avg_or_none(seq):
+                summed = sum_or_none_if_empty(seq)
+                if summed is None:
+                    return summed
+                return summed / len(seq)
+
+            total_lifetime_of_closed = sum_or_none_if_empty(lifetimes_of_closed)
+            total_lifetime_of_still_open = sum_or_none_if_empty(lifetimes_of_still_open)
+            total_lifetime_of_all = sum_or_none_if_empty(lifetimes_of_closed + lifetimes_of_still_open)
+
+            avg_lifetime_of_closed = avg_or_none(lifetimes_of_closed)
+            avg_lifetime_of_still_open = avg_or_none(lifetimes_of_still_open)
+            avg_lifetime_of_all = avg_or_none(lifetimes_of_closed + lifetimes_of_still_open)
+
+            perc_total_closed_of_open = (total_lifetime_of_closed / total_lifetime_of_still_open) * 100
+            perc_total_closed_of_all = (total_lifetime_of_closed / total_lifetime_of_all) * 100
+            perc_avg_closed_of_open = (avg_lifetime_of_closed / avg_lifetime_of_still_open) * 100
+            perc_avg_closed_of_all = (avg_lifetime_of_closed / avg_lifetime_of_all) * 100
+
+            perc_total_open_more_than_closed = (
+                ((total_lifetime_of_still_open / total_lifetime_of_closed) * 100) - 100
+            )
+
+            print('lifetime of {} {} issues:'.format(
+                len(closed_issues),
+                colorise('green', 'closed'),
+            ))
+            print('    total: {} ({}% of open, {}% of all)'.format(
+                total_lifetime_of_closed,
+                round(perc_total_closed_of_open, 2),
+                round(perc_total_closed_of_all, 2),
+            ))
+            print('    avg:   {} ({}% of open, {}% of all)'.format(
+                avg_lifetime_of_closed,
+                round(perc_avg_closed_of_open, 2),
+                round(perc_avg_closed_of_all, 2),
+            ))
+
+            print('lifetime of {} {} issues:'.format(
+                len(open_issues),
+                colorise('red', 'open'),
+            ))
+            print('    total: {} ({}% more than closed)'.format(
+                total_lifetime_of_still_open,
+                round(perc_total_open_more_than_closed, 2),
+            ))
+            print('    avg:   {}'.format(avg_lifetime_of_still_open))
+
+            print('lifetime of {} {} issues:'.format(
+                colorise('cyan', 'all'),
+                len(issues),
+            ))
+            print('    total: {}'.format(total_lifetime_of_all))
+            print('    avg:   {}'.format(avg_lifetime_of_all))
 
 
 def commandReleaseOpen(ui):
