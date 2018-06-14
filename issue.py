@@ -1423,9 +1423,10 @@ def commandSlug(ui):
     issue_slug = sluggify(issue_message)
     issue_uid, issue_short_uid = issue_sha1, issue_sha1[:8]
 
-    slug_format = getConfig().get('slug.format.default', '')
+    config = getConfig()
+    slug_format = config.get('slug.format.default', '')
     if slug_format.startswith('@'):
-        slug_format = getConfig().get('slug.format.{0}'.format(slug_format[1:]), '')
+        slug_format = config.get('slug.format.{0}'.format(slug_format[1:]), '')
 
     slug_parameters = issue_data.get('parameters', {})
     if '--param' in ui:
@@ -1437,8 +1438,7 @@ def commandSlug(ui):
     if '--format' in ui:
         slug_format = ui.get('--format')
     if '--use-format' in ui:
-        repo_config = getConfig()
-        slug_format = repo_config.get('slug.format.{0}'.format(ui.get('--use-format')), '')
+        slug_format = config.get('slug.format.{0}'.format(ui.get('--use-format')), '')
         if not slug_format:
             print('fatal: undefined slug format: {0}'.format(ui.get('--use-format')))
             exit(1)
@@ -1456,6 +1456,20 @@ def commandSlug(ui):
             exit(1)
 
     if '--git-branch' in ui:
+        def git_current_branch():
+            ret, output = subprocess.getstatusoutput('git rev-parse --abbrev-ref HEAD')
+            if ret != 0:
+                raise Exception('failed to get current Git branch')
+            return output.strip()
+        allow_branching_from = config.get('slug.allow_branching_from')
+
+        current_branch = git_current_branch()
+        if allow_branching_from is not None and current_branch not in allow_branching_from:
+            print('{}: branching from \'{}\' not allowed'.format(
+                ((colored.fg('red') + 'error' + colored.attr('reset')) if colored else 'error'),
+                ((colored.fg('white') + current_branch + colored.attr('reset')) if colored else current_branch),
+            ))
+            exit(1)
         r = os.system('git branch {0}'.format(issue_slug))
         r = (r >> 8)
         if r != 0:
