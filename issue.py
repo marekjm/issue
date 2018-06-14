@@ -856,12 +856,12 @@ def timestamp(dt=None):
 def getMessage(template='', fmt={}, ignore='#'):
     editor = os.getenv('EDITOR', 'vi')
     message_path = os.path.join(REPOSITORY_PATH, 'message')
-    if template and format:
+    if template and fmt:
         with open(os.path.expanduser('~/.local/share/issue/{0}'.format(template))) as ifstream:
             default_message_text = ifstream.read()
         with open(message_path, 'w') as ofstream:
             ofstream.write(default_message_text.format(**fmt))
-    elif template and not format:
+    elif template and not fmt:
         shutil.copy(os.path.expanduser('~/.local/share/issue/{0}'.format(template)), message_path)
     os.system('{0} {1}'.format(editor, message_path))
     message = ''
@@ -1043,11 +1043,6 @@ def commandOpen(ui):
 
     milestones = ([m[0] for m in ui.get('--milestone')] if '--milestone' in ui else [])
 
-    message = (getMessage('issue_message') if len(operands) < 1 else operands[0])
-    if not message:
-        print('fatal: aborting due to empty message')
-        exit(1)
-
     parent_uid = None
     if '--parent' in ui:
         try:
@@ -1058,6 +1053,22 @@ def commandOpen(ui):
                 colorise(COLOR_HASH, parent_uid),
             ), e)
             exit(1)
+
+    message_fmt = {
+        'parent_message': '#',
+    }
+    if parent_uid is not None:
+        formatted_parent_message = '#\n# Parent message:\n#\n'
+        parent_message_lines = getIssue(parent_uid).get('message').splitlines()
+        indented_parent_message_lines = ['    {}'.format(l) for l in parent_message_lines]
+        formatted_parent_message += '\n'.join(map(lambda each: '#  {}'.format(each),
+            indented_parent_message_lines,
+        ))
+        message_fmt['parent_message'] = formatted_parent_message
+    message = (getMessage('issue_message', fmt = message_fmt) if len(operands) < 1 else operands[0])
+    if not message:
+        print('fatal: aborting due to empty message')
+        exit(1)
 
     issue_sha1 = '{0}{1}{2}{3}{4}'.format(message, tags, milestones, parent_uid, random.random())
     issue_sha1 = hashlib.sha1(issue_sha1.encode('utf-8')).hexdigest()
