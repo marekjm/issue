@@ -1779,11 +1779,6 @@ def commandShow(ui):
             issue_close_timestamp = (datetime.datetime.fromtimestamp(issue_data['close.timestamp']) if 'close.timestamp' in issue_data else 'unknown date')
             print('{}:   {} ({}), on {}'.format(closed_by_heading, issue_close_author_name, issue_close_author_email, issue_close_timestamp))
 
-        default_time_spent = '0:00:00'
-        time_spent = issue_data.get('total_time_spent', default_time_spent)
-        if time_spent != default_time_spent:
-            print('time spent:  {0}'.format(time_spent))
-
         milestones = issue_data.get('milestones', [])
         if milestones:
             print('milestones:  {0}'.format(', '.join(milestones)))
