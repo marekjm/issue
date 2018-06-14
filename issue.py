@@ -1493,6 +1493,9 @@ def commandDrop(ui):
         except issue.exceptions.IssueUIDAmbiguous:
             print('fail: issue uid {0} is ambiguous'.format(repr(issue_sha1)))
 
+def make_short_uid(uid):
+    return uid[:8]
+
 def commandSlug(ui):
     issue_data = {}
     issue_sha1 = (getLastIssue() if '--last' in ui else operands[0])
@@ -1504,7 +1507,7 @@ def commandSlug(ui):
         exit(1)
     issue_message = issue_data['message'].splitlines()[0].strip()
     issue_slug = sluggify(issue_message)
-    issue_uid, issue_short_uid = issue_sha1, issue_sha1[:8]
+    issue_uid, issue_short_uid = issue_sha1, make_short_uid(issue_sha1)
 
     config = getConfig()
     slug_format = config.get('slug.format.default', '')
@@ -1528,6 +1531,10 @@ def commandSlug(ui):
 
     if '--append' in ui:
         slug_format += ('-' + ui.get('--append'))
+
+    if 'parent' in issue_data:
+        slug_parameters['parent_uid'] = issue_data['parent']
+        slug_parameters['parent_short_uid'] = make_short_uid(issue_data['parent'])
 
     if slug_format:
         try:
