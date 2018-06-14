@@ -251,6 +251,8 @@ def indexIssue(issue_sha1, *diffs):
                 continue
             for s in d['params']['sha1']:
                 issue_data['chained'].remove(s)
+        elif diff_action == 'set-parent':
+            issue_data['parent'] = d['params']['uid']
 
     # remove duplicated tags
     issue_data['tags'] = list(set(issue_data.get('tags', [])))
@@ -1805,6 +1807,19 @@ def commandShow(ui):
                 value = parameters[key]
                 if colored: key = (colored.fg('green') + key + colored.attr('reset'))
                 print('    {0} = {1}'.format(key, value))
+
+        parent_uid = issue_data.get('parent')
+        if parent_uid:
+            chained_issues_heading = '---- CHILD OF'
+            if colored:
+                chained_issues_heading = (colored.fg('white') + chained_issues_heading + colored.attr('reset'))
+            print('\n{}'.format(chained_issues_heading))
+            parent_issue = getIssue(parent_uid)
+            print('    {0} ({1}): {2}'.format(
+                colorise(COLOR_HASH, parent_uid),
+                parent_issue.get('status'),
+                parent_issue.get('message', '').splitlines()[0]),
+            )
 
         chained_issues = issue_data.get('chained', [])
         if chained_issues:
