@@ -96,6 +96,27 @@ LAST_ISSUE_PATH = os.path.join(REPOSITORY_PATH, 'last')
 LS_KEYWORD_MATCH_THRESHOLD = 1
 
 
+# Colorisation utilities.
+def colorise_if_possible(color, s):
+    if colored is None:
+        return s
+    return (colored.fg(color) + s + colored.attr('reset'))
+
+def colorise(color, s):
+    return colorise_if_possible(color, s)
+
+def colorise_repr(color, s):
+    s = repr(s)
+    return s[0] + colorise_if_possible(color, s[1:-1]) + s[0]
+
+COLOR_ERROR = 'red'
+COLOR_FATAL = 'red'
+COLOR_WARNING = 'orange'
+COLOR_NOTE = 'blue'
+COLOR_HASH = 'yellow'
+COLOR_BRANCH_NAME = 'white'
+
+
 # issue-related utility functions
 def getIssue(issue_sha1, index=False):
     if index:
@@ -1465,9 +1486,13 @@ def commandSlug(ui):
 
         current_branch = git_current_branch()
         if allow_branching_from is not None and current_branch not in allow_branching_from:
-            print('{}: branching from \'{}\' not allowed'.format(
-                ((colored.fg('red') + 'error' + colored.attr('reset')) if colored else 'error'),
-                ((colored.fg('white') + current_branch + colored.attr('reset')) if colored else current_branch),
+            print('{}: branching from {} not allowed'.format(
+                colorise(COLOR_ERROR, 'error'),
+                colorise_repr(COLOR_BRANCH_NAME, current_branch),
+            ))
+            print('{}: branching allowed from: {}'.format(
+                colorise(COLOR_NOTE, 'note'),
+                ', '.join([colorise_repr(COLOR_BRANCH_NAME, each) for each in allow_branching_from]),
             ))
             exit(1)
         r = os.system('git branch {0}'.format(issue_slug))
