@@ -335,6 +335,12 @@
                         "short": "Z",
                         "requires": ["--git-branch"],
                         "help": "override the slug.allow_branching_from setting and force the branch to be created"
+                    },
+                    {
+                        "short": "a",
+                        "long": "append",
+                        "arguments": ["suffix to append:str"],
+                        "help": "append a suffix to a branch name (useful for creating review branches)"
                     }
                 ]
             },

@@ -1464,6 +1464,9 @@ def commandSlug(ui):
             print('fatal: undefined slug format: {0}'.format(ui.get('--use-format')))
             exit(1)
 
+    if '--append' in ui:
+        slug_format += ('-' + ui.get('--append'))
+
     if slug_format:
         try:
             issue_slug = slug_format.format(
