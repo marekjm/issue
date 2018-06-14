@@ -1494,7 +1494,9 @@ def commandSlug(ui):
                 colorise(COLOR_NOTE, 'note'),
                 ', '.join([colorise_repr(COLOR_BRANCH_NAME, each) for each in allow_branching_from]),
             ))
-            exit(1)
+            print('{}: overridden by -Z flag'.format(colorise(COLOR_NOTE, 'note')))
+            if '-Z' not in ui:
+                exit(1)
         r = os.system('git branch {0}'.format(issue_slug))
         r = (r >> 8)
         if r != 0:

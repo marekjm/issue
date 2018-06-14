@@ -330,6 +330,11 @@
                     {
                         "long": "last",
                         "help": "sluggify last active issue"
+                    },
+                    {
+                        "short": "Z",
+                        "requires": ["--git-branch"],
+                        "help": "override the slug.allow_branching_from setting and force the branch to be created"
                     }
                 ]
             },
