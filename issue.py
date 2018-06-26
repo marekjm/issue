@@ -1335,6 +1335,37 @@ def commandClose(ui):
     markLastIssue(issue_sha1)
     indexIssue(issue_sha1, issue_diff_sha1)
 
+def ls_with_details(unique_id, data):
+    first_message_line = data['message'].splitlines()[0]
+    print(colorise(COLOR_HASH, unique_id))
+
+    issue_open_author_name = data.get('open.author.name', 'Unknown')
+    issue_open_author_email = data.get('open.author.email', 'unknown')
+    print('Author: {name} <{email}>'.format(
+        name = issue_open_author_name,
+        email = issue_open_author_email,
+    ))
+
+    issue_open_timestamp = datetime.datetime.fromtimestamp(data.get('open.timestamp', 0))
+    print('Opened: {when_opened}'.format(
+        when_opened = issue_open_timestamp,
+    ))
+    if data['status'] == 'closed':
+        issue_close_author_name = data.get('close.author.name', 'Unknown')
+        issue_close_author_email = data.get('close.author.email', 'unknown')
+        if issue_close_author_email != issue_open_author_email:
+            print('Fixer:  {name} <{email}>'.format(
+                name = issue_close_author_name,
+                email = issue_close_author_email,
+            ))
+        issue_close_timestamp = datetime.datetime.fromtimestamp(data.get('close.timestamp', 0))
+        print('Closed: {closed_when}'.format(
+            closed_when = issue_close_timestamp,
+        ))
+
+    print()
+    print('    {}'.format(first_message_line))
+
 def commandLs(ui):
     groups = os.listdir(ISSUES_PATH)
     issues = listIssuesUsingShortestPossibleUIDs(with_full=True)
@@ -1408,7 +1439,9 @@ def commandLs(ui):
     if '--priority' in ui:
         issues_to_list = sorted(issues_to_list, key=lambda t: int(t[2].get('parameters', {}).get('priority', 1024)))
 
-    for short, i, issue_data in issues_to_list:
+    limit = len(issues_to_list) - 1
+    for n, each in enumerate(issues_to_list):
+        short, i, issue_data = each
         if since is not None:
             issue_timestamp = ('close.timestamp' if '--closed' in ui else 'open.timestamp')
             issue_timestamp = datetime.datetime.fromtimestamp(issue_data.get(issue_timestamp, 0))
@@ -1451,20 +1484,9 @@ def commandLs(ui):
             if colored:
                 short = (colored.fg('yellow') + short + colored.attr('reset'))
             if '--details' in ui:
-                first_message_line = issue_data['message'].splitlines()[0]
-                print('{0}: {1}'.format(short, first_message_line))
-                issue_open_author_name = (issue_data['open.author.name'] if 'open.author.name' in issue_data else 'Unknown Author')
-                issue_open_author_email = (issue_data['open.author.email'] if 'open.author.email' in issue_data else 'Unknown email')
-                issue_open_timestamp = (datetime.datetime.fromtimestamp(issue_data['open.timestamp']) if 'open.timestamp' in issue_data else 'unknown date')
-                if issue_data['status'] == 'closed':
-                    issue_close_author_name = (issue_data['close.author.name'] if 'close.author.name' in issue_data else 'Unknown Author')
-                    issue_close_author_email = (issue_data['close.author.email'] if 'close.author.email' in issue_data else 'Unknown email')
-                    issue_close_timestamp = (datetime.datetime.fromtimestamp(issue_data['close.timestamp']) if 'close.timestamp' in issue_data else 'unknown date')
-                    print('    closed by:  {0} ({1}), on {2}'.format(issue_close_author_name, issue_close_author_email, issue_close_timestamp))
-                print('    opened by:  {0} ({1}), on {2}'.format(issue_open_author_name, issue_open_author_email, issue_open_timestamp))
-                print('    milestones: {0}'.format(', '.join(issue_data['milestones'])))
-                print('    tags:       {0}'.format(', '.join(issue_data['tags'])))
-                print()
+                ls_with_details(full, issue_data)
+                if n != limit:
+                    print()
             else:
                 first_message_line = issue_data['message'].splitlines()[0]
                 if colored:
