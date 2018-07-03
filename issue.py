@@ -1082,7 +1082,7 @@ def squash_events_log(events_log, aggressive=0):
         squashed_events_log = squash_events_log_aggressive_1(squashed_events_log)
     if aggressive > 1:
         squashed_events_log = squash_events_log_aggressive_2(squashed_events_log)
-    return squashed_events_log
+    return sorted(squashed_events_log, key = lambda each: each['timestamp'])
 
 
 ######################################################################
