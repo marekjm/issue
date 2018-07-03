@@ -921,11 +921,14 @@ EVENTS_LOG_SIZE_DEFAULT = 80
 EVENT_TYPE_SHOW = 'show'
 EVENT_TYPE_SLUG = 'slug'
 EVENT_TYPE_COMMENT = 'comment'
+EVENT_TYPE_CLOSE = 'close'
 
+# Lower is more important.
 EVENTS_LOG_EVENT_WEIGHTS = {
     EVENT_TYPE_SHOW: 10,
     EVENT_TYPE_SLUG: 0,
     EVENT_TYPE_COMMENT: 7,
+    EVENT_TYPE_CLOSE: 0,
 }
 
 def append_events_log_event(issue_uid, content):
@@ -951,6 +954,11 @@ def add_events_log_event_slug(issue_uid, issue_slug):
         },
     })
 
+def add_events_log_event_close(issue_uid):
+    append_events_log_event(issue_uid = issue_uid, content = {
+        'event': EVENT_TYPE_CLOSE,
+    })
+
 def display_events_log(events_log, head=None, tail=None):
     if head is not None:
         events_log = events_log[:head]
@@ -972,6 +980,8 @@ def display_events_log(events_log, head=None, tail=None):
                 event_description = '{}'.format(comment_lines[0].strip())
                 if len(comment_lines) > 1:
                     event_description += ' (...)'
+            elif event_name == 'close':
+                event_description = getIssue(event['issue_uid']).get('message').splitlines()[0]
             else:
                 # if no special description formatting is provided, just display name of the event
                 event_description = ''
@@ -1511,6 +1521,7 @@ def commandClose(ui):
     issue_diff_file_path = os.path.join(ISSUES_PATH, issue_sha1[:2], issue_sha1, 'diff', '{0}.json'.format(issue_diff_sha1))
     with open(issue_diff_file_path, 'w') as ofstream:
         ofstream.write(json.dumps(issue_differences))
+    add_events_log_event_close(issue_sha1)
 
     next_relese_pointer = get_next_release_pointer()
     if next_relese_pointer:
