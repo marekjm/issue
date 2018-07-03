@@ -978,6 +978,47 @@
                     }
                 }
             }
+        },
+        "log": {
+            "doc": {
+                "help": "Display log of local events. Useful for remembering what you were working on."
+            },
+            "options": {
+                "local": [
+                    {
+                        "short": "H",
+                        "long": "head",
+                        "arguments": ["count:int"],
+                        "help": "display N head entries"
+                    },
+                    {
+                        "short": "T",
+                        "long": "tail",
+                        "arguments": ["count:int"],
+                        "help": "display N tail entries"
+                    }
+                ]
+            },
+            "commands": {
+                "squash": {
+                    "doc": {
+                        "help": "Squash similar entries to compress the log."
+                    },
+                    "options": {
+                        "local": [
+                            {
+                                "short": "A",
+                                "long": "aggressive",
+                                "plural": true,
+                                "help": "be aggressive when compressing and squash similar events together (e.g. [slug, show] squashes to [slug])"
+                            }
+                        ]
+                    }
+                }
+            },
+            "operands": {
+                "no": [0, 0]
+            }
         }
     },
     "operands": {
