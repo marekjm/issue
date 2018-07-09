@@ -19,5 +19,8 @@ class IssueUIDAmbiguous(IssueException):
 class RepositoryExists(IssueException):
     pass
 
+class RepositoryNotFound(IssueException):
+    pass
+
 class TagExists(IssueException):
     pass

@@ -83,6 +83,12 @@
                         "help": "upgrade repository to newer version, creating additional structures as needed"
                     }
                 ]
+            },
+            "operands": {
+                "no": [0, 1],
+                "help": {
+                    "names": ["where"]
+                }
             }
         },
         "open": {
@@ -124,12 +130,23 @@
                         "long": "chain-to",
                         "short": "c",
                         "arguments": ["issue-uid:str"],
-                        "plural": 1,
+                        "plural": true,
                         "help": "chain opened issue to the one identified by this parameter"
+                    },
+                    {
+                        "long": "parent",
+                        "short": "P",
+                        "arguments": ["uid of parent issue:str"],
+                        "help": "set a parent on the issue; what is the difference between this parameter and the --chain-to? there can be only one parent. An issue is automatically chained to its parent. Parent is a \"main\" chain."
                     }
                 ]
             },
-            "operands": {"no": [0, 1]}
+            "operands": {
+                "no": [0, 1],
+                "help": {
+                    "names": ["description"]
+                }
+            }
         },
         "close": {
             "doc": {
@@ -159,6 +176,9 @@
             },
             "operands": {
                 "no": [1, 1],
+                "help": {
+                    "names": ["issue"]
+                },
                 "with": {
                     "--last": [0, 0]
                 }
@@ -322,11 +342,25 @@
                     {
                         "long": "last",
                         "help": "sluggify last active issue"
+                    },
+                    {
+                        "short": "Z",
+                        "requires": ["--git-branch"],
+                        "help": "override the slug.allow_branching_from setting and force the branch to be created"
+                    },
+                    {
+                        "short": "a",
+                        "long": "append",
+                        "arguments": ["suffix to append:str"],
+                        "help": "append a suffix to a branch name (useful for creating review branches)"
                     }
                 ]
             },
             "operands": {
                 "no": [1, 1],
+                "help": {
+                    "names": ["issue"]
+                },
                 "with": {
                     "--last": [0, 0]
                 }
@@ -355,6 +389,9 @@
             },
             "operands": {
                 "no": [1, 2],
+                "help": {
+                    "names": ["issue", "comment"]
+                },
                 "with": {
                     "--last": [0, 1],
                     "--message": [0, 1]
@@ -410,6 +447,9 @@
                     },
                     "operands": {
                         "no": [1, 1],
+                        "help": {
+                            "names": ["tag"]
+                        },
                         "with": {
                             "--missing": [0, 0]
                         }
@@ -420,7 +460,10 @@
                         "help": "Remove a tag repository"
                     },
                     "operands": {
-                        "no": [1]
+                        "no": [1],
+                        "help": {
+                            "names": ["tag"]
+                        }
                     }
                 },
                 "show": {
@@ -428,12 +471,18 @@
                         "help": "Show details of a tag"
                     },
                     "operands": {
-                        "no": [1, 1]
+                        "no": [1, 1],
+                        "help": {
+                            "names": ["tag"]
+                        }
                     }
                 }
             },
             "operands": {
                 "no": [2, 2],
+                "help": {
+                    "names": ["tag", "issue"]
+                },
                 "with": {
                     "--last": [1, 1]
                 }
@@ -462,6 +511,9 @@
             },
             "operands": {
                 "no": [3, 3],
+                "help": {
+                    "names": ["issue", "key", "value"]
+                },
                 "with": {
                     "--remove": [2, 2],
                     "--last": [2, 2]
@@ -494,6 +546,9 @@
                 "log": {
                     "operands": {
                         "no": [1, 1],
+                        "help": {
+                            "names": ["issue"]
+                        },
                         "with": {
                             "--last": [0, 0]
                         }
@@ -502,63 +557,11 @@
             },
             "operands": {
                 "no": [1, 1],
+                "help": {
+                    "names": ["issue"]
+                },
                 "with": {
                     "--last": [0, 0]
-                }
-            }
-        },
-        "work": {
-            "doc": {
-                "help": "Work on an issue.",
-                "usage": [
-                    "work start <sha1>",
-                    "work stop <sha1>"
-                ]
-            },
-            "options": {
-                "global": [
-                    {
-                        "long": "last",
-                        "help": "operate on last active issue"
-                    }
-                ],
-                "local": [
-                    {
-                        "short": "i",
-                        "long": "in-progress",
-                        "help": "list issues with started work"
-                    },
-                    {
-                        "long": "of",
-                        "requires": ["--in-progress"],
-                        "arguments": ["author's email:str"],
-                        "help": "list \"work-in-progress\" issues of given author"
-                    }
-                ]
-            },
-            "commands": {
-                "start": {
-                    "operands": {
-                        "no": [1, 1],
-                        "with": {
-                            "--last": [0, 0]
-                        }
-                    }
-                },
-                "stop": {
-                    "operands": {
-                        "no": [1, 1],
-                        "with": {
-                            "--last": [0, 0]
-                        }
-                    }
-                }
-            },
-            "operands": {
-                "no": [1, 1],
-                "with": {
-                    "--last": [0, 0],
-                    "--in-progress": [0, 0]
                 }
             }
         },
@@ -597,7 +600,10 @@
                         ]
                     },
                     "operands": {
-                        "no": [1, 1]
+                        "no": [1, 1],
+                        "help": {
+                            "names": ["key"]
+                        }
                     }
                 },
                 "set": {
@@ -622,7 +628,10 @@
                         ]
                     },
                     "operands": {
-                        "no": [1, 2]
+                        "no": [1, 2],
+                        "help": {
+                            "names": ["key", "value"]
+                        }
                     }
                 },
                 "dump": {
@@ -702,6 +711,9 @@
                     },
                     "operands": {
                         "no": [2, 2],
+                        "help": {
+                            "names": ["remote-name", "url"]
+                        },
                         "with": {
                             "--url": [1, 1],
                             "--key": [1, 1]
@@ -713,7 +725,10 @@
                         "help": "Remove a remote repository"
                     },
                     "operands": {
-                        "no": [1, 1]
+                        "no": [1, 1],
+                        "help": {
+                            "names": ["remote-name"]
+                        }
                     }
                 },
                 "show": {
@@ -721,7 +736,10 @@
                         "help": "Show config of a remote repository"
                     },
                     "operands": {
-                        "no": [1, 1]
+                        "no": [1, 1],
+                        "help": {
+                            "names": ["remote-name"]
+                        }
                     }
                 }
             },
@@ -763,7 +781,10 @@
                 ]
             },
             "operands": {
-                "no": [0]
+                "no": [0],
+                "help": {
+                    "names": ["remote-name"]
+                }
             }
         },
         "publish": {
@@ -793,7 +814,10 @@
                 ]
             },
             "operands": {
-                "no": [0]
+                "no": [0],
+                "help": {
+                    "names": ["remote-name"]
+                }
             }
         },
         "index": {
@@ -844,7 +868,10 @@
                 ]
             },
             "operands": {
-                "no": [1, 1]
+                "no": [1, 1],
+                "help": {
+                    "names": ["url"]
+                }
             }
         },
         "chain": {
@@ -863,6 +890,9 @@
                 "link": {
                     "operands": {
                         "no": [2],
+                        "help": {
+                            "names": ["blocked-issue", "blocking-issue"]
+                        },
                         "with": {
                             "--last": [1]
                         }
