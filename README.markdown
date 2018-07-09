@@ -53,6 +53,14 @@ $ issue init
 ```
 
 And you are ready to run.
+For more help, you can use:
+
+```
+$ issue help -vc | less -R
+```
+
+This command will give you an exhaustive overview of the commands and
+options.
 
 ----
 
