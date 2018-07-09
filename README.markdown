@@ -45,9 +45,11 @@ These are the only commands you have to run before you can initialise a reposito
 start creating issues:
 
 ```
-# set your credentials
+# set your credentials...
 $ issue config --global set author.email "john.doe@example.com"
 $ issue config --global set author.name "John Doe"
+# initialise the repository
+$ issue init
 ```
 
 And you are ready to run.
