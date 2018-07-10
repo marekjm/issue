@@ -490,16 +490,20 @@ def read_events_log():
     events_log_path = os.path.join(pth, 'events_log.json')
     if os.path.isfile(events_log_path):
         with open(events_log_path) as ifstream:
-            events_log = json.loads(ifstream.read())
+            try:
+                events_log = json.loads(ifstream.read())
+            except json.decoder.JSONDecodeError:
+                print('{}: failed to decode shortlog'.format(colorise(COLOR_ERROR, 'error')))
     return events_log
 
 def write_events_log(events_log):
     pth = get_events_log_path()
     if not os.path.isdir(pth):
         os.makedirs(pth)
+    events_log_size = issue.config.getConfig().get('events_log_size', EVENTS_LOG_SIZE_DEFAULT)
+    dumped = json.dumps(events_log[-events_log_size:])
     with open(os.path.join(pth, 'events_log.json'), 'w') as ofstream:
-        events_log_size = getConfig().get('events_log_size', EVENTS_LOG_SIZE_DEFAULT)
-        ofstream.write(json.dumps(events_log[-events_log_size:]))
+        ofstream.write(dumped)
 
 EVENTS_LOG_SIZE_DEFAULT = 80
 
