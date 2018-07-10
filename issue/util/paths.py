@@ -49,7 +49,7 @@ def indexed_path_of(issue_id: str) -> str:
 
 
 def get_shortlog_path() -> str:
-    return os.path.join(issue.util.paths.get_repository_path(), 'log', 'shortlog.json')
+    return os.path.join(issue.util.paths.get_repository_path(), 'log', 'events_log.json')
 
 
 def last_issue_path() -> str:

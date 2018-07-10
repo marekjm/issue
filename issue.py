@@ -479,34 +479,6 @@ def getMessage(template='', fmt={}, ignore='#'):
 ######################################################################
 # LOG UTILITY FUNCTIONS
 #
-def get_events_log_path():
-    return os.path.expanduser(os.path.join('~', '.local', 'log', 'issue'))
-
-def read_events_log():
-    pth = get_events_log_path()
-    if not os.path.isdir(pth):
-        return []
-    events_log = []
-    events_log_path = os.path.join(pth, 'events_log.json')
-    if os.path.isfile(events_log_path):
-        with open(events_log_path) as ifstream:
-            try:
-                events_log = json.loads(ifstream.read())
-            except json.decoder.JSONDecodeError:
-                print('{}: failed to decode shortlog'.format(colorise(COLOR_ERROR, 'error')))
-    return events_log
-
-def write_events_log(events_log):
-    pth = get_events_log_path()
-    if not os.path.isdir(pth):
-        os.makedirs(pth)
-    events_log_size = issue.config.getConfig().get('events_log_size', EVENTS_LOG_SIZE_DEFAULT)
-    dumped = json.dumps(events_log[-events_log_size:])
-    with open(os.path.join(pth, 'events_log.json'), 'w') as ofstream:
-        ofstream.write(dumped)
-
-EVENTS_LOG_SIZE_DEFAULT = 80
-
 EVENT_TYPE_SHOW = 'show'
 EVENT_TYPE_SLUG = 'slug'
 EVENT_TYPE_COMMENT = 'comment'
@@ -519,34 +491,6 @@ EVENTS_LOG_EVENT_WEIGHTS = {
     EVENT_TYPE_COMMENT: 7,
     EVENT_TYPE_CLOSE: 0,
 }
-
-def append_events_log_event(issue_uid, content):
-    pth = get_events_log_path()
-    events_log = read_events_log()
-    content['issue_uid'] = issue_uid
-    content['timestamp'] = timestamp()
-    if events_log and (events_log[-1].get('event') == content.get('event') and events_log[-1].get('issue_uid') == 'issue_uid'):
-        return
-    events_log.append(content)
-    write_events_log(events_log)
-
-def add_events_log_event_show(issue_uid):
-    append_events_log_event(issue_uid = issue_uid, content = {
-        'event': EVENT_TYPE_SHOW,
-    })
-
-def add_events_log_event_slug(issue_uid, issue_slug):
-    append_events_log_event(issue_uid = issue_uid, content = {
-        'event': EVENT_TYPE_SLUG,
-        'parameters': {
-            'slug': issue_slug,
-        },
-    })
-
-def add_events_log_event_close(issue_uid):
-    append_events_log_event(issue_uid = issue_uid, content = {
-        'event': EVENT_TYPE_CLOSE,
-    })
 
 def display_events_log(events_log, head=None, tail=None):
     if head is not None:
@@ -587,91 +531,6 @@ def display_events_log(events_log, head=None, tail=None):
         # just silence this
         # this exception is thrown when events_log is piped to head
         pass
-
-def _bug_event_without_assigned_weight(event):
-    print('{}: {}: event {} does not have a weight assigned'.format(colorise(COLOR_WARNING, 'warning'), colorise(COLOR_ERROR, 'bug'), colorise_repr(COLOR_LABEL, event['event'])))
-
-def squash_events_log_aggressive_1(events_log):
-    """Aggressive-squash-1 assumes that basic squashing has
-    already been performed.
-    """
-    if len(events_log) < 2:
-        return events_log
-    squashed_events_log = [events_log[0]]
-    for event in events_log[1:]:
-        if event['issue_uid'] == squashed_events_log[-1]['issue_uid']:
-            last_event_action = EVENTS_LOG_EVENT_WEIGHTS.get(squashed_events_log[-1]['event'])
-            this_event_action = EVENTS_LOG_EVENT_WEIGHTS.get(event['event'])
-
-            if last_event_action is None:
-                _bug_event_without_assigned_weight(squashed_events_log[-1])
-            if this_event_action is None:
-                _bug_event_without_assigned_weight(event)
-            if last_event_action is None or this_event_action is None:
-                # zero out the comparison when an event does not have a weight assigned
-                last_event_action, this_event_action = 0, 0
-
-            if last_event_action > this_event_action:
-                squashed_events_log.pop()
-            elif last_event_action < this_event_action:
-                continue
-            else:
-                pass
-        squashed_events_log.append(event)
-    return squashed_events_log
-
-def rfind_if(seq, pred):
-    index = len(seq)-1
-    while index > -1:
-        if pred(seq[index]):
-            break
-        index -= 1
-    return index
-
-def squash_events_log_aggressive_2(events_log):
-    """Aggressive-squash-2 assumes that basic squashing, and
-    aggressive-squashing-1 have already been performed.
-    """
-    if len(events_log) < 2:
-        return events_log
-    squashed_events_log = [events_log[0]]
-    for event in events_log[1:]:
-        this_event_action = EVENTS_LOG_EVENT_WEIGHTS.get(event['event'])
-        index_of_last_event_for_the_same_issue = rfind_if(squashed_events_log, lambda e: e['issue_uid'] ==
-                event['issue_uid'])
-        if index_of_last_event_for_the_same_issue > -1:
-            last_event_action = EVENTS_LOG_EVENT_WEIGHTS.get(squashed_events_log[index_of_last_event_for_the_same_issue]['event'])
-
-            if last_event_action is None:
-                _bug_event_without_assigned_weight(squashed_events_log[-1])
-            if this_event_action is None:
-                _bug_event_without_assigned_weight(event)
-            if last_event_action is None or this_event_action is None:
-                # zero out the comparison when an event does not have a weight assigned
-                last_event_action, this_event_action = 0, 0
-
-            if last_event_action > this_event_action:
-                squashed_events_log.pop()
-            elif last_event_action < this_event_action:
-                continue
-            else:
-                pass
-        squashed_events_log.append(event)
-    return squashed_events_log
-
-def squash_events_log(events_log, aggressive=0):
-    if len(events_log) < 2:
-        return events_log
-    squashed_events_log = [events_log[0]]
-    for event in events_log[1:]:
-        if event['issue_uid'] == squashed_events_log[-1]['issue_uid'] and event['event'] == squashed_events_log[-1]['event']:
-            continue
-        squashed_events_log.append(event)
-    if aggressive > 0:
-        squashed_events_log = squash_events_log_aggressive_1(squashed_events_log)
-    if aggressive > 1:
-        squashed_events_log = squash_events_log_aggressive_2(squashed_events_log)
-    return sorted(squashed_events_log, key = lambda each: each['timestamp'])
 
 
 ######################################################################
@@ -802,7 +661,6 @@ def commandInit(ui):
     )
     if '--verbose' in ui:
         print('repository initialised in {0}'.format(initialised_where))
-    issue.shortlog.append_event_repository_initialised(initialised_where)
 
 def commandOpen(ui):
     tags = ([l[0] for l in ui.get('--tag')] if '--tag' in ui else [])
@@ -1006,9 +864,8 @@ def commandOpen(ui):
     issue.util.issues.indexIssue(issue_sha1)
     markLastIssue(issue_sha1)
 
-    issue.shortlog.append_event_issue_opened(issue_sha1, message)
-    issue.shortlog.append_event_issue_tagged(issue_sha1, tags)
-    issue.shortlog.append_event_issue_milestoned(issue_sha1, milestones)
+    issue.shortlog.append_event_open(issue_sha1, message)
+    issue.shortlog.append_event_tagged(issue_sha1, tags)
 
     if '--chain-to' in ui or '--parent' in ui:
         chained_to = []
@@ -1038,7 +895,7 @@ def commandOpen(ui):
                 issue.util.issues.indexIssue(link_issue_sha1, issue_diff_sha1)
             except Exception as e:
                 print('warning: could not link issue identified by "{0}":'.format(link_issue_sha1), e)
-        issue.shortlog.append_event_issue_chained_to(issue_sha1, chained_to)
+        issue.shortlog.append_event_chained_to(issue_sha1, chained_to)
 
     if '--git' in ui:
         print('issue/{0}'.format(issue.util.issues.sluggify(message)))
@@ -1105,7 +962,7 @@ def commandClose(ui):
     issue_diff_file_path = os.path.join(issue.util.paths.issues_path(), issue_sha1[:2], issue_sha1, 'diff', '{0}.json'.format(issue_diff_sha1))
     with open(issue_diff_file_path, 'w') as ofstream:
         ofstream.write(json.dumps(issue_differences))
-    add_events_log_event_close(issue_sha1)
+    issue.shortlog.append_event_close(issue_sha1)
 
     next_relese_pointer = get_next_release_pointer()
     if next_relese_pointer:
@@ -1114,7 +971,7 @@ def commandClose(ui):
         })
     markLastIssue(issue_sha1)
     issue.util.issues.indexIssue(issue_sha1, issue_diff_sha1)
-    issue.shortlog.append_event_issue_closed(issue_sha1, issue_differences[0].get('params', {}).get('closing_git_commit'))
+    issue.shortlog.append_event_close(issue_sha1, issue_differences[0].get('params', {}).get('closing_git_commit'))
 
 def ls_with_details(unique_id, data):
     first_message_line = data['message'].splitlines()[0]
@@ -1382,7 +1239,7 @@ def commandSlug(ui):
             exit(r)
     if ('--git-branch' not in ui) and ('--git-checkout' not in ui):
         print(issue_slug)
-    add_events_log_event_slug(issue_sha1, issue_slug)
+    issue.shortlog.append_event_slug(issue_sha1, issue_slug)
     markLastIssue(issue_sha1)
 
 def commandComment(ui):
@@ -1581,7 +1438,7 @@ def commandShow(ui):
         exit(1)
 
     if str(ui) == 'show':
-        add_events_log_event_show(issue_sha1)
+        issue.shortlog.append_event_show(issue_sha1)
 
         issue_message_lines = issue_data['message'].splitlines()
 
@@ -1654,7 +1511,7 @@ def commandShow(ui):
                 chained_issues_heading = (colored.fg('white') + chained_issues_heading + colored.attr('reset'))
             print('\n{}'.format(chained_issues_heading))
             for s in sorted(chained_issues):
-                chained_issue = getIssue(s)
+                chained_issue = issue.util.issues.getIssue(s)
                 if colored:
                     s = (colored.fg('yellow') + s + colored.attr('reset'))
                 print('    {0} ({1}): {2}'.format(s, chained_issue.get('status'), chained_issue.get('message', '').splitlines()[0]))
@@ -1680,7 +1537,7 @@ def commandShow(ui):
                 print()
         markLastIssue(issue_sha1)
     elif str(ui) == 'log':
-        add_events_log_event_show(issue_sha1)
+        issue.shortlog.append_event_show(issue_sha1)
 
         issue_sha1_heading = issue_sha1
         if colored: issue_sha1_heading = (colored.fg('yellow') + issue_sha1_heading + colored.attr('reset'))
@@ -2212,18 +2069,21 @@ def commandRelease(ui):
 
 def commandLog(ui):
     ui = ui.down()
-    events_log = read_events_log()
-    events_log.reverse()
+    events_log = issue.shortlog.read()
+    events_log = issue.shortlog.sort(events_log)
     if str(ui) == 'squash':
         initial_size = len(events_log)
         if initial_size < 2:
             print('{}: events_log too short to shorten'.format(colorise(COLOR_WARNING, 'warning')))
             return
-        squashed_events_log = squash_events_log(events_log, aggressive = ui.get('--aggressive'))
+        squashed_events_log = issue.shortlog.squash_events_log(
+            events_log,
+            aggressive = ui.get('--aggressive'),
+        )
         final_size = len(squashed_events_log)
         if final_size < initial_size:
             print('{}: shortened events_log from {} to {} entries'.format(colorise(COLOR_NOTE, 'note'), initial_size, final_size))
-        write_events_log(squashed_events_log)
+        issue.shortlog.write(squashed_events_log)
         if '--verbose' in ui:
             display_events_log(squashed_events_log)
     else:
