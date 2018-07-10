@@ -1214,7 +1214,7 @@ def commandSlug(ui):
             if ret != 0:
                 raise Exception('failed to get current Git branch')
             return output.strip()
-        allow_branching_from = config.get('slug.allow_branching_from')
+        allow_branching_from = issue.config.getConfig().get('slug.allow_branching_from')
 
         current_branch = git_current_branch()
         if allow_branching_from is not None and current_branch not in allow_branching_from:
