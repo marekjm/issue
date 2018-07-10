@@ -500,26 +500,27 @@ def display_events_log(events_log, head=None, tail=None):
     try:
         for event in events_log:
             event_name = event['event']
-            event_description = event.get('parameters', {})
+            event_parameters = event.get('parameters', {})
+            event_description = ''
             if event_name == 'show':
                 event_description = issue.util.issues.getIssue(event['issue_uid']).get('message').splitlines()[0]
             elif event_name == 'slug':
                 event_description = 'sluggified to {}'.format(colorise_repr(
                     COLOR_BRANCH_NAME,
-                    event_description['slug'],
+                    event_parameters['slug'],
                 ))
             elif event_name == 'comment':
-                comment_lines = event['parameters']['comment'].splitlines()
+                comment_lines = event_parameters['comment'].splitlines()
                 event_description = '{}'.format(comment_lines[0].strip())
                 if len(comment_lines) > 1:
                     event_description += ' (...)'
-            elif event_name == 'close':
-                event_description = issue.util.issues.getIssue(event['issue_uid']).get('message').splitlines()[0]
+            elif event_name == 'open':
+                event_description = event_parameters['message'].splitlines()[0]
+            elif event_name == 'tagged':
+                event_description = ', '.join(event_parameters['tags'])
             else:
                 # if no special description formatting is provided, just display name of the event
                 event_description = ''
-            if event_description:
-                event_description = '{}'.format(event_description)
             event_datetime = datetime.datetime.utcfromtimestamp(event.get('timestamp')).strftime('%Y-%m-%d %H:%M:%S')
             print('{issue_key} [{event_datetime}] {event_name}{event_description}'.format(
                 issue_key = colorise(COLOR_HASH, event['issue_uid']),
