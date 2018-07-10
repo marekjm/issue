@@ -558,7 +558,7 @@ def display_events_log(events_log, head=None, tail=None):
             event_name = event['event']
             event_description = event.get('parameters', {})
             if event_name == 'show':
-                event_description = getIssue(event['issue_uid']).get('message').splitlines()[0]
+                event_description = issue.util.issues.getIssue(event['issue_uid']).get('message').splitlines()[0]
             elif event_name == 'slug':
                 event_description = 'sluggified to {}'.format(colorise_repr(
                     COLOR_BRANCH_NAME,
@@ -570,7 +570,7 @@ def display_events_log(events_log, head=None, tail=None):
                 if len(comment_lines) > 1:
                     event_description += ' (...)'
             elif event_name == 'close':
-                event_description = getIssue(event['issue_uid']).get('message').splitlines()[0]
+                event_description = issue.util.issues.getIssue(event['issue_uid']).get('message').splitlines()[0]
             else:
                 # if no special description formatting is provided, just display name of the event
                 event_description = ''
@@ -831,7 +831,7 @@ def commandOpen(ui):
     }
     if parent_uid is not None:
         formatted_parent_message = '#\n# Parent message:\n#\n'
-        parent_message_lines = getIssue(parent_uid).get('message').splitlines()
+        parent_message_lines = issue.util.issues.getIssue(parent_uid).get('message').splitlines()
         indented_parent_message_lines = ['    {}'.format(l) for l in parent_message_lines]
         formatted_parent_message += '\n'.join(map(lambda each: '#  {}'.format(each),
             indented_parent_message_lines,
