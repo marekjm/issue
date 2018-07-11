@@ -972,7 +972,7 @@ def commandClose(ui):
         })
     markLastIssue(issue_sha1)
     issue.util.issues.indexIssue(issue_sha1, issue_diff_sha1)
-    issue.shortlog.append_event_close(issue_sha1, issue_differences[0].get('params', {}).get('closing_git_commit'))
+    issue.shortlog.append_event_close(issue_sha1)
 
 def ls_with_details(unique_id, data):
     first_message_line = data['message'].splitlines()[0]
