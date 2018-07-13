@@ -498,6 +498,9 @@ def display_events_log(events_log, head=None, tail=None):
     if tail is not None:
         events_log = events_log[tail:]
     try:
+        shortened_uids = dict(map(lambda each: (each[1], each[0],),
+            listIssuesUsingShortestPossibleUIDs(with_full = True)))
+
         for event in events_log:
             event_name = event['event']
             event_parameters = event.get('parameters', {})
@@ -523,7 +526,7 @@ def display_events_log(events_log, head=None, tail=None):
                 event_description = ''
             event_datetime = datetime.datetime.utcfromtimestamp(event.get('timestamp')).strftime('%Y-%m-%d %H:%M:%S')
             print('{issue_key} [{event_datetime}] {event_name}{event_description}'.format(
-                issue_key = colorise(COLOR_HASH, event['issue_uid']),
+                issue_key = colorise(COLOR_HASH, shortened_uids[event['issue_uid']]),
                 event_datetime = colorise(COLOR_DATETIME, event_datetime),
                 event_name = event_name,
                 event_description = (': ' * bool(event_description)) + event_description,
@@ -2072,6 +2075,7 @@ def commandLog(ui):
     ui = ui.down()
     events_log = issue.shortlog.read()
     events_log = issue.shortlog.sort(events_log)
+
     if str(ui) == 'squash':
         initial_size = len(events_log)
         if initial_size < 2:
