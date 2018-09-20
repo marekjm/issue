@@ -1932,13 +1932,24 @@ def commandStatistics(ui):
                     return summed
                 return summed / len(seq)
 
+            def median_or_none(seq):
+                s = sorted(seq)
+                i = len(s) // 2
+                if len(s) % 2 == 0:
+                    return (s[i - 1] + s[i]) / 2
+                else:
+                    return s[i]
+
             total_lifetime_of_closed = sum_or_none_if_empty(lifetimes_of_closed)
             total_lifetime_of_still_open = sum_or_none_if_empty(lifetimes_of_still_open)
             total_lifetime_of_all = sum_or_none_if_empty(lifetimes_of_closed + lifetimes_of_still_open)
 
             avg_lifetime_of_closed = avg_or_none(lifetimes_of_closed)
+            med_lifetime_of_closed = median_or_none(lifetimes_of_closed)
             avg_lifetime_of_still_open = avg_or_none(lifetimes_of_still_open)
+            med_lifetime_of_still_open = median_or_none(lifetimes_of_still_open)
             avg_lifetime_of_all = avg_or_none(lifetimes_of_closed + lifetimes_of_still_open)
+            med_lifetime_of_all = median_or_none(lifetimes_of_closed + lifetimes_of_still_open)
 
             perc_total_closed_of_open = (total_lifetime_of_closed / total_lifetime_of_still_open) * 100
             perc_total_closed_of_all = (total_lifetime_of_closed / total_lifetime_of_all) * 100
@@ -1963,6 +1974,9 @@ def commandStatistics(ui):
                 round(perc_avg_closed_of_open, 2),
                 round(perc_avg_closed_of_all, 2),
             ))
+            print('    med:   {}'.format(
+                med_lifetime_of_closed,
+            ))
 
             print('lifetime of {} {} issues:'.format(
                 len(open_issues),
@@ -1973,6 +1987,9 @@ def commandStatistics(ui):
                 round(perc_total_open_more_than_closed, 2),
             ))
             print('    avg:   {}'.format(avg_lifetime_of_still_open))
+            print('    med:   {}'.format(
+                med_lifetime_of_still_open,
+            ))
 
             print('lifetime of {} {} issues:'.format(
                 colorise('cyan', 'all'),
@@ -1980,6 +1997,9 @@ def commandStatistics(ui):
             ))
             print('    total: {}'.format(total_lifetime_of_all))
             print('    avg:   {}'.format(avg_lifetime_of_all))
+            print('    med:   {}'.format(
+                med_lifetime_of_all,
+            ))
 
 def commandReleaseOpen(ui):
     ui = ui.down()
