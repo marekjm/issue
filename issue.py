@@ -1081,6 +1081,8 @@ def commandLs(ui):
     if '--priority' in ui:
         issues_to_list = sorted(issues_to_list, key=lambda t: int(t[2].get('parameters', {}).get('priority', 1024)))
 
+    issues_to_list = sorted(issues_to_list, key = lambda each: each[2]['message'].splitlines()[0])
+
     limit = len(issues_to_list) - 1
     for n, each in enumerate(issues_to_list):
         short, i, issue_data = each
