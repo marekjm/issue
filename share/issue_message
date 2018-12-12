@@ -3,3 +3,6 @@
 #
 # Lines beginning with '#' will be ignored.
 {parent_message}
+#
+# vim:ft=gitcommit:
+#
