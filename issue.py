@@ -851,7 +851,7 @@ def commandOpen(ui):
             )
             issue_diff_uid = hashlib.sha1(issue_diff_uid.encode('utf-8')).hexdigest()
             issue_diff_file_path = os.path.join(
-                ISSUES_PATH,
+                issue.util.paths.issues_path(),
                 issue_sha1[:2],
                 issue_sha1,
                 'diff',

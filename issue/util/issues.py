@@ -2,6 +2,7 @@ import datetime
 import json
 import os
 import re
+import shutil
 
 import unidecode
 
@@ -249,7 +250,7 @@ def revindexIssue(issue_sha1, *diffs):
         ofstream.write(json.dumps(issue_differences))
 
 def dropIssue(issue_sha1):
-    issue_group_path = os.path.join(ISSUES_PATH, issue_sha1[:2])
+    issue_group_path = os.path.join(issue.util.paths.issues_path(), issue_sha1[:2])
     issue_file_path = os.path.join(issue_group_path, '{0}.json'.format(issue_sha1))
     os.unlink(issue_file_path)
     shutil.rmtree(os.path.join(issue_group_path, issue_sha1))
