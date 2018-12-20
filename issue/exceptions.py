@@ -24,3 +24,6 @@ class RepositoryNotFound(IssueException):
 
 class TagExists(IssueException):
     pass
+
+class Invalid_time_delta_specification(IssueException):
+    pass

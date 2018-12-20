@@ -211,23 +211,31 @@ def getLastIssue():
             last_issue_sha1 = ifstream.read()
     return last_issue_sha1
 
-def getTimeDeltaArguments(delta_mods):
+def get_time_delta_arguments(delta_mods):
     time_delta = {}
     time_patterns = [
         re.compile('^(\d+)(minutes?)$'),
         re.compile('^(\d+)(hours?)$'),
         re.compile('^(\d+)(days?)$'),
         re.compile('^(\d+)(weeks?)$'),
-        re.compile('^(\d+)(months?)$'),
     ]
-    # print(delta_mods)
     for dm in delta_mods:
+        found_any = False
+
         for p in time_patterns:
             pm = p.match(dm)
             if pm is not None:
                 mod = pm.group(2)
-                if mod[-1] != 's': mod += 's'  # allow both "1week" and "2weeks"
+
+                # Allow both "1week" and "2weeks" forms.
+                if mod[-1] != 's':
+                    mod += 's'
+
                 time_delta[mod] = int(pm.group(1))
+                found_any = True
+
+        if not found_any:
+            raise issue.exceptions.Invalid_time_delta_specification(delta_mods)
     return time_delta
 
 def fetchRemote(remote_name, remote_data=None, local_pack=None):
@@ -1030,10 +1038,10 @@ def commandLs(ui):
         delta_mods_since = issue.config.getConfig().get('default.time.recent', '1day').split(',')
 
     if '--since' in ui or '--recent' in ui:
-        since = (datetime.datetime.now() - datetime.timedelta(**getTimeDeltaArguments(delta_mods_since)))
+        since = (datetime.datetime.now() - datetime.timedelta(**get_time_delta_arguments(delta_mods_since)))
 
     if '--until' in ui:
-        until = (datetime.datetime.now() - datetime.timedelta(**getTimeDeltaArguments(delta_mods_until)))
+        until = (datetime.datetime.now() - datetime.timedelta(**get_time_delta_arguments(delta_mods_until)))
 
     issues_to_list = []
     for short, i in issues:
