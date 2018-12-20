@@ -1296,7 +1296,9 @@ def commandComment(ui):
         'message': issue_comment,
         'timestamp': issue_comment_timestamp,
     }
-    with open(os.path.join(issue.util.paths.issues_path(), issue_sha1[:2], issue_sha1, 'comments', '{0}.json'.format(issue_comment_sha1)), 'w') as ofstream:
+
+    os.makedirs(issue.util.paths.comments_path_of(issue_sha1), exist_ok = True)
+    with open(os.path.join(issue.util.paths.comments_path_of(issue_sha1), '{0}.json'.format(issue_comment_sha1)), 'w') as ofstream:
         ofstream.write(json.dumps(issue_comment_data))
     markLastIssue(issue_sha1)
 
