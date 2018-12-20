@@ -22,6 +22,7 @@ def init(where: str, status: str, force: bool = False, up: bool = False):
     make_dir_if_not_exists(issue.util.paths.issues_path())
     make_dir_if_not_exists(issue.util.paths.tags_path())
     make_dir_if_not_exists(issue.util.paths.releases_path())
+    make_dir_if_not_exists(issue.util.paths.get_logs_path())
 
     with open(issue.util.paths.status_path(), 'w') as ofstream:
         ofstream.write(status)
