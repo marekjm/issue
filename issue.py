@@ -1541,7 +1541,7 @@ def commandShow(ui):
             print('\n{}: {}\n'.format(closing_git_commit_heading, closing_git_commit))
 
         issue_comment_thread = dict((issue_data['comments'][key]['timestamp'], key) for key in issue_data['comments'])
-        if issue_comment_thread:
+        if issue_comment_thread and '--comments' in ui:
             comment_thread_heading = '---- COMMENT THREAD:'
             comment_thread_heading = colorise('white', comment_thread_heading)
             print('\n{}'.format(comment_thread_heading))

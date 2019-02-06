@@ -524,7 +524,8 @@
             "doc": {
                 "help": "Show information about issues.",
                 "usage": [
-                    "show <sha1>"
+                    "show <issue>",
+                    "show --comments <issue>"
                 ]
             },
             "options": {
@@ -539,11 +540,19 @@
                         "short": "i",
                         "long": "index",
                         "help": "index selected issue before showing it"
+                    },
+                    {
+                        "short": "c",
+                        "long": "comments",
+                        "help": "show comment thread (if exists)"
                     }
                 ]
             },
             "commands": {
                 "log": {
+                    "doc": {
+                        "help": "Show history of an issue"
+                    },
                     "operands": {
                         "no": [1, 1],
                         "help": {
