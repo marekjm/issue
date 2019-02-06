@@ -2148,14 +2148,20 @@ def dispatch(ui, *commands, overrides = {}, default_command=''):
     ui_command = (str(ui) or default_command)
     if not ui_command:
         return
-    if ui_command in overrides:
-        overrides[ui_command](ui)
-    else:
-        ui_command = ('command' + ''.join([(s[0].upper() + s[1:]) for s in ui_command.split('-')]))
-        for cmd in commands:
-            if cmd.__name__ == ui_command:
-                cmd(ui)
-                break
+    try:
+        if ui_command in overrides:
+            overrides[ui_command](ui)
+        else:
+            ui_command = ('command' + ''.join([(s[0].upper() + s[1:]) for s in ui_command.split('-')]))
+            for cmd in commands:
+                if cmd.__name__ == ui_command:
+                    cmd(ui)
+                    break
+    except issue.exceptions.RepositoryNotFound:
+        print('{}: not an issue repository (or any of the parent directories): {}'.format(
+            colorise(COLOR_ERROR, 'error'),
+            os.path.abspath(issue.util.paths.get_repository_path(safe = True)),
+        ))
 
 
 dispatch(ui,        # first: pass the UI object to dispatch

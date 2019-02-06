@@ -23,6 +23,8 @@ def get_repository_path(where: str = None, safe: bool = False) -> str:
         exists = os.path.isdir(repository_path)
         if (not exists) and (not safe):
             raise issue.exceptions.RepositoryNotFound()
+        elif (not exists) and safe:
+            return ISSUE_HIDDEN_DIRECTORY
         if exists:
             _ISSUE_REPOSITORY_PATH = repository_path
     return _ISSUE_REPOSITORY_PATH
