@@ -1543,20 +1543,25 @@ def commandShow(ui):
         issue_comment_thread = dict((issue_data['comments'][key]['timestamp'], key) for key in issue_data['comments'])
         if issue_comment_thread:
             comment_thread_heading = '---- COMMENT THREAD:'
-            if colored:
-                comment_thread_heading = (colored.fg('white') + comment_thread_heading + colored.attr('reset'))
+            comment_thread_heading = colorise('white', comment_thread_heading)
             print('\n{}'.format(comment_thread_heading))
-            for i, timestamp in enumerate(sorted(issue_comment_thread.keys())):
+            for timestamp in sorted(issue_comment_thread.keys()):
                 issue_comment = issue_data['comments'][issue_comment_thread[timestamp]]
-                print('>>>> {0}. {1} ({2}) at {3}\n'.format(i, issue_comment['author.name'], issue_comment['author.email'], datetime.datetime.fromtimestamp(issue_comment['timestamp'])))
-                print(issue_comment['message'])
+                print('{0} {1} ({2}) at {3}\n'.format(
+                    colorise(COLOR_NOTE, '>>>>'),
+                    issue_comment['author.name'],
+                    issue_comment['author.email'],
+                    colorise(COLOR_DATETIME,
+                        str(datetime.datetime.fromtimestamp(issue_comment['timestamp']))),
+                ))
+                indented_message_lines = ['  {}'.format(l) for l in issue_comment['message'].splitlines()]
+                print('{}'.format('\n'.join(indented_message_lines)))
                 print()
         markLastIssue(issue_sha1)
     elif str(ui) == 'log':
         issue.shortlog.append_event_show(issue_sha1)
 
-        issue_sha1_heading = issue_sha1
-        if colored: issue_sha1_heading = (colored.fg('yellow') + issue_sha1_heading + colored.attr('reset'))
+        issue_sha1_heading = colorise(COLOR_HASH, issue_sha1)
         print('showing log of issue: {0}'.format(issue_sha1_heading))
         issue_differences = issue.util.issues.getIssueDifferences(issue_sha1, *issue.util.issues.listIssueDifferences(issue_sha1))
 
