@@ -159,6 +159,22 @@ def expandIssueUID(issue_sha1_part):
         raise issue.exceptions.IssueUIDAmbiguous(issue_sha1_part)
     return issue_sha1[0]
 
+def expand_issue_uid_or_exir(issue_uid_part):
+    try:
+        return expandIssueUID(issue_uid_part)
+    except issue.exceptions.IssueUIDAmbiguous:
+        print('{0}: issue uid {1} is ambiguous'.format(
+            colorise(COLOR_ERROR, 'error'),
+            colorise_repr(COLOR_HASH, issue_uid_part),
+        ))
+        exit(1)
+    except issue.exceptions.IssueUIDNotMatched:
+        print('{0}: issue uid {1} did not match anything'.format(
+            colorise(COLOR_ERROR, 'error'),
+            colorise_repr(COLOR_HASH, issue_uid_part),
+        ))
+        exit(1)
+
 def runShell(*command):
     p = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     output, error = p.communicate()
@@ -917,14 +933,7 @@ def commandOpen(ui):
 def commandClose(ui):
     repo_config = issue.config.getConfig()
     issue_sha1 = (getLastIssue() if '--last' in ui else operands[0])
-    try:
-        issue_sha1 = expandIssueUID(issue_sha1)
-    except issue.exceptions.IssueUIDAmbiguous:
-        print('fail: issue uid {0} is ambiguous'.format(repr(issue_sha1)))
-        exit(1)
-    except issue.exceptions.IssueUIDNotMatched:
-        print('fail: uid {0} does not match anything'.format(repr(issue_sha1)))
-        exit(1)
+    issue_sha1 = expand_issue_uid_or_exir(issue_sha1)
     issue_data = issue.util.issues.getIssue(issue_sha1)
 
     if issue_data['status'] == 'closed':
@@ -1173,12 +1182,8 @@ def make_short_uid(uid):
 def commandSlug(ui):
     issue_data = {}
     issue_sha1 = (getLastIssue() if '--last' in ui else operands[0])
-    try:
-        issue_sha1 = expandIssueUID(issue_sha1)
-        issue_data = issue.util.issues.getIssue(issue_sha1)
-    except issue.exceptions.IssueUIDAmbiguous:
-        print('fail: issue uid {0} is ambiguous'.format(repr(issue_sha1)))
-        exit(1)
+    issue_sha1 = expand_issue_uid_or_exir(issue_sha1)
+    issue_data = issue.util.issues.getIssue(issue_sha1)
     issue_message = issue_data['message'].splitlines()[0].strip()
     issue_slug = issue.util.issues.sluggify(issue_message)
     issue_uid, issue_short_uid = issue_sha1, make_short_uid(issue_sha1)
@@ -1430,14 +1435,7 @@ def commandParam(ui):
 def commandShow(ui):
     ui = ui.down()
     issue_sha1 = (getLastIssue() if '--last' in ui else ui.operands()[0])
-    try:
-        issue_sha1 = expandIssueUID(issue_sha1)
-    except issue.exceptions.IssueUIDAmbiguous:
-        print('fail: issue uid {0} is ambiguous'.format(repr(issue_sha1)))
-        exit(1)
-    except issue.exceptions.IssueUIDNotMatched:
-        print('fail: issue uid {0} did not match anything'.format(repr(issue_sha1)))
-        exit(1)
+    issue_sha1 = expand_issue_uid_or_exir(issue_sha1)
 
     if str(ui) == 'show' and '--index' in ui:
         issue.util.issues.indexIssue(issue_sha1)
@@ -1836,14 +1834,7 @@ def commandChain(ui):
     if '--last' not in ui:
         link_issue_sha1s = link_issue_sha1s[1:]
     for i, link_issue_sha1 in enumerate(link_issue_sha1s):
-        try:
-            link_issue_sha1s[i] = expandIssueUID(link_issue_sha1)
-        except issue.exceptions.IssueUIDAmbiguous:
-            print('fail: link issue uid {0} is ambiguous'.format(repr(link_issue_sha1)))
-            exit(1)
-        except issue.exceptions.IssueUIDNotMatched:
-            print('fail: uid {0} does not match anything'.format(repr(link_issue_sha1)))
-            exit(1)
+        link_issue_sha1s[i] = expand_issue_uid_or_exir(link_issue_sha1)
 
     if str(ui) == 'link':
         repo_config = issue.config.getConfig()
