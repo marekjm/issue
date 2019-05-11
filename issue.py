@@ -1870,7 +1870,15 @@ def commandStatistics(ui):
     ui = ui.down()
     issue_list = listIssuesUsingShortestPossibleUIDs(with_full=True)
 
-    issues = [issue.util.issues.getIssue(i[1]) for i in issue_list]
+    try:
+        issues = [issue.util.issues.getIssue(i[1]) for i in issue_list]
+    except issue.exceptions.NotIndexed:
+        sys.stderr.write('{}: not indexed\n'.format(colorise(COLOR_ERROR, 'error')))
+        sys.stderr.write('{}: run {} to index issues\n'.format(
+            colorise(COLOR_NOTE, 'note'),
+            colorise_repr('white', 'issue index'),
+        ))
+        exit(1)
 
     open_issues = list(filter(lambda i: i['status'] == 'open', issues))
     closed_issues = list(filter(lambda i: i['status'] == 'closed', issues))
