@@ -71,13 +71,14 @@ reduce distractions to minimum.
 
 Consider these steps:
 
-- `issue open "Crash on big numbers"` - open an issue
+- `issue open "Crash on big numbers"` - open an issue,
 - `git checkout -b $(issue slug --git deadbeef)` - create new branch using
-  branch name generation
-- `gdb ./a.out` - debug the program
-- `vim ...` - create a patch
-- `git commit -m 'Fix the crash on big numbers'` - commit the fix
-- `issue close -g HEAD deadbeef` - close the issue
+  branch name generation (or use `issue slug -BC deadbeef`)
+- `gdb ./a.out` - debug the program,
+- `vim ...` - create a patch,
+- `git commit -m 'Fix the crash on big numbers'` - commit the fix,
+- `issue close -g <git-commit> deadbeef` - close the issue (you can use a Git
+  commit hash, or `HEAD` to specify commit)
 
 Two additional commands to open and close an issue.
 
@@ -350,6 +351,37 @@ Obtaining data from a node is simple:
 Every node in the network operates as a peer to others, and there is no central one.
 
 --------------------------------------------------------------------------------
+
+## Configuration
+
+Configuration file is located in `~/.issueconfig.json`.
+See `sampleconfig.json` for a minimal configuration file.
+
+### Slug formats
+
+    {
+          "slug.format.default": "@foo"
+        , "slug.format.foo": "foo-issue-{short_uid}-{slug}"
+    }
+
+To add format `foo` add a `slug.format.foo` key to your config.
+Keys available in the format string are:
+
+- `short_uid`: inserts short UID of the issue
+- `parent_short_uid`: inserts short UID of the parent issue
+- `slug`: inserts slug of the issue
+
+### Prevent branching from non-master branches
+
+    {
+        "slug.allow_branching_from": [ "master", "devel" ]
+    }
+
+Use the `slug.allow_branching_from` configuration value to set the branches from
+which creating new branches is allowed. Issue will complain if you try to create
+a branch (using `issue sl -B`) from a branch not on this list.
+
+----
 
 ## License
 

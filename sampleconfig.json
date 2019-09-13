@@ -1,0 +1,7 @@
+{
+      "author.email": "john.doe@example.com"
+    , "author.name": "John Doe"
+    , "slug.format.default": "@foo"
+    , "slug.format.foo": "foo-issue-{short_uid}-{slug}"
+    , "slug.allow_branching_from": [ "master", "devel" ]
+}
