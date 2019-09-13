@@ -1951,7 +1951,7 @@ def commandStatistics(ui):
                 if not seq:
                     return None
                 if len(seq) == 1:
-                    return seq[1]
+                    return seq[0]
                 return sum(seq[1:], seq[0])
 
             def avg_or_none(seq):
