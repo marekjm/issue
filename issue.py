@@ -549,12 +549,23 @@ def display_events_log(events_log, head=None, tail=None):
                 # if no special description formatting is provided, just display name of the event
                 event_description = ''
             event_datetime = datetime.datetime.utcfromtimestamp(event.get('timestamp')).strftime('%Y-%m-%d %H:%M:%S')
-            print('{issue_key} [{event_datetime}] {event_name}{event_description}'.format(
-                issue_key = colorise(COLOR_HASH, shortened_uids[event['issue_uid']]),
-                event_datetime = colorise(COLOR_DATETIME, event_datetime),
-                event_name = event_name,
-                event_description = (': ' * bool(event_description)) + event_description,
-            ))
+            if event['issue_uid'] in shortened_uids:
+                print('{issue_key} [{event_datetime}] {event_name}{event_description}'.format(
+                    issue_key = colorise(COLOR_HASH, shortened_uids[event['issue_uid']]),
+                    event_datetime = colorise(COLOR_DATETIME, event_datetime),
+                    event_name = event_name,
+                    event_description = (': ' * bool(event_description)) + event_description,
+                ))
+            else:
+                n = list(shortened_uids.values())
+                n = (len(n[0]) if n else 4)
+                print('{issue_key} [{event_datetime}] {error_msg}: {event_name}{event_description}'.format(
+                    issue_key = colorise(COLOR_HASH, event['issue_uid'][:n]),
+                    event_datetime = colorise(COLOR_DATETIME, event_datetime),
+                    event_name = event_name,
+                    event_description = (': ' * bool(event_description)) + event_description,
+                    error_msg = colorise(COLOR_ERROR, 'not an issue (dropped?)'),
+                ))
     except BrokenPipeError as e:
         # just silence this
         # this exception is thrown when events_log is piped to head
