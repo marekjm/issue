@@ -963,6 +963,10 @@ def commandClose(ui):
             print('  {0}: {1}'.format(ui_sha1, ui_msg))
         exit(1)
 
+    ts = None
+
+    if '-t' in ui:
+        ts = datetime.datetime.strptime(ui.get('-t'), '%Y-%m-%dT%H:%M:%S')
     issue_differences = [
         {
             'action': 'close',
@@ -972,7 +976,7 @@ def commandClose(ui):
                 'author.email': repo_config['author.email'],
                 'author.name': repo_config['author.name'],
             },
-            'timestamp': timestamp(),
+            'timestamp': timestamp(ts),
         },
     ]
 

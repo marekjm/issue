@@ -171,6 +171,12 @@
                     {
                         "long": "last",
                         "help": "close last active issue"
+                    },
+                    {
+                        "short": "t",
+                        "long": "timestamp",
+                        "arguments": ["%Y-%m-%dT%H:%M:%S:str"],
+                        "help": "use as timestamp"
                     }
                 ]
             },
