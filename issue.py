@@ -530,7 +530,11 @@ def display_events_log(events_log, head=None, tail=None):
             event_parameters = event.get('parameters', {})
             event_description = ''
             if event_name == 'show':
-                event_description = issue.util.issues.getIssue(event['issue_uid']).get('message').splitlines()[0]
+                try:
+                    event_description = issue.util.issues.getIssue(event['issue_uid']).get('message').splitlines()[0]
+                except issue.exceptions.NotAnIssue:
+                    # This happens when an issue was dropped.
+                    pass
             elif event_name == 'slug':
                 event_description = 'sluggified to {}'.format(colorise_repr(
                     COLOR_BRANCH_NAME,
