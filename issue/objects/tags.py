@@ -1,4 +1,3 @@
-import hashlib
 import json
 import os
 import random
@@ -76,7 +75,7 @@ def make(tag_name: str, force: bool = False):
         issue.util.misc.timestamp(),
         random.random(),
     )
-    tag_diff_sha1 = hashlib.sha1(tag_diff_sha1.encode('utf-8')).hexdigest()
+    tag_diff_sha1 = issue.util.misc.create_hash(tag_diff_sha1)
     tag_diff_file_path = os.path.join(tag_path, 'diff', '{0}.json'.format(tag_diff_sha1))
     with open(tag_diff_file_path, 'w') as ofstream:
         ofstream.write(json.dumps(tag_differences))

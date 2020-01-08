@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 
 import datetime
-import hashlib
 import json
 import os
 import random
@@ -612,7 +611,7 @@ def _store_release_diff_simple_named_action(release_name, action_name):
         },
     ]
     release_diff_sha1 = '{0}{1}{2}{3}'.format(repo_config['author.email'], repo_config['author.name'], timestamp(), random.random())
-    release_diff_sha1 = hashlib.sha1(release_diff_sha1.encode('utf-8')).hexdigest()
+    release_diff_sha1 = issue.util.misc.create_hash(release_diff_sha1)
     release_diff_file_path = os.path.join(get_release_path(release_name), 'diff', '{0}.json'.format(release_diff_sha1))
     with open(release_diff_file_path, 'w') as ofstream:
         ofstream.write(json.dumps(release_differences))
@@ -638,7 +637,7 @@ def store_release_diff(release_name, action, params=None):
     if params is not None:
         release_differences[0]['params'] = params
     release_diff_sha1 = '{0}{1}{2}{3}'.format(repo_config['author.email'], repo_config['author.name'], timestamp(), random.random())
-    release_diff_sha1 = hashlib.sha1(release_diff_sha1.encode('utf-8')).hexdigest()
+    release_diff_sha1 = issue.util.misc.create_hash(release_diff_sha1)
     release_diff_file_path = os.path.join(get_release_path(release_name), 'diff', '{0}.json'.format(release_diff_sha1))
     with open(release_diff_file_path, 'w') as ofstream:
         ofstream.write(json.dumps(release_differences))
@@ -744,7 +743,7 @@ def commandOpen(ui):
         exit(1)
 
     issue_sha1 = '{0}{1}{2}{3}{4}'.format(message, tags, milestones, parent_uid, random.random())
-    issue_sha1 = hashlib.sha1(issue_sha1.encode('utf-8')).hexdigest()
+    issue_sha1 = issue.util.misc.create_hash(issue_sha1)
 
     repo_config = issue.config.getConfig()
 
@@ -854,7 +853,7 @@ def commandOpen(ui):
             })
 
     issue_diff_sha1 = '{0}{1}{2}{3}'.format(repo_config['author.email'], repo_config['author.name'], timestamp(), random.random())
-    issue_diff_sha1 = hashlib.sha1(issue_diff_sha1.encode('utf-8')).hexdigest()
+    issue_diff_sha1 = issue.util.misc.create_hash(issue_diff_sha1)
     issue_diff_file_path = os.path.join(issue_group_path, issue_sha1, 'diff', '{0}.json'.format(issue_diff_sha1))
     with open(issue_diff_file_path, 'w') as ofstream:
         ofstream.write(json.dumps(issue_differences))
@@ -888,7 +887,7 @@ def commandOpen(ui):
                 timestamp(),
                 random.random(),
             )
-            issue_diff_uid = hashlib.sha1(issue_diff_uid.encode('utf-8')).hexdigest()
+            issue_diff_uid = issue.util.misc.create_hash(issue_diff_uid)
             issue_diff_file_path = os.path.join(
                 issue.util.paths.issues_path(),
                 issue_sha1[:2],
@@ -931,7 +930,7 @@ def commandOpen(ui):
                 ]
 
                 issue_diff_sha1 = '{0}{1}{2}{3}'.format(repo_config['author.email'], repo_config['author.name'], timestamp(), random.random())
-                issue_diff_sha1 = hashlib.sha1(issue_diff_sha1.encode('utf-8')).hexdigest()
+                issue_diff_sha1 = issue.util.misc.create_hash(issue_diff_sha1)
                 issue_diff_file_path = os.path.join(issue.util.paths.issues_path(), link_issue_sha1[:2], link_issue_sha1, 'diff', '{0}.json'.format(issue_diff_sha1))
                 with open(issue_diff_file_path, 'w') as ofstream:
                     ofstream.write(json.dumps(issue_differences))
@@ -1012,7 +1011,7 @@ def commandClose(ui):
         issue_differences[0]['params']['closing_git_commit'] = closing_git_commit
 
     issue_diff_sha1 = '{0}{1}{2}{3}'.format(repo_config['author.email'], repo_config['author.name'], timestamp(), random.random())
-    issue_diff_sha1 = hashlib.sha1(issue_diff_sha1.encode('utf-8')).hexdigest()
+    issue_diff_sha1 = issue.util.misc.create_hash(issue_diff_sha1)
     issue_diff_file_path = os.path.join(issue.util.paths.issues_path(), issue_sha1[:2], issue_sha1, 'diff', '{0}.json'.format(issue_diff_sha1))
     with open(issue_diff_file_path, 'w') as ofstream:
         ofstream.write(json.dumps(issue_differences))
@@ -1322,7 +1321,7 @@ def commandComment(ui):
         exit(1)
 
     issue_comment_timestamp = datetime.datetime.now().timestamp()
-    issue_comment_sha1 = hashlib.sha1(str('{0}{1}{2}'.format(issue_sha1, issue_comment_timestamp, issue_comment)).encode('utf-8')).hexdigest()
+    issue_comment_sha1 = issue.util.misc.create_hash('{0}{1}{2}'.format(issue_sha1, issue_comment_timestamp, issue_comment))
     issue_comment_data = {
         'message': issue_comment,
         'timestamp': issue_comment_timestamp,
@@ -1413,7 +1412,7 @@ def commandTag(ui):
         ]
 
         issue_diff_sha1 = '{0}{1}{2}{3}'.format(repo_config['author.email'], repo_config['author.name'], timestamp(), random.random())
-        issue_diff_sha1 = hashlib.sha1(issue_diff_sha1.encode('utf-8')).hexdigest()
+        issue_diff_sha1 = issue.util.misc.create_hash(issue_diff_sha1)
         issue_diff_file_path = os.path.join(issue.util.paths.issues_path(), issue_sha1[:2], issue_sha1, 'diff', '{0}.json'.format(issue_diff_sha1))
         with open(issue_diff_file_path, 'w') as ofstream:
             ofstream.write(json.dumps(issue_differences))
@@ -1458,7 +1457,7 @@ def commandParam(ui):
         issue_differences[0]['params']['value'] = operands[int(not ('--last' in ui))+1]
 
     issue_diff_sha1 = '{0}{1}{2}{3}'.format(repo_config['author.email'], repo_config['author.name'], timestamp(), random.random())
-    issue_diff_sha1 = hashlib.sha1(issue_diff_sha1.encode('utf-8')).hexdigest()
+    issue_diff_sha1 = issue.util.misc.create_hash(issue_diff_sha1)
     issue_diff_file_path = os.path.join(issue.util.paths.issues_path(), issue_sha1[:2], issue_sha1, 'diff', '{0}.json'.format(issue_diff_sha1))
     with open(issue_diff_file_path, 'w') as ofstream:
         ofstream.write(json.dumps(issue_differences))
@@ -1888,7 +1887,7 @@ def commandChain(ui):
             ]
 
             issue_diff_sha1 = '{0}{1}{2}{3}'.format(repo_config['author.email'], repo_config['author.name'], timestamp(), random.random())
-            issue_diff_sha1 = hashlib.sha1(issue_diff_sha1.encode('utf-8')).hexdigest()
+            issue_diff_sha1 = issue.util.misc.create_hash(issue_diff_sha1)
             issue_diff_file_path = os.path.join(issue.util.paths.issues_path(), issue_sha1[:2], issue_sha1, 'diff', '{0}.json'.format(issue_diff_sha1))
             with open(issue_diff_file_path, 'w') as ofstream:
                 ofstream.write(json.dumps(issue_differences))
