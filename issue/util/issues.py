@@ -3,6 +3,7 @@ import json
 import os
 import re
 import shutil
+import sys
 
 import unidecode
 
@@ -65,7 +66,10 @@ def getIssueDifferences(issue_sha1, *diffs):
     for d in diffs:
         issue_diff_file_path = os.path.join(issue_diff_path, '{0}.json'.format(d))
         with open(issue_diff_file_path) as ifstream:
-            issue_differences.extend(json.loads(ifstream.read()))
+            try:
+                issue_differences.extend(json.loads(ifstream.read()))
+            except json.decoder.JSONDecodeError:
+                sys.stderr.write('warning: problem with issue {} diff {}\n'.format(issue_sha1, d))
     return issue_differences
 
 def sortIssueDifferences(issue_differences):
