@@ -1079,10 +1079,32 @@ def commandLs(ui):
         delta_mods_since = issue.config.getConfig().get('default.time.recent', '1day').split(',')
 
     if '--since' in ui or '--recent' in ui:
-        since = (datetime.datetime.now() - datetime.timedelta(**get_time_delta_arguments(delta_mods_since)))
+        set_by_timepoint = False
+        for each in delta_mods_since:
+            try:
+                since = datetime.datetime.strptime(each, '%Y-%m-%d')
+                set_by_timepoint = True
+                break
+            except ValueError:
+                pass
+        if not set_by_timepoint:
+            since = (
+                datetime.datetime.now() - datetime.timedelta(
+                    **get_time_delta_arguments(delta_mods_since)))
 
     if '--until' in ui:
-        until = (datetime.datetime.now() - datetime.timedelta(**get_time_delta_arguments(delta_mods_until)))
+        set_by_timepoint = False
+        for each in delta_mods_until:
+            try:
+                until = datetime.datetime.strptime(each, '%Y-%m-%d')
+                set_by_timepoint = True
+                break
+            except ValueError:
+                pass
+        if not set_by_timepoint:
+            until = (
+                datetime.datetime.now() - datetime.timedelta(
+                    **get_time_delta_arguments(delta_mods_until)))
 
     issues_to_list = []
     for short, i in issues:
