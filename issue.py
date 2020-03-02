@@ -1208,8 +1208,8 @@ def commandDrop(ui):
         except issue.exceptions.IssueUIDAmbiguous:
             print('fail: issue uid {0} is ambiguous'.format(repr(issue_sha1)))
 
-def make_short_uid(uid):
-    return uid[:8]
+def make_short_uid(uid, limit = 8):
+    return uid[:max(8, limit)]
 
 def commandSlug(ui):
     issue_data = {}
@@ -1218,7 +1218,8 @@ def commandSlug(ui):
     issue_data = issue.util.issues.getIssue(issue_sha1)
     issue_message = issue_data['message'].splitlines()[0].strip()
     issue_slug = issue.util.issues.sluggify(issue_message)
-    issue_uid, issue_short_uid = issue_sha1, make_short_uid(issue_sha1)
+    issue_uid, issue_short_uid = issue_sha1, make_short_uid(
+        issue_sha1, limit = shortestUnique(issue.util.issues.ls()))
 
     slug_format = issue.config.getConfig().get('slug.format.default', '')
     if slug_format.startswith('@'):
@@ -1248,6 +1249,14 @@ def commandSlug(ui):
 
     if slug_format:
         try:
+            uid_regex = re.compile(r'\{uid:(\d+)\}')
+            uids_to_replace = uid_regex.findall(slug_format)
+            for each in map(int, uids_to_replace):
+                slug_format = slug_format.replace(
+                    '{{uid:{}}}'.format(each),
+                    issue_uid[:each],
+                )
+
             issue_slug = slug_format.format(
                 slug = issue_slug,
                 uid = issue_uid,
