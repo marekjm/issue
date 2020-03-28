@@ -59,9 +59,6 @@ except clap.errors.AmbiguousCommandError as e:
     print("ambiguous shortened command name: '{0}', candidates are: {1}".format(name, candidates))
     print("note: if this is a false positive use '--' operand separator")
     fail = True
-except Exception as e:
-    print('fatal: unhandled exception: {0}: {1}'.format(str(type(e))[8:-2], e))
-    fail, err = True, e
 finally:
     if fail: exit(1)
     ui = parser.parse().ui().finalise()
