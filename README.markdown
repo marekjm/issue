@@ -396,6 +396,6 @@ Issue requires a recent version of Python 3 (any above 3.6 should be good).
 
 Libraries:
 
-- [`CLAP`](https://github.com/marekjm/clap): at least `0.10.1` (must be installed from Git)
+- [`CLAP`](https://github.com/marekjm/clap): at least `0.15.0` (must be installed from Git)
 - `unidecode`: at least `1.0.23`
 - `colored`: at least `1.3.93` (optional; provides colorisation)
