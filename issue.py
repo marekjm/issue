@@ -1947,6 +1947,10 @@ def commandStatistics(ui):
     open_issues_count = len(open_issues)
     closed_issues_count = len(closed_issues)
 
+    if not issues_count:
+        print('No issues.')
+        exit(0)
+
     if True:
         percentage_closed = round((closed_issues_count/issues_count*100), 2)
         N = 40
