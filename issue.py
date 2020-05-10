@@ -65,7 +65,13 @@ finally:
 
 
 if '--version' in ui:
-    print('issue version {0}'.format(issue.__version__))
+    fmt = 'issue version {version}'
+    if '--verbose' in ui:
+        fmt += ' ({commit})'
+    print(fmt.format(
+        version = issue.__version__,
+        commit = issue.__commit__,
+    ))
     exit(0)
 if clap.helper.HelpRunner(ui=ui, program=sys.argv[0]).adjust(options=['-h', '--help']).run().displayed():
     exit(0)
