@@ -1149,7 +1149,17 @@ def commandLs(ui):
     if '--priority' in ui:
         issues_to_list = sorted(issues_to_list, key=lambda t: int(t[2].get('parameters', {}).get('priority', 1024)))
 
-    issues_to_list = sorted(issues_to_list, key = lambda each: each[2]['message'].splitlines()[0])
+    good_issues_to_list = []
+    for each in issues_to_list:
+        if 'message' not in each[2]:
+            fmt = '{}: broken issue {}: does not have a message\n'
+            sys.stderr.write(fmt.format(
+                colorise(COLOR_ERROR, 'error'),
+                colorise(COLOR_HASH, each[1]),
+            ))
+            continue
+        good_issues_to_list.append(each)
+    issues_to_list = sorted(good_issues_to_list, key = lambda each: each[2]['message'].splitlines()[0])
 
     limit = len(issues_to_list) - 1
     for n, each in enumerate(issues_to_list):
