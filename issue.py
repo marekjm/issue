@@ -1911,16 +1911,14 @@ def commandClone(ui):
 def commandChain(ui):
     ui = ui.down()
 
-    issue_sha1 = (getLastIssue() if '--last' in ui else ui.operands()[0])
+    issue_sha1 = ui.operands()[0]
     try:
         issue_sha1 = expandIssueUID(issue_sha1)
     except issue.exceptions.IssueUIDAmbiguous:
         print('fail: issue uid {0} is ambiguous'.format(repr(issue_sha1)))
         exit(1)
 
-    link_issue_sha1s = ui.operands()
-    if '--last' not in ui:
-        link_issue_sha1s = link_issue_sha1s[1:]
+    link_issue_sha1s = ui.operands()[1:]
     for i, link_issue_sha1 in enumerate(link_issue_sha1s):
         link_issue_sha1s[i] = expand_issue_uid_or_exir(link_issue_sha1)
 

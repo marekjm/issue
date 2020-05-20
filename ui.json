@@ -893,14 +893,6 @@
             "doc": {
                 "help": "Chain issues together"
             },
-            "options": {
-                "global": [
-                    {
-                        "long": "last",
-                        "help": "chain to last active issue"
-                    }
-                ]
-            },
             "commands": {
                 "link": {
                     "operands": {
