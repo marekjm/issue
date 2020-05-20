@@ -209,6 +209,11 @@ def shortestUnique(lst):
         n = (base_n // 2)
     return n
 
+def shortest_unique_prefix(seq = None):
+    if seq is None:
+        seq = issue.util.issues.ls()
+    return shortestUnique(seq)
+
 def listIssuesUsingShortestPossibleUIDs(with_full=False):
     list_of_issues = issue.util.issues.ls()
     n = shortestUnique(list_of_issues)
@@ -1581,6 +1586,8 @@ def commandShow(ui):
                 if colored: key = (colored.fg('green') + key + colored.attr('reset'))
                 print('    {0} = {1}'.format(key, value))
 
+        short_hash_chars = shortest_unique_prefix()
+
         parent_uid = issue_data.get('parent')
         if parent_uid:
             chained_issues_heading = '---- CHILD OF'
@@ -1589,7 +1596,7 @@ def commandShow(ui):
             print('\n{}'.format(chained_issues_heading))
             parent_issue = getIssue(parent_uid)
             print('    {0} ({1}): {2}'.format(
-                colorise(COLOR_HASH, parent_uid),
+                colorise(COLOR_HASH, parent_uid[:short_hash_chars]),
                 parent_issue.get('status'),
                 parent_issue.get('message', '').splitlines()[0]),
             )
@@ -1602,9 +1609,14 @@ def commandShow(ui):
             print('\n{}'.format(chained_issues_heading))
             for s in sorted(chained_issues):
                 chained_issue = issue.util.issues.getIssue(s)
+                short_hash = s[:short_hash_chars]
                 if colored:
-                    s = (colored.fg('yellow') + s + colored.attr('reset'))
-                print('    {0} ({1}): {2}'.format(s, chained_issue.get('status'), chained_issue.get('message', '').splitlines()[0]))
+                    short_hash = (colored.fg('yellow') + short_hash + colored.attr('reset'))
+                print('    {0} ({1}): {2}'.format(
+                    short_hash,
+                    chained_issue.get('status'),
+                    chained_issue.get('message', '').splitlines()[0],
+                ))
 
         if 'closing_git_commit' in issue_data:
             closing_git_commit_heading = '---- CLOSING GIT COMMIT'
