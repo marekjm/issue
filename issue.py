@@ -1601,6 +1601,23 @@ def commandShow(ui):
                 parent_issue.get('message', '').splitlines()[0]),
             )
 
+        attached_issues = issue_data.get('attached', [])
+        if attached_issues:
+            attached_issues_heading = '---- ATTACHED ISSUES'
+            if colored:
+                attached_issues_heading = (colored.fg('white') + attached_issues_heading + colored.attr('reset'))
+            print('\n{}'.format(attached_issues_heading))
+            for s in sorted(attached_issues):
+                attached_issue = issue.util.issues.getIssue(s)
+                short_hash = s[:short_hash_chars]
+                if colored:
+                    short_hash = (colored.fg('yellow') + short_hash + colored.attr('reset'))
+                print('    {0} ({1}): {2}'.format(
+                    short_hash,
+                    attached_issue.get('status'),
+                    attached_issue.get('message', '').splitlines()[0],
+                ))
+
         chained_issues = issue_data.get('chained', [])
         if chained_issues:
             chained_issues_heading = '---- CHAINED ISSUES'
@@ -1922,7 +1939,32 @@ def commandChain(ui):
     for i, link_issue_sha1 in enumerate(link_issue_sha1s):
         link_issue_sha1s[i] = expand_issue_uid_or_exir(link_issue_sha1)
 
-    if str(ui) == 'link':
+    if str(ui) == 'attach':
+        repo_config = issue.config.getConfig()
+
+        for link_issue_sha1 in link_issue_sha1s:
+            issue_differences = [
+                {
+                    'action': 'chain-attach',
+                    'params': {
+                        'sha1': [link_issue_sha1],
+                    },
+                    'author': {
+                        'author.email': repo_config['author.email'],
+                        'author.name': repo_config['author.name'],
+                    },
+                    'timestamp': timestamp(),
+                }
+            ]
+
+            issue_diff_sha1 = '{0}{1}{2}{3}'.format(repo_config['author.email'], repo_config['author.name'], timestamp(), random.random())
+            issue_diff_sha1 = issue.util.misc.create_hash(issue_diff_sha1)
+            issue_diff_file_path = os.path.join(issue.util.paths.issues_path(), issue_sha1[:2], issue_sha1, 'diff', '{0}.json'.format(issue_diff_sha1))
+            with open(issue_diff_file_path, 'w') as ofstream:
+                ofstream.write(json.dumps(issue_differences))
+            markLastIssue(issue_sha1)
+            issue.util.issues.indexIssue(issue_sha1, issue_diff_sha1)
+    elif str(ui) == 'link':
         repo_config = issue.config.getConfig()
 
         for link_issue_sha1 in link_issue_sha1s:

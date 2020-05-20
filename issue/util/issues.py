@@ -146,6 +146,10 @@ def indexIssue(issue_sha1, *diffs):
             issue_data['project.tag'] = d['params']['tag']
         elif diff_action == 'set-project-name':
             issue_data['project.name'] = d['params']['name']
+        elif diff_action == 'chain-attach':
+            if 'attached' not in issue_data:
+                issue_data['attached'] = []
+            issue_data['attached'].extend(d['params']['sha1'])
         elif diff_action == 'chain-link':
             if 'chained' not in issue_data:
                 issue_data['chained'] = []

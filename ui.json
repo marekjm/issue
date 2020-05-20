@@ -894,6 +894,14 @@
                 "help": "Chain issues together"
             },
             "commands": {
+                "attach": {
+                    "operands": {
+                        "no": [2],
+                        "help": {
+                            "names": ["master-issue", "attached-issue"]
+                        }
+                    }
+                },
                 "link": {
                     "operands": {
                         "no": [2],
