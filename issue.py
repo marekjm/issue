@@ -1625,7 +1625,11 @@ def commandShow(ui):
                 chained_issues_heading = (colored.fg('white') + chained_issues_heading + colored.attr('reset'))
             print('\n{}'.format(chained_issues_heading))
             for s in sorted(chained_issues):
-                chained_issue = issue.util.issues.getIssue(s)
+                try:
+                    chained_issue = issue.util.issues.getIssue(s)
+                except issue.exceptions.NotAnIssue:
+                    # Ignore dropped issues.
+                    continue
                 short_hash = s[:short_hash_chars]
                 if colored:
                     short_hash = (colored.fg('yellow') + short_hash + colored.attr('reset'))
