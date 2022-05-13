@@ -2083,6 +2083,8 @@ def commandStatistics(ui):
                 return summed / len(seq)
 
             def median_or_none(seq):
+                if not seq:
+                    return None
                 s = sorted(seq)
                 i = len(s) // 2
                 if len(s) % 2 == 0:
@@ -2101,14 +2103,27 @@ def commandStatistics(ui):
             avg_lifetime_of_all = avg_or_none(lifetimes_of_closed + lifetimes_of_still_open)
             med_lifetime_of_all = median_or_none(lifetimes_of_closed + lifetimes_of_still_open)
 
-            perc_total_closed_of_open = (total_lifetime_of_closed / total_lifetime_of_still_open) * 100
-            perc_total_closed_of_all = (total_lifetime_of_closed / total_lifetime_of_all) * 100
-            perc_avg_closed_of_open = (avg_lifetime_of_closed / avg_lifetime_of_still_open) * 100
-            perc_avg_closed_of_all = (avg_lifetime_of_closed / avg_lifetime_of_all) * 100
+            if (total_lifetime_of_closed is None) or (total_lifetime_of_still_open is None):
+                perc_total_closed_of_open = None
+                perc_total_closed_of_all = None
+                perc_avg_closed_of_open = None
+                perc_avg_closed_of_all = None
 
-            perc_total_open_more_than_closed = (
-                ((total_lifetime_of_still_open / total_lifetime_of_closed) * 100) - 100
-            )
+                perc_total_open_more_than_closed = None
+            else:
+                perc_total_closed_of_open = (total_lifetime_of_closed / total_lifetime_of_still_open) * 100
+                perc_total_closed_of_all = (total_lifetime_of_closed / total_lifetime_of_all) * 100
+                perc_avg_closed_of_open = (avg_lifetime_of_closed / avg_lifetime_of_still_open) * 100
+                perc_avg_closed_of_all = (avg_lifetime_of_closed / avg_lifetime_of_all) * 100
+
+                perc_total_open_more_than_closed = (
+                    ((total_lifetime_of_still_open / total_lifetime_of_closed) * 100) - 100
+                )
+
+            def round_or_none(f, precision):
+                if f is None:
+                    return None
+                return round(f, precision)
 
             print('lifetime of {} {} issues:'.format(
                 len(closed_issues),
@@ -2116,13 +2131,13 @@ def commandStatistics(ui):
             ))
             print('    total: {} ({}% of open, {}% of all)'.format(
                 total_lifetime_of_closed,
-                round(perc_total_closed_of_open, 2),
-                round(perc_total_closed_of_all, 2),
+                round_or_none(perc_total_closed_of_open, 2),
+                round_or_none(perc_total_closed_of_all, 2),
             ))
             print('    avg:   {} ({}% of open, {}% of all)'.format(
                 avg_lifetime_of_closed,
-                round(perc_avg_closed_of_open, 2),
-                round(perc_avg_closed_of_all, 2),
+                round_or_none(perc_avg_closed_of_open, 2),
+                round_or_none(perc_avg_closed_of_all, 2),
             ))
             print('    med:   {}'.format(
                 med_lifetime_of_closed,
@@ -2134,7 +2149,7 @@ def commandStatistics(ui):
             ))
             print('    total: {} ({}% more than closed)'.format(
                 total_lifetime_of_still_open,
-                round(perc_total_open_more_than_closed, 2),
+                round_or_none(perc_total_open_more_than_closed, 2),
             ))
             print('    avg:   {}'.format(avg_lifetime_of_still_open))
             print('    med:   {}'.format(
