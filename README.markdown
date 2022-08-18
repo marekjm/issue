@@ -322,33 +322,61 @@ $ issue help -c ls --open
 
 --------------------------------------------------------------------------------
 
-### Arcane features: Issues distribution (HERE BE DRAGONS!)
+## Arcane features: Issues distribution (HERE BE DRAGONS!)
 
-> Note that using the built-in features for issue distribution is discouraged.
-> They are slow, inefficient, and not really tested. It is much better to just
-> track issue repository as a normal directory in your Git repository.
+Issue is designed as a distributed system.
+Every node in the network operates as a peer to others, and
+there is no central one.
 
-Issue is designed as a distributed system, with a *pull* method for data distribution.
-A peer must explicitly pull the data and cannot push it.
-Currently, Issue can use only SSH for issue distribution.
+Issue uses SSH and `rsync(1)` for data transfer.
 
-Remote nodes are managed with `remote` command:
+### How do I add a remote?
 
-- `issue remote set --url <username>@<hostname>:<path> <remote-name>` - to set a remote,
-- `issue remote set --key <key-name> --value <data> <remote-name>` - to set additional info for a remote,
-- `issue remote ls [--verbose]` - to list available remote names (include `--verbose` to display SSH URLs in the report),
-- `issue remote rm <remote-name>` - to remove a remote,
+```
+$ issue remote set example johndoe@example.com:repo.issue
+```
 
-Before peers can fetch data from a node, it must *pack* its repository to announce what is available from it.
-Each node should maintain an up-to-date pack of itself.
-Pack is updated with `issue --pack` command.
+### How do I remove a remote?
 
-Obtaining data from a node is simple:
+```
+$ issue remote rm example
+```
 
-- `issue fetch --probe <remote-name>` - to probe a remote and display how much data it holds that is locally unavailable,
-- `issue fetch <remote-name>` - to fetch locally unavailable data,
+### How do I list all remotes I have configured?
 
-Every node in the network operates as a peer to others, and there is no central one.
+```
+$ issue remote ls
+```
+
+Or use the `--verbose` flag to see remote names and URLs:
+
+```
+$ issue remote ls --verbose
+```
+
+### How do I pull issues from a remote?
+
+```
+$ issue pull foo-remote
+```
+
+If you only wish to see what would be pulled use:
+
+```
+$ issue pull --dry-run foo-remote
+```
+
+### How do I push issues to a remote?
+
+```
+$ issue push foo-remote
+```
+
+If you only wish to see what would be transferred use:
+
+```
+$ issue push --dry-run foo-remote
+```
 
 --------------------------------------------------------------------------------
 

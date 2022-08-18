@@ -116,36 +116,6 @@ def saveRemotes(remotes):
     with open(remotes_path, 'w') as ofstream:
         ofstream.write(json.dumps(remotes))
 
-def getPack():
-    pack_data = {
-        'issues': [],
-        'comments': {},
-        'diffs': {},
-    }
-
-    pack_issue_list = issue.util.issues.ls()
-    pack_data['issues'] = pack_issue_list
-
-    pack_comments = {}
-    for p in pack_issue_list:
-        pack_comments_path = issue.util.paths.comments_path_of(p)
-        pack_comments[p] = [sp.split('.')[0] for sp in os.listdir(pack_comments_path)]
-    pack_data['comments'] = pack_comments
-
-    pack_diffs = {}
-    for p in pack_issue_list:
-        pack_diffs_path = os.path.join(issue.util.paths.issues_path(), p[:2], p, 'diff')
-        pack_diffs[p] = [sp.split('.')[0] for sp in os.listdir(pack_diffs_path)]
-    pack_data['diffs'] = pack_diffs
-
-    return pack_data
-
-def savePack(pack_data=None):
-    if pack_data is None:
-        pack_data = getPack()
-    with open(issue.util.paths.pack_path(), 'w') as ofstream:
-        ofstream.write(json.dumps(pack_data))
-
 
 # misc utility functions
 def expandIssueUID(issue_sha1_part):
@@ -261,230 +231,65 @@ def get_time_delta_arguments(delta_mods):
             raise issue.exceptions.Invalid_time_delta_specification(delta_mods)
     return time_delta
 
-def fetchRemote(remote_name, remote_data=None, local_pack=None):
-    if remote_data is None:
-        remote_data = getRemotes()[remote_name]
-    if local_pack is None:
-        local_pack = getPack()
-    remote_pack_fetch_command = ('scp', '{0}/pack.json'.format(remote_data['url']),
-            issue.util.paths.remote_pack_path())
-    exit_code, output, error = runShell(*remote_pack_fetch_command)
+def transfer_objects_between(source, destination):
+    rsync_argv = [ 'rsync', ]
 
-    if exit_code:
-        print('  * fail ({0}): {1}'.format(exit_code, error))
-        return 1
+    global ui
+    if '--dry-run' in ui:
+        rsync_argv.append('--dry-run')
+    if '--quiet' not in ui:
+        rsync_argv.extend([
+            '--stats',
+            '--human-readable',
+        ])
+    else:
+        rsync_argv.append('--quiet')
+    if '--verbose' in ui:
+        rsync_argv.extend([
+            '--verbose',
+            '--progress',
+        ])
 
-    remote_pack = {}
-    with open(issue.util.paths.remote_pack_path()) as ifstream:
-        remote_pack = json.loads(ifstream.read())
+    rsync_options = (
+        '--recursive',
+        '--checksum',
+        '--preallocate',
+        '--compress',
+        '--prune-empty-dirs',
+    )
+    rsync_argv.extend(rsync_options)
 
-    new_issues = set(remote_pack['issues']) - set(local_pack['issues'])
-    # print(new_issues)
+    rsync_filter_rules = (
+        'include /objects/issues/*/*/diff/*.json',
+        'exclude /tmp/',
+        'exclude /log/',
+        'include */',
+        'exclude *',
+    )
+    for rule in rsync_filter_rules:
+        rsync_argv.append('--filter')
+        rsync_argv.append(rule)
 
-    new_comments = {}
-    for k, v in remote_pack['comments'].items():
-        if k in local_pack['comments']:
-            new_comments[k] = set(remote_pack['comments'][k]) - set(local_pack['comments'][k])
-        else:
-            new_comments[k] = remote_pack['comments'][k]
-    # print(new_comments)
+    rsync_argv.append(f'{source}/')
+    rsync_argv.append(f'{destination}/')
 
-    new_diffs = {}
-    for k, v in remote_pack.get('diffs', {}).items():
-        if k in local_pack['diffs']:
-            new_diffs[k] = set(remote_pack['diffs'][k]) - set(local_pack['diffs'][k])
-        else:
-            new_diffs[k] = remote_pack['diffs'][k]
-    # print(new_diffs)
+    return subprocess.call(rsync_argv)
 
-    print('  * issues:   {0} object(s)'.format(len(new_issues)))
-    print('  * comments: {0} object(s)'.format(sum([len(new_comments[k]) for k in new_comments])))
-    print('  * diffs:    {0} object(s)'.format(sum([len(new_diffs[k]) for k in new_diffs])))
+def pull_from_remote(remote_name, remote_url):
+    if transfer_objects_between(remote_url, '.issue'):
+        fmt = '{}: failed to pull some or all objects from remote {}\n'
+        sys.stderr.write(fmt.format(
+            colorise(COLOR_ERROR, 'error'),
+            colorise_repr('white', remote_name),
+        ))
 
-    if '--probe' in ui:
-        return 0
-
-    for issue_sha1 in new_issues:
-        issue_group_path = os.path.join(issue.util.paths.issues_path(), issue_sha1[:2])
-        if not os.path.isdir(issue_group_path):
-            os.mkdir(issue_group_path)
-        # make directories for issue-specific objects
-        os.mkdir(os.path.join(issue_group_path, issue_sha1))
-        os.mkdir(os.path.join(issue_group_path, issue_sha1, 'comments'))
-        os.mkdir(os.path.join(issue_group_path, issue_sha1, 'diff'))
-
-    for issue_sha1 in new_comments:
-        if not new_comments[issue_sha1]:
-            continue
-
-        for cmt_sha1 in new_comments[issue_sha1]:
-            exit_code, output, error = runShell(
-                'scp',
-                '{0}/objects/issues/{1}/{2}/comments/{3}.json'.format(
-                    remote_data['url'],
-                    issue_sha1[:2],
-                    issue_sha1,
-                    cmt_sha1,
-                ),
-                os.path.join(issue.util.paths.issues_path(), issue_sha1[:2], issue_sha1, 'comments', '{0}.json'.format(cmt_sha1))
-            )
-
-            if exit_code:
-                print('  * fail ({0}): comment {1}.{2}: {3}'.format(exit_code, issue_sha1, cmt_sha1, error))
-                continue
-
-    for issue_sha1 in new_diffs:
-        if not new_diffs[issue_sha1]:
-            continue
-
-        if '--verbose' in ui:
-            print(' -> fetching issue: {0}'.format(issue_sha1))
-
-        total_diffs = len(new_diffs[issue_sha1])
-        for i, cmt_sha1 in enumerate(new_diffs[issue_sha1]):
-            if '--verbose' in ui:
-                print('    + diff: {0}: {1}/{2}'.format(cmt_sha1, (i+1), total_diffs))
-            exit_code, output, error = runShell(
-                'scp',
-                '{0}/objects/issues/{1}/{2}/diff/{3}.json'.format(
-                    remote_data['url'],
-                    issue_sha1[:2],
-                    issue_sha1,
-                    cmt_sha1,
-                ),
-                os.path.join(issue.util.paths.issues_path(), issue_sha1[:2], issue_sha1, 'diff', '{0}.json'.format(cmt_sha1))
-            )
-
-            if exit_code:
-                print('  * fail ({0}): diff {1}.{2}: {3}'.format(exit_code, issue_sha1, cmt_sha1, error))
-                continue
-
-def publishToRemote(remote_name, remote_data=None, local_pack=None, republish=False):
-    if remote_data is None:
-        remote_data = getRemotes()[remote_name]
-    if local_pack is None:
-        local_pack = getPack()
-
-    remote_status = remote_data.get('status', 'unknown')
-    if remote_status != 'exchange':
-        print('cannot publish to "{0}": invalid remote status: {1}'.format(remote_name, remote_status))
-        if '--verbose' in ui:
-            if remote_status == 'endpoint':
-                print('note: create a shared exchange from which "{0}" endpoint can fetch objects'.format(remote_name))
-            elif remote_status == 'unknown':
-                print('note: run "issue fetch --status {0}" to obtain status of this node'.format(remote_name))
-            else:
-                print('note: broken status, run "issue fetch --status {0}" to fix it'.format(remote_name))
-        return 1
-    print('publishing objects to remote: {0}'.format(remote_name))
-
-    remote_pack = {'issues': [], 'comments': {}}
-
-    if not republish:
-        remote_pack_fetch_command = ('scp', '{0}/pack.json'.format(remote_data['url']), issue.util.paths.remote_pack_path())
-        exit_code, output, error = runShell(*remote_pack_fetch_command)
-
-        if exit_code == 0:
-            with open(issue.util.paths.remote_pack_path()) as ifstream:
-                remote_pack = json.loads(ifstream.read())
-
-    new_issues = set(local_pack['issues']) - set(remote_pack['issues'])
-    # print(new_issues)
-
-    new_comments = {}
-    for k, v in local_pack['comments'].items():
-        if k in remote_pack.get('comments', []):
-            new_comments[k] = set(local_pack['comments'][k]) - set(remote_pack.get('comments', {}).get(k, []))
-        else:
-            new_comments[k] = local_pack['comments'][k]
-    # print(new_comments)
-
-    new_diffs = {}
-    for k, v in local_pack['diffs'].items():
-        if k in remote_pack.get('diffs', {}):
-            new_diffs[k] = set(local_pack['diffs'][k]) - set(remote_pack.get('diffs', {}).get(k, []))
-        else:
-            new_diffs[k] = local_pack['diffs'][k]
-    # print(new_diffs)
-
-    print('  * publishing issues:   {0} object(s)'.format(len(new_issues)))
-    print('  * publishing comments: {0} object(s)'.format(sum([len(new_comments[k]) for k in new_comments])))
-    print('  * publishing diffs:    {0} object(s)'.format(sum([len(new_diffs[k]) for k in new_diffs])))
-
-    for issue_sha1 in new_issues:
-        print(' -> publishing issue: {0}'.format(issue_sha1))
-        issue_group_path = os.path.join(issue.util.paths.issues_path(), issue_sha1[:2])
-
-        required_directories = [
-            os.path.join('objects', 'issues', issue_sha1[:2]),
-            os.path.join('objects', 'issues', issue_sha1[:2], issue_sha1),
-            os.path.join('objects', 'issues', issue_sha1[:2], issue_sha1, 'comments'),
-            os.path.join('objects', 'issues', issue_sha1[:2], issue_sha1, 'diff'),
-        ]
-
-        remote_repository_host, remote_repository_path = remote_data['url'].split(':')
-        required_directories = [os.path.join(remote_repository_path, rd) for rd in required_directories]
-        remote_mkdir_command = 'mkdir -p {0}'.format(' '.join(required_directories))
-
-        exit_code, output, error = runShell(
-            'ssh',
-            remote_repository_host,
-            remote_mkdir_command,
-        )
-
-        if exit_code:
-            print('  * fail ({0}): cannot create required directories: {1}'.format(exit_code, error))
-            continue
-
-    for issue_sha1 in new_comments:
-        if not new_comments[issue_sha1]:
-            continue
-
-        for cmt_sha1 in new_comments[issue_sha1]:
-            exit_code, output, error = runShell(
-                'scp',
-                os.path.join(issue.util.paths.issues_path(), issue_sha1[:2], issue_sha1, 'comments', '{0}.json'.format(cmt_sha1)),
-                '{0}/objects/issues/{1}/{2}/comments/{3}.json'.format(
-                    remote_data['url'],
-                    issue_sha1[:2],
-                    issue_sha1,
-                    cmt_sha1,
-                )
-            )
-
-            if exit_code:
-                print('  * fail ({0}): comment {1}.{2}: {3}'.format(exit_code, issue_sha1, cmt_sha1, error))
-                continue
-
-    for issue_sha1 in new_diffs:
-        if not new_diffs[issue_sha1]:
-            continue
-
-        total_diffs = len(new_diffs[issue_sha1])
-        for i, diff_sha1 in enumerate(new_diffs[issue_sha1]):
-            if '--verbose' in ui:
-                print('    + diff: {0}: {1}/{2}'.format(diff_sha1, (i+1), total_diffs))
-            exit_code, output, error = runShell(
-                'scp',
-                os.path.join(issue.util.paths.issues_path(), issue_sha1[:2], issue_sha1, 'diff', '{0}.json'.format(diff_sha1)),
-                '{0}/objects/issues/{1}/{2}/diff/{3}.json'.format(
-                    remote_data['url'],
-                    issue_sha1[:2],
-                    issue_sha1,
-                    diff_sha1,
-                )
-            )
-
-            if exit_code:
-                print('  * fail ({0}): diff {1}.{2}: {3}'.format(exit_code, issue_sha1, diff_sha1, error))
-                continue
-
-    remote_pack_publish_command = ('scp', os.path.join(issue.util.paths.pack_path()), '{0}/pack.json'.format(remote_data['url']))
-    exit_code, output, error = runShell(*remote_pack_publish_command)
-
-    if exit_code:
-        print('  * fail ({0}): failed to send pack: {1}'.format(exit_code, error))
-        return 1
+def push_to_remote(remote_name, remote_url):
+    if transfer_objects_between('.issue', remote_url):
+        fmt = '{}: failed to push some or all objects to remote {}\n'
+        sys.stderr.write(fmt.format(
+            colorise(COLOR_ERROR, 'error'),
+            colorise_repr('white', remote_name),
+        ))
 
 def timestamp(dt=None):
     return (dt or datetime.datetime.now()).timestamp()
@@ -663,26 +468,6 @@ def get_release_diffs(release_name):
 ######################################################################
 # LOGIC CODE
 #
-if '--pack' in ui:
-    print('packing objects:')
-    pack_data = getPack()
-
-    count_issues = len(pack_data['issues'])
-    count_comments = sum([len(pack_data['comments'][n]) for n in pack_data['comments'].keys()])
-    count_diffs = sum([len(pack_data['diffs'][n]) for n in pack_data['diffs'].keys()])
-
-    print('  * issues  ', end='')
-    print(' [{0} object(s)]'.format(count_issues))
-
-    print('  * comments', end='')
-    print(' [{0} object(s)]'.format(count_comments))
-
-    print('  * diffs   ', end='')
-    print(' [{0} object(s)]'.format(count_diffs))
-
-    savePack(pack_data)
-    exit(0)
-
 if '--nuke' in ui:
     repository_exists = os.path.isdir(issue.util.paths.get_repository_path())
     if not repository_exists and ui.get('--nuke') <= 1:
@@ -705,7 +490,6 @@ def commandInit(ui):
     repository_where = issue.util.misc.first_or(ui.operands(), '.')
     initialised_where = issue.repository.init(
         where = repository_where,
-        status = ('exchange' if '--exchange' in ui else 'endpoint'),
         force = ('--force' in ui),
         up = ('--up' in ui),
     )
@@ -1805,7 +1589,10 @@ def commandRemote(ui):
 
     if str(ui) == 'ls':
         for k, remote_data in remotes.items():
-            print(('{0} [{1}] => {2}' if '--verbose' in ui else '{0}').format(k, remote_data.get('status', 'unknown'), remote_data['url']))
+            print(('{}\t{}' if '--verbose' in ui else '{}').format(
+                k,
+                remote_data['url']
+            ))
     elif str(ui) == 'set':
         remote_name = operands[0]
         if remote_name not in remotes:
@@ -1836,49 +1623,25 @@ def commandRemote(ui):
             print('fatal: remote does not exist: {0}'.format(remote_name))
             exit(1)
 
-def commandFetch(ui):
+def commandPull(ui):
     ui = ui.down()
     remotes = getRemotes()
-    fetch_from_remotes = (ui.operands() or sorted(remotes.keys()))
-    if '--status' in ui:
-        for remote_name in fetch_from_remotes:
-            if '--unknown-status' in ui and not (remotes[remote_name].get('status', 'unknown') == 'unknown'):
-                # if --unknown-status is specified fetch only when status is 'unknown'
-                continue
-            print('fetching status from remote: {0}'.format(remote_name))
-            remote_status_path = os.path.join(issue.util.paths.tmp_path(), 'status')
-            remote_pack_fetch_command = ('scp', '{0}/status'.format(remotes[remote_name]['url']), remote_status_path)
-            exit_code, output, error = runShell(*remote_pack_fetch_command)
-            if exit_code:
-                print('  * fail ({0}): {1}'.format(exit_code, error))
-                continue
-            with open(remote_status_path) as ifstream:
-                remotes[remote_name]['status'] = ifstream.read().strip()
-        saveRemotes(remotes)
-    else:
-        for remote_name in fetch_from_remotes:
-            print('{1} objects from remote: {0}'.format(remote_name, ('probing' if '--probe' in ui else 'fetching')))
-            fetchRemote(remote_name, remotes[remote_name])
-        if '--index' in ui:
-            for issue_sha1 in issue.util.issues.ls():
-                issue.util.issues.indexIssue(issue_sha1)
+    pull_from_remotes = (ui.operands() or sorted(remotes.keys()))
 
-def commandPublish(ui):
+    for remote_name in pull_from_remotes:
+        pull_from_remote(remote_name, remotes[remote_name]['url'])
+
+    if '--index' in ui:
+        for issue_uuid in issue.util.issues.ls():
+            issue.util.issues.indexIssue(issue_uuid)
+
+def commandPush(ui):
     ui = ui.down()
-    local_pack = getPack()
     remotes = getRemotes()
-    publish_to_remotes = (ui.operands() or sorted([k for k in remotes.keys() if remotes[k].get('status', 'unknow') == 'exchange']))
-
-    if '--fetch' in ui:
-        for remote_name in publish_to_remotes:
-            print('fetching remote "{0}" before publishing'.format(remote_name))
-            fetchRemote(remote_name, remotes[remote_name])
-
-    if '--pack' in ui:
-        savePack()
+    publish_to_remotes = (ui.operands() or sorted(remotes.keys()))
 
     for remote_name in publish_to_remotes:
-        publishToRemote(remote_name, remotes[remote_name], local_pack, republish=('--republish' in ui))
+        push_to_remote(remote_name, remotes[remote_name]['url'])
 
 def commandIndex(ui):
     ui = ui.down()
@@ -1889,24 +1652,31 @@ def commandIndex(ui):
         for i in issue.util.issues.ls():
             if not os.listdir(os.path.join(issue.util.paths.issues_path(), i[:2], i, 'diff')):
                 issue_list.append(i)
-    for issue_sha1 in issue_list:
-        issue_sha1 = expandIssueUID(issue_sha1)
+    n = shortestUnique(issue_list)
+    for issue_uuid in issue_list:
+        issue_uuid = expandIssueUID(issue_uuid)
+        short_uuid = issue_uuid[:n]
         if '--reverse' in ui:
-            print('rev-indexing issue: {0}'.format(issue_sha1))
-            issue.util.issues.revindexIssue(issue_sha1)
+            print('rev-indexing issue: {0}'.format(short_uuid))
+            issue.util.issues.revindexIssue(issue_uuid)
         else:
             if '--verbose' in ui:
-                print('indexing issue: {}'.format(issue_sha1))
-            issue.util.issues.indexIssue(issue_sha1)
-    if '--pack' in ui:
-        savePack()
+                print('indexing issue: {}'.format(
+                    colorise(COLOR_HASH, short_uuid),
+                ))
+            issue.util.issues.indexIssue(issue_uuid)
 
 def commandClone(ui):
     ui = ui.down()
     operands = ui.operands()
 
     try:
-        repositoryInit(force=('--force' in ui))
+        initialised_where = issue.repository.init(
+            where = '.',
+            force = ('--force' in ui),
+        )
+        if '--verbose' in ui:
+            print('repository initialised in {0}'.format(initialised_where))
     except issue.exceptions.RepositoryExists:
         print('fatal: repository exists')
         exit(1)
@@ -1917,17 +1687,9 @@ def commandClone(ui):
 
     remotes[remote_name] = {}
     remotes[remote_name]['url'] = remote_url
-    fetchRemote(remote_name, remotes[remote_name])
-
-    remote_status_path = os.path.join(issue.util.paths.tmp_path(), 'status')
-    remote_pack_fetch_command = ('scp', '{0}/status'.format(remotes[remote_name]['url']), remote_status_path)
-    exit_code, output, error = runShell(*remote_pack_fetch_command)
-    if exit_code:
-        print('  could not fetch status, use "issue fetch -U" to try again')
-    if exit_code == 0:
-        with open(remote_status_path) as ifstream:
-            remotes[remote_name]['status'] = ifstream.read().strip()
     saveRemotes(remotes)
+
+    pull_from_remote(remote_name, remote_url)
 
 def commandChain(ui):
     ui = ui.down()
@@ -2332,8 +2094,8 @@ dispatch(ui,        # first: pass the UI object to dispatch
     commandShow,
     commandConfig,
     commandRemote,
-    commandFetch,
-    commandPublish,
+    commandPull,
+    commandPush,
     commandIndex,
     commandClone,
     commandChain,

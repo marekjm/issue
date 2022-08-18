@@ -33,13 +33,7 @@
                 "help": "show version"
             },
             {
-                "long": "pack",
-                "conflicts": ["--nuke"],
-                "help": "pack information about objects for remote fetchers"
-            },
-            {
                 "long": "nuke",
-                "conflicts": ["--pack"],
                 "plural": true,
                 "help": "remove the repository, use --nuke --nuke to silence errors about nonexistent repositories"
             },
@@ -70,11 +64,6 @@
                         "short": "f",
                         "conflicts": ["--up"],
                         "help": "force initialisation of the repository (removes previous repository if one was already initialised)"
-                    },
-                    {
-                        "long": "exchange",
-                        "short": "e",
-                        "help": "initialise the repository as an exchange (allowing pushes)"
                     },
                     {
                         "long": "up",
@@ -762,36 +751,28 @@
                 "no": [0, 0]
             }
         },
-        "fetch": {
+        "pull": {
             "doc": {
-                "help": "Fetch objects from remote repositories",
-                "usage": [
-                    "fetch [--probe]"
-                ]
+                "help": "Pull objects from remote repositories"
             },
             "options": {
                 "local": [
                     {
-                        "short": "p",
-                        "long": "probe",
-                        "help": "only probe the remotes for their state, don't download issue objects"
+                        "short": "n",
+                        "long": "dry-run",
+                        "help": "do not pull anything, only see what would be done"
+                    },
+                    {
+                        "short": "q",
+                        "long": "quiet",
+                        "help": "be quiet",
+                        "conflicts": ["--verbose"]
                     },
                     {
                         "short": "i",
                         "long": "index",
                         "conflicts": ["--status"],
                         "help": "index repository after fetching objects"
-                    },
-                    {
-                        "short": "s",
-                        "long": "status",
-                        "help": "fetch only status specifications from remotes"
-                    },
-                    {
-                        "short": "U",
-                        "long": "unknown-status",
-                        "implies": ["--status"],
-                        "help": "fetch status specifications from remotes with 'unknown' status, implies --status"
                     }
                 ]
             },
@@ -802,9 +783,9 @@
                 }
             }
         },
-        "publish": {
+        "push": {
             "doc": {
-                "help": "Publish issues on an remote",
+                "help": "Push issues to a remote",
                 "usage": [
                     "publish [<remote>...]"
                 ]
@@ -812,19 +793,20 @@
             "options": {
                 "local": [
                     {
-                        "short": "p",
-                        "long": "pack",
-                        "help": "pack objects before publishing"
-                    },
-                    {
                         "short": "r",
                         "long": "republish",
-                        "help": "republish full pack, i.e. push all objects to the remote and don't check if they exist there or not"
+                        "help": "republish full pack ie, push all objects to the remote and don't check if they exist there or not"
                     },
                     {
-                        "short": "f",
-                        "long": "fetch",
-                        "help": "fetch objects from remote before publishing"
+                        "short": "n",
+                        "long": "dry-run",
+                        "help": "do not push anything, only see what would be done"
+                    },
+                    {
+                        "short": "q",
+                        "long": "quiet",
+                        "help": "be quiet",
+                        "conflicts": ["--verbose"]
                     }
                 ]
             },
@@ -844,11 +826,6 @@
             },
             "options": {
                 "local": [
-                    {
-                        "short": "p",
-                        "long": "pack",
-                        "help": "pack objects after indexing"
-                    },
                     {
                         "short": "r",
                         "long": "reverse",
