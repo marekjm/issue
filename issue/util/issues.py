@@ -113,6 +113,8 @@ def indexIssue(issue_sha1, *diffs):
             issue_data['close.timestamp'] = d['timestamp']
             if 'closing_git_commit' in d['params'] and d['params']['closing_git_commit']:
                 issue_data['closing_git_commit'] = d['params']['closing_git_commit']
+            if 'git_timestamp' in d['params']:
+                issue_data['close.timestamp'] = d['params']['git_timestamp']
         elif diff_action == 'set-message':
             issue_data['message'] = d['params']['text']
         # support both -tags and -labels ("labels" name has been used in pre-0.1.5 versions)

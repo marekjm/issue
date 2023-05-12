@@ -796,11 +796,12 @@ def commandClose(ui):
             exit(exit_code)
         output_lines = output.splitlines()
         closing_git_commit = output_lines[0].split(' ')[1]
-        issue_differences[0]['timestamp'] = datetime.datetime.strptime(
+        git_timestamp = datetime.datetime.strptime(
             output_lines[2],
             'Date:\t%Y-%m-%d %H:%M:%S %z',
         ).timestamp()
         issue_differences[0]['params']['closing_git_commit'] = closing_git_commit
+        issue_differences[0]['params']['git_timestamp'] = git_timestamp
 
     issue_diff_sha1 = '{0}{1}{2}{3}'.format(repo_config['author.email'], repo_config['author.name'], timestamp(), random.random())
     issue_diff_sha1 = issue.util.misc.create_hash(issue_diff_sha1)
