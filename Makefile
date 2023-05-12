@@ -17,3 +17,6 @@ install:
 	mkdir -p $(LIB_DIR)/issue
 	cp -R ./issue/* $(LIB_DIR)/issue/
 	sed -i 's/\<HEAD\>/$(shell git rev-parse HEAD)/' $(LIB_DIR)/issue/__init__.py
+
+format:
+	black -t py311 issue.py issue/

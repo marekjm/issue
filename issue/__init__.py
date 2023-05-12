@@ -9,5 +9,5 @@ from . import repository
 from . import objects
 
 
-__version__ = '0.5.1'
-__commit__ = 'HEAD'
+__version__ = "0.5.1"
+__commit__ = "HEAD"

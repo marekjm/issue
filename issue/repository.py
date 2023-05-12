@@ -8,8 +8,9 @@ def make_dir_if_not_exists(path):
     if not os.path.isdir(path):
         os.mkdir(path)
 
+
 def init(where: str, force: bool = False, up: bool = False):
-    repository_path = issue.util.paths.get_repository_path(where = where)
+    repository_path = issue.util.paths.get_repository_path(where=where)
 
     if force and os.path.isdir(repository_path):
         shutil.rmtree(repository_path)
