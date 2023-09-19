@@ -926,13 +926,19 @@ def commandClose(ui):
         exit(1)
 
     ts = None
+    reuse_git_timestamp = False
 
-    if "-t" in ui:
-        ts = datetime.datetime.strptime(ui.get("-t"), "%Y-%m-%dT%H:%M:%S")
+    if forced_ts := (ui.get("-t") if "-t" in ui else None):
+        if forced_ts == "git":
+            reuse_git_timestamp = True
+        else:
+            ts = datetime.datetime.strptime(forced_ts, "%Y-%m-%dT%H:%M:%S")
     issue_differences = [
         {
             "action": "close",
-            "params": {},
+            "params": {
+                "reuse_git_timestamp": reuse_git_timestamp,
+            },
             "author": {
                 "author.email": repo_config["author.email"],
                 "author.name": repo_config["author.name"],

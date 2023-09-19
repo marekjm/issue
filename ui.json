@@ -165,7 +165,7 @@
                         "short": "t",
                         "long": "timestamp",
                         "arguments": ["%Y-%m-%dT%H:%M:%S:str"],
-                        "help": "use as timestamp"
+                        "help": "use argument as timestamp; use -t git to reuse closing commit's timestamp"
                     }
                 ]
             },
