@@ -665,6 +665,10 @@ def commandOpen(ui):
     os.mkdir(os.path.join(issue_group_path, issue_sha1, "comments"))
     os.mkdir(os.path.join(issue_group_path, issue_sha1, "diff"))
 
+    explicit_time = None
+    if "-T" in ui:
+        explicit_time = datetime.datetime.strptime(ui.get("-T"), "%Y-%m-%dT%H:%M:%S")
+
     issue_differences = [
         {
             "action": "open",
@@ -672,7 +676,7 @@ def commandOpen(ui):
                 "author.email": repo_config["author.email"],
                 "author.name": repo_config["author.name"],
             },
-            "timestamp": timestamp(),
+            "timestamp": timestamp(explicit_time),
         },
         {
             "action": "set-message",

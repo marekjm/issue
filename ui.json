@@ -97,6 +97,12 @@
                         "help": "add tag to the issue"
                     },
                     {
+                        "long": "time",
+                        "short": "T",
+                        "arguments": ["%Y-%m-%dT%H:%M:%S:str"],
+                        "help": "use T as timestamp instead of the current time"
+                    },
+                    {
                         "long": "milestone",
                         "short": "M",
                         "arguments": ["name:str"],
