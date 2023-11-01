@@ -116,6 +116,32 @@ A comment
 #
 ```
 
+#### How do I edit the description of an existing issue?
+
+```
+$ issue open -E deadbeef 'New description'
+```
+
+If you do not supply the description text directly on the command line, an `$EDITOR`
+will be open for you, with a message reminding you what you wanted to do:
+
+```
+$ issue open -E deadbeef
+A comment
+# Type issue opening message.
+#
+# Lines beginning with '#' will be ignored.
+#
+# Original message:
+#
+#  The original message will be displayed here
+#
+#  In its entirety, of course.
+#
+# vim:ft=gitcommit:
+#
+```
+
 #### How can I get a list of stored issues?
 
 ```

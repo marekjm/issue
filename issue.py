@@ -426,6 +426,8 @@ def display_events_log(events_log, head=None, tail=None):
                     event_description += " (...)"
             elif event_name == "open":
                 event_description = event_parameters["message"].splitlines()[0]
+            elif event_name == "edit":
+                event_description = event_parameters["message"].splitlines()[0]
             elif event_name == "tagged":
                 event_description = ", ".join(event_parameters["tags"])
             else:
@@ -622,6 +624,19 @@ def commandOpen(ui):
             )
             exit(1)
 
+    original_uid = None
+    if "--edit" in ui:
+        try:
+            original_uid = expandIssueUID(ui.get("--edit"))
+        except Exception as e:
+            print(
+                '{}: could find issue identified by "{}":'.format(
+                    colorise(COLOR_ERROR, "error"),
+                    colorise(COLOR_HASH, ui.get("--edit")),
+                ),
+            )
+            exit(1)
+
     message_fmt = {
         "parent_message": "#",
     }
@@ -629,6 +644,21 @@ def commandOpen(ui):
         formatted_parent_message = "#\n# Parent message:\n#\n"
         parent_message_lines = (
             issue.util.issues.getIssue(parent_uid).get("message").splitlines()
+        )
+        indented_parent_message_lines = [
+            "    {}".format(l) for l in parent_message_lines
+        ]
+        formatted_parent_message += "\n".join(
+            map(
+                lambda each: "#  {}".format(each),
+                indented_parent_message_lines,
+            )
+        )
+        message_fmt["parent_message"] = formatted_parent_message
+    if original_uid is not None:
+        formatted_parent_message = "#\n# Original message:\n#\n"
+        parent_message_lines = (
+            issue.util.issues.getIssue(original_uid).get("message").splitlines()
         )
         indented_parent_message_lines = [
             "    {}".format(l) for l in parent_message_lines
@@ -649,10 +679,13 @@ def commandOpen(ui):
         print("fatal: aborting due to empty message")
         exit(1)
 
-    issue_sha1 = "{0}{1}{2}{3}{4}".format(
-        message, tags, milestones, parent_uid, random.random()
-    )
-    issue_sha1 = issue.util.misc.create_hash(issue_sha1)
+    if original_uid is None:
+        issue_sha1 = "{0}{1}{2}{3}{4}".format(
+            message, tags, milestones, parent_uid, random.random()
+        )
+        issue_sha1 = issue.util.misc.create_hash(issue_sha1)
+    else:
+        issue_sha1 = original_uid
 
     repo_config = issue.config.getConfig()
 
@@ -661,13 +694,56 @@ def commandOpen(ui):
         os.mkdir(issue_group_path)
 
     # make directories for issue-specific objects
-    os.mkdir(os.path.join(issue_group_path, issue_sha1))
-    os.mkdir(os.path.join(issue_group_path, issue_sha1, "comments"))
-    os.mkdir(os.path.join(issue_group_path, issue_sha1, "diff"))
+    if original_uid is None:
+        os.mkdir(os.path.join(issue_group_path, issue_sha1))
+        os.mkdir(os.path.join(issue_group_path, issue_sha1, "comments"))
+        os.mkdir(os.path.join(issue_group_path, issue_sha1, "diff"))
 
     explicit_time = None
     if "-T" in ui:
         explicit_time = datetime.datetime.strptime(ui.get("-T"), "%Y-%m-%dT%H:%M:%S")
+
+    # If the original UID is present it means that we are editing an issue, so all the
+    # base diffs are not needed. Just create a new diff with "set-message" type and call
+    # it a day.
+    if original_uid is not None:
+        issue_differences = [
+            {
+                "action": "set-message",
+                "params": {
+                    "text": message,
+                },
+                "author": {
+                    "author.email": repo_config["author.email"],
+                    "author.name": repo_config["author.name"],
+                },
+                "timestamp": timestamp(),
+            },
+        ]
+        issue_diff_sha1 = "{0}{1}{2}{3}".format(
+            repo_config["author.email"],
+            repo_config["author.name"],
+            timestamp(),
+            random.random(),
+        )
+        issue_diff_sha1 = issue.util.misc.create_hash(issue_diff_sha1)
+        issue_diff_file_path = os.path.join(
+            issue_group_path, issue_sha1, "diff", "{0}.json".format(issue_diff_sha1)
+        )
+        with open(issue_diff_file_path, "w") as ofstream:
+            ofstream.write(json.dumps(issue_differences))
+
+        issue.util.issues.indexIssue(issue_sha1)
+        markLastIssue(issue_sha1)
+
+        issue.shortlog.append_event_edit(issue_sha1, message)
+
+        if "--git" in ui:
+            print("issue/{0}".format(issue.util.issues.sluggify(message)))
+        elif "--verbose" in ui:
+            print(issue_sha1)
+
+        return
 
     issue_differences = [
         {

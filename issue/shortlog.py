@@ -12,6 +12,7 @@ EVENT_TYPE_SHOW = "show"
 EVENT_TYPE_SLUG = "slug"
 EVENT_TYPE_COMMENT = "comment"
 EVENT_TYPE_OPEN = "open"
+EVENT_TYPE_EDIT = "edit"
 EVENT_TYPE_CLOSE = "close"
 EVENT_TYPE_TAGGED = "tagged"
 EVENT_TYPE_CHAINED_TO = "chained_to"
@@ -22,6 +23,7 @@ EVENTS_LOG_EVENT_WEIGHTS = {
     EVENT_TYPE_SLUG: 0,
     EVENT_TYPE_COMMENT: 7,
     EVENT_TYPE_OPEN: 0,
+    EVENT_TYPE_EDIT: 1,
     EVENT_TYPE_CLOSE: 0,
     EVENT_TYPE_TAGGED: 8,
     EVENT_TYPE_CHAINED_TO: 5,
@@ -78,6 +80,16 @@ def append_event_open(issue_uid: str, message: str) -> None:
     issue.shortlog.append_event(
         issue_uid=issue_uid,
         event_type=EVENT_TYPE_OPEN,
+        parameters={
+            "message": message,
+        },
+    )
+
+
+def append_event_edit(issue_uid: str, message: str) -> None:
+    issue.shortlog.append_event(
+        issue_uid=issue_uid,
+        event_type=EVENT_TYPE_EDIT,
         parameters={
             "message": message,
         },

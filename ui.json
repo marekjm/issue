@@ -133,6 +133,13 @@
                         "short": "P",
                         "arguments": ["uid of parent issue:str"],
                         "help": "set a parent on the issue; what is the difference between this parameter and the --chain-to? there can be only one parent. An issue is automatically chained to its parent. Parent is a \"main\" chain."
+                    },
+                    {
+                        "long": "edit",
+                        "short": "E",
+                        "arguments": ["id:str"],
+                        "conflicts": ["--parent", "--chain-to", "--param", "--milestone", "--time", "--tag"],
+                        "help": "edit opening message of the issue identified by given id"
                     }
                 ]
             },
