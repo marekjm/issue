@@ -1847,17 +1847,20 @@ def commandShow(ui):
                 )
             print("\n{}".format(attached_issues_heading))
             for s in sorted(attached_issues):
-                attached_issue = issue.util.issues.getIssue(s)
+                try:
+                    attached_issue = issue.util.issues.getIssue(s)
+                except issue.exceptions.NotAnIssue:
+                    attached_issue = None
                 short_hash = s[:short_hash_chars]
                 if colored:
                     short_hash = (
-                        colored.fg("yellow") + short_hash + colored.attr("reset")
+                        colored.fg("yellow" if attached_issue else "red") + short_hash + colored.attr("reset")
                     )
                 print(
                     "    {0} ({1}): {2}".format(
                         short_hash,
-                        attached_issue.get("status"),
-                        attached_issue.get("message", "").splitlines()[0],
+                        (attached_issue or {}).get("status", "dropped?"),
+                        (attached_issue or {}).get("message", "dropped?").splitlines()[0],
                     )
                 )
 
