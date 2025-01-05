@@ -238,10 +238,10 @@ def getLastIssue():
 def get_time_delta_arguments(delta_mods):
     time_delta = {}
     time_patterns = [
-        re.compile("^(\d+)(minutes?)$"),
-        re.compile("^(\d+)(hours?)$"),
-        re.compile("^(\d+)(days?)$"),
-        re.compile("^(\d+)(weeks?)$"),
+        re.compile(r"^(\d+)(minutes?)$"),
+        re.compile(r"^(\d+)(hours?)$"),
+        re.compile(r"^(\d+)(days?)$"),
+        re.compile(r"^(\d+)(weeks?)$"),
     ]
     for dm in delta_mods:
         found_any = False
