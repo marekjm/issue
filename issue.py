@@ -192,14 +192,16 @@ def shortestUnique(lst):
     base_n = len(lst[0])
     n = base_n // 2
 
-    done = False
-    while 1:
+    while True:
         not_same = len(lst) != len(set([i[:n] for i in lst]))
         if not_same and n == (base_n - 1):
             n = base_n
             break
         if not_same:
-            n += (base_n - n) // 2
+            increment = (base_n - n) // 2
+            if increment == 0:
+                break
+            n += increment
             continue
         base_n = n
         n = base_n // 2
