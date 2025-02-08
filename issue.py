@@ -187,7 +187,7 @@ def shortestUnique(lst):
     if len(lst) == 1:
         return 1
 
-    lst.sort()
+    lst = sorted(lst)
 
     base_n = len(lst[0])
     n = base_n // 2
