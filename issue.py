@@ -147,20 +147,34 @@ def expandIssueUID(issue_sha1_part):
     if len(issue_sha1) == 0:
         raise issue.exceptions.IssueUIDNotMatched(issue_sha1_part)
     if len(issue_sha1) > 1:
-        raise issue.exceptions.IssueUIDAmbiguous(issue_sha1_part)
+        raise issue.exceptions.IssueUIDAmbiguous(
+            issue_sha1_part,
+            tuple(issue_sha1),
+        )
     return issue_sha1[0]
 
 
 def expand_issue_uid_or_exir(issue_uid_part):
     try:
         return expandIssueUID(issue_uid_part)
-    except issue.exceptions.IssueUIDAmbiguous:
+    except issue.exceptions.IssueUIDAmbiguous as e:
+        part, candidates = e.args
         print(
             "{0}: issue uid {1} is ambiguous".format(
                 colorise(COLOR_ERROR, "error"),
-                colorise_repr(COLOR_HASH, issue_uid_part),
+                colorise_repr(COLOR_HASH, part),
             )
         )
+        unique_prefix = shortestUnique(candidates)
+        for uid in candidates:
+            i = issue.util.issues.getIssue(uid)
+            print(
+                "{}: {} {}".format(
+                    colorise(COLOR_NOTE, "note"),
+                    colorise(COLOR_HASH, uid[:unique_prefix]),
+                    i["message"].splitlines()[0],
+                )
+            )
         exit(1)
     except issue.exceptions.IssueUIDNotMatched:
         print(
