@@ -1856,13 +1856,17 @@ def commandShow(ui):
                 short_hash = s[:short_hash_chars]
                 if colored:
                     short_hash = (
-                        colored.fg("yellow" if attached_issue else "red") + short_hash + colored.attr("reset")
+                        colored.fg("yellow" if attached_issue else "red")
+                        + short_hash
+                        + colored.attr("reset")
                     )
                 print(
                     "    {0} ({1}): {2}".format(
                         short_hash,
                         (attached_issue or {}).get("status", "dropped?"),
-                        (attached_issue or {}).get("message", "dropped?").splitlines()[0],
+                        (attached_issue or {})
+                        .get("message", "dropped?")
+                        .splitlines()[0],
                     )
                 )
 
