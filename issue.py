@@ -653,6 +653,29 @@ def commandOpen(ui):
             )
             exit(1)
 
+    repo_config = issue.config.getConfig()
+    if "author.email" not in repo_config:
+        sys.stderr.write(
+            "{}: {} not configured\n".format(
+                colorise(COLOR_ERROR, "error"),
+                colorise_repr("white", "author.email"),
+            ),
+        )
+        exit(1)
+    if "author.name" not in repo_config:
+        sys.stderr.write(
+            "{}: {} not configured\n".format(
+                colorise(COLOR_ERROR, "error"),
+                colorise_repr("white", "author.name"),
+            ),
+        )
+        exit(1)
+
+    author = {
+        "author.email": repo_config["author.email"],
+        "author.name": repo_config["author.name"],
+    }
+
     message_fmt = {
         "parent_message": "#",
     }
@@ -702,8 +725,6 @@ def commandOpen(ui):
         issue_sha1 = issue.util.misc.create_hash(issue_sha1)
     else:
         issue_sha1 = original_uid
-
-    repo_config = issue.config.getConfig()
 
     issue_group_path = os.path.join(issue.util.paths.issues_path(), issue_sha1[:2])
     if not os.path.isdir(issue_group_path):
@@ -764,10 +785,7 @@ def commandOpen(ui):
     issue_differences = [
         {
             "action": "open",
-            "author": {
-                "author.email": repo_config["author.email"],
-                "author.name": repo_config["author.name"],
-            },
+            "author": author,
             "timestamp": timestamp(explicit_time),
         },
         {
@@ -775,10 +793,7 @@ def commandOpen(ui):
             "params": {
                 "text": message,
             },
-            "author": {
-                "author.email": repo_config["author.email"],
-                "author.name": repo_config["author.name"],
-            },
+            "author": author,
             "timestamp": timestamp(),
         },
         {
@@ -786,10 +801,7 @@ def commandOpen(ui):
             "params": {
                 "tags": tags,
             },
-            "author": {
-                "author.email": repo_config["author.email"],
-                "author.name": repo_config["author.name"],
-            },
+            "author": author,
             "timestamp": timestamp(),
         },
         {
@@ -797,15 +809,11 @@ def commandOpen(ui):
             "params": {
                 "milestones": milestones,
             },
-            "author": {
-                "author.email": repo_config["author.email"],
-                "author.name": repo_config["author.name"],
-            },
+            "author": author,
             "timestamp": timestamp(),
         },
     ]
 
-    repo_config = issue.config.getConfig()
     if "project.tag" in repo_config:
         issue_differences.append(
             {
@@ -813,10 +821,7 @@ def commandOpen(ui):
                 "params": {
                     "tags": [repo_config["project.tag"]],
                 },
-                "author": {
-                    "author.email": repo_config["author.email"],
-                    "author.name": repo_config["author.name"],
-                },
+                "author": author,
                 "timestamp": timestamp(),
             }
         )
@@ -826,10 +831,7 @@ def commandOpen(ui):
                 "params": {
                     "tag": repo_config["project.tag"],
                 },
-                "author": {
-                    "author.email": repo_config["author.email"],
-                    "author.name": repo_config["author.name"],
-                },
+                "author": author,
                 "timestamp": timestamp(),
             }
         )
@@ -840,10 +842,7 @@ def commandOpen(ui):
                 "params": {
                     "name": repo_config["project.name"],
                 },
-                "author": {
-                    "author.email": repo_config["author.email"],
-                    "author.name": repo_config["author.name"],
-                },
+                "author": author,
                 "timestamp": timestamp(),
             }
         )
@@ -857,10 +856,7 @@ def commandOpen(ui):
                         "key": k,
                         "value": v,
                     },
-                    "author": {
-                        "author.email": repo_config["author.email"],
-                        "author.name": repo_config["author.name"],
-                    },
+                    "author": author,
                     "timestamp": timestamp(),
                 }
             )
@@ -897,10 +893,7 @@ def commandOpen(ui):
                     "params": {
                         "uid": parent_uid,
                     },
-                    "author": {
-                        "author.email": repo_config["author.email"],
-                        "author.name": repo_config["author.name"],
-                    },
+                    "author": author,
                     "timestamp": timestamp(),
                 }
             ]
@@ -950,10 +943,7 @@ def commandOpen(ui):
                         "params": {
                             "sha1": [issue_sha1],
                         },
-                        "author": {
-                            "author.email": repo_config["author.email"],
-                            "author.name": repo_config["author.name"],
-                        },
+                        "author": author,
                         "timestamp": timestamp(),
                     }
                 ]
