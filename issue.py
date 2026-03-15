@@ -659,8 +659,7 @@ def commandOpen(ui):
             ))
             exit(4)
 
-    repo_config = issue.config.getConfig()
-    if "author.email" not in repo_config:
+    if issue.config.get_author_email() is None:
         sys.stderr.write(
             "{}: {} not configured\n".format(
                 colorise(COLOR_ERROR, "error"),
@@ -668,7 +667,7 @@ def commandOpen(ui):
             ),
         )
         exit(1)
-    if "author.name" not in repo_config:
+    if issue.config.get_author_name() is None:
         sys.stderr.write(
             "{}: {} not configured\n".format(
                 colorise(COLOR_ERROR, "error"),
@@ -678,8 +677,8 @@ def commandOpen(ui):
         exit(1)
 
     author = {
-        "author.email": repo_config["author.email"],
-        "author.name": repo_config["author.name"],
+        "author.email": issue.config.get_author_email(),
+        "author.name": issue.config.get_author_name(),
     }
 
     message_fmt = {
