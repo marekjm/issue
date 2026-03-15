@@ -82,4 +82,16 @@ def get(key : str, section : tuple[str], *, path : str = None):
 
 # Special-cased getters for the crucial values used by the program.
 def get_editor():
-    return get(key="editor", section=("core",)) or os.environ.get("EDITOR", "vi")
+    global _loaded
+    if _loaded is None: load()
+    return get_loaded(key="editor", section=("core",)) or os.environ.get("EDITOR", "vi")
+
+def get_author_email():
+    global _loaded
+    if _loaded is None: load()
+    return get_loaded(key="email", section=("author",))
+
+def get_author_name():
+    global _loaded
+    if _loaded is None: load()
+    return get_loaded(key="name", section=("author",))
