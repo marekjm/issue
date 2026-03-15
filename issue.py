@@ -624,8 +624,14 @@ def commandOpen(ui):
     gathered_tags = issue.objects.tags.gather()
     for t in tags:
         if t not in gathered_tags[0]:
-            print('fatal: tag "{0}" does not exist'.format(t))
-            print('note: use "issue tag new {0}" to create it'.format(t))
+            sys.stderr.write("{}: tag {} does not exist\n".format(
+                colorise(COLOR_ERROR, "error"),
+                colorise(COLOR_HASH, t),
+            ))
+            sys.stderr.write("{}: use 'issue tag new {}' to create it\n".format(
+                colorise(COLOR_NOTE, "note"),
+                t,
+            ))
             exit(1)
 
     milestones = [m[0] for m in ui.get("--milestone")] if "--milestone" in ui else []
