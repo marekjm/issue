@@ -49,6 +49,7 @@ def load(path: str = None, cache: bool = True) -> dict:
         config.update(p)
 
     # Cache loaded config.
+    global _loaded
     _loaded = config
 
     return config
@@ -73,16 +74,17 @@ def load(path: str = None, cache: bool = True) -> dict:
 def get_from(*, key: str, section: tuple[str], config: dict):
     tmp = config
     for s in section:
-        tmp = tmp.get(s, {})
+        tmp = tmp.get(s)
+        if tmp is None:
+            return None
     return tmp.get(key)
 
 
-def get_loaded(*, key: str, section: tuple[str]):
-    global _loaded
-    return get_from(key=key, section=section, config=_loaded)
-
-
 def get(key: str, section: tuple[str], *, path: str = None):
+    return get_from(key=key, section=section, config=load(path=path, cache=False))
+
+
+def get_non_cached(key: str, section: tuple[str], *, path: str = None):
     return get_from(key=key, section=section, config=load(path=path, cache=False))
 
 
@@ -91,18 +93,18 @@ def get_editor():
     global _loaded
     if _loaded is None:
         load()
-    return get_loaded(key="editor", section=("core",)) or os.environ.get("EDITOR", "vi")
+    return get(key="editor", section=("core",)) or os.environ.get("EDITOR", "vi")
 
 
 def get_author_email():
     global _loaded
     if _loaded is None:
         load()
-    return get_loaded(key="email", section=("author",))
+    return get(key="email", section=("author",))
 
 
 def get_author_name():
     global _loaded
     if _loaded is None:
         load()
-    return get_loaded(key="name", section=("author",))
+    return get(key="name", section=("author",))
