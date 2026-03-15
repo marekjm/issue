@@ -1,0 +1,3 @@
+[submodule "make-version"]
+	path = make-version
+	url = https://git.sr.ht/~maelkum/makadeade-make-version

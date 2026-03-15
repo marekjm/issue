@@ -8,7 +8,7 @@ SHARE_DIR=$(PREFIX)/share
 .PHONY: install
 
 version_style?=auto
-version_used=$(shell make-version.sh $(version_style))
+version_used=$(shell ./make-version/make-version.sh $(version_style))
 
 install:
 	mkdir -p $(BIN_DIR)
