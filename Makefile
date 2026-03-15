@@ -7,6 +7,9 @@ SHARE_DIR=$(PREFIX)/share
 
 .PHONY: install
 
+version_style?=auto
+version_used=$(shell make-version.sh $(version_style))
+
 install:
 	mkdir -p $(BIN_DIR)
 	cp ./issue.py $(BIN_DIR)/issue
@@ -16,7 +19,9 @@ install:
 	cp ./share/*_message $(SHARE_DIR)/issue/
 	mkdir -p $(LIB_DIR)/issue
 	cp -R ./issue/* $(LIB_DIR)/issue/
-	sed -i 's/\<HEAD\>/$(shell git rev-parse HEAD)/' $(LIB_DIR)/issue/__init__.py
+	sed -i \
+		"s/__version__ = None/__version__ = \"$(version_used)\"/" \
+		$(LIB_DIR)/issue/__init__.py
 
 format:
 	black -t py314 issue.py issue/
