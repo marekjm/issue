@@ -57,20 +57,6 @@ def make(tag_name: str, force: bool = False):
             "timestamp": issue.util.misc.timestamp(),
         },
     ]
-    if "project.name" in repo_config:
-        tag_differences.append(
-            {
-                "action": "tag-set-project-name",
-                "params": {
-                    "name": repo_config["project.name"],
-                },
-                "author": {
-                    "author.email": repo_config["author.email"],
-                    "author.name": repo_config["author.name"],
-                },
-                "timestamp": timestamp(),
-            }
-        )
 
     tag_diff_sha1 = "{0}{1}{2}{3}{4}".format(
         tag_name,

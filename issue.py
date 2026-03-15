@@ -824,39 +824,6 @@ def commandOpen(ui):
         },
     ]
 
-    if "project.tag" in repo_config:
-        issue_differences.append(
-            {
-                "action": "push-tags",
-                "params": {
-                    "tags": [repo_config["project.tag"]],
-                },
-                "author": author,
-                "timestamp": timestamp(),
-            }
-        )
-        issue_differences.append(
-            {
-                "action": "set-project-tag",
-                "params": {
-                    "tag": repo_config["project.tag"],
-                },
-                "author": author,
-                "timestamp": timestamp(),
-            }
-        )
-    if "project.name" in repo_config:
-        issue_differences.append(
-            {
-                "action": "set-project-name",
-                "params": {
-                    "name": repo_config["project.name"],
-                },
-                "author": author,
-                "timestamp": timestamp(),
-            }
-        )
-
     if "--param" in ui:
         for k, v in ui.get("--param"):
             issue_differences.append(
@@ -1806,15 +1773,6 @@ def commandShow(ui):
         tags = issue_data.get("tags", [])
         if tags:
             print("tags:        {0}".format(", ".join(tags)))
-
-        default_project = "Unknown"
-        project = issue_data.get("project.name", "Unknown")
-        if project != default_project:
-            print(
-                "project:     {0} ({1})".format(
-                    project, issue_data.get("project.tag", "")
-                )
-            )
 
         indented_message_lines = ["    {}".format(l) for l in issue_message_lines]
         print("\n{}".format("\n".join(indented_message_lines)))
