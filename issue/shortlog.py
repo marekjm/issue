@@ -5,7 +5,6 @@ import typing
 
 import issue
 
-
 EVENTS_LOG_SIZE_DEFAULT = 80
 
 EVENT_TYPE_SHOW = "show"

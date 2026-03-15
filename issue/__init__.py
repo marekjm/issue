@@ -8,6 +8,5 @@ from . import util
 from . import repository
 from . import objects
 
-
 __version__ = "0.6.0"
 __commit__ = "HEAD"

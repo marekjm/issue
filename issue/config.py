@@ -2,16 +2,18 @@ import json
 import os
 import tomllib
 
-
 #
 # Path "constants" for use with other code.
 #
 
+
 def global_path():
     return os.path.expanduser("~/.config/issue/config.toml")
 
+
 def local_path():
     return ".issue/config.toml"
+
 
 def system_path():
     return "/etc/issue/config.toml"
@@ -25,7 +27,9 @@ def system_path():
 # This is useful mostly when editing configuration.
 #
 _loaded = None
-def load(path : str = None, cache : bool = True) -> dict:
+
+
+def load(path: str = None, cache: bool = True) -> dict:
     paths_to_consider = (
         system_path(),
         global_path(),
@@ -66,32 +70,39 @@ def load(path : str = None, cache : bool = True) -> dict:
 # By default the complete configuration is searched; use the `path' parameter to
 # set the file to be searched.
 #
-def get_from(*, key : str, section : tuple[str], config : dict):
+def get_from(*, key: str, section: tuple[str], config: dict):
     tmp = config
     for s in section:
         tmp = tmp.get(s, {})
     return tmp.get(key)
 
-def get_loaded(*, key : str, section : tuple[str]):
+
+def get_loaded(*, key: str, section: tuple[str]):
     global _loaded
     return get_from(key=key, section=section, config=_loaded)
 
-def get(key : str, section : tuple[str], *, path : str = None):
+
+def get(key: str, section: tuple[str], *, path: str = None):
     return get_from(key=key, section=section, config=load(path=path, cache=False))
 
 
 # Special-cased getters for the crucial values used by the program.
 def get_editor():
     global _loaded
-    if _loaded is None: load()
+    if _loaded is None:
+        load()
     return get_loaded(key="editor", section=("core",)) or os.environ.get("EDITOR", "vi")
+
 
 def get_author_email():
     global _loaded
-    if _loaded is None: load()
+    if _loaded is None:
+        load()
     return get_loaded(key="email", section=("author",))
+
 
 def get_author_name():
     global _loaded
-    if _loaded is None: load()
+    if _loaded is None:
+        load()
     return get_loaded(key="name", section=("author",))

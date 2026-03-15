@@ -3,7 +3,6 @@ import os
 
 import issue
 
-
 ISSUE_HIDDEN_DIRECTORY = ".issue"
 
 _ISSUE_REPOSITORY_PATH = None

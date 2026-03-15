@@ -24,7 +24,6 @@ import clap
 
 import issue
 
-
 filename_ui = os.path.expanduser("~/.local/share/issue/ui.json")
 
 model = {}
@@ -624,14 +623,18 @@ def commandOpen(ui):
     gathered_tags = issue.objects.tags.gather()
     for t in tags:
         if t not in gathered_tags[0]:
-            sys.stderr.write("{}: tag {} does not exist\n".format(
-                colorise(COLOR_ERROR, "error"),
-                colorise(COLOR_HASH, t),
-            ))
-            sys.stderr.write("{}: use 'issue tag new {}' to create it\n".format(
-                colorise(COLOR_NOTE, "note"),
-                t,
-            ))
+            sys.stderr.write(
+                "{}: tag {} does not exist\n".format(
+                    colorise(COLOR_ERROR, "error"),
+                    colorise(COLOR_HASH, t),
+                )
+            )
+            sys.stderr.write(
+                "{}: use 'issue tag new {}' to create it\n".format(
+                    colorise(COLOR_NOTE, "note"),
+                    t,
+                )
+            )
             exit(2)
 
     milestones = [m[0] for m in ui.get("--milestone")] if "--milestone" in ui else []
@@ -641,11 +644,13 @@ def commandOpen(ui):
         try:
             parent_uid = expandIssueUID(ui.get("--parent"))
         except Exception as e:
-            sys.stderr.write("{error}: could not link issue identified by {}: {}\n".format(
-                colorise(COLOR_ERROR, "error"),
-                colorise(COLOR_HASH, parent_uid),
-                e,
-            ))
+            sys.stderr.write(
+                "{error}: could not link issue identified by {}: {}\n".format(
+                    colorise(COLOR_ERROR, "error"),
+                    colorise(COLOR_HASH, parent_uid),
+                    e,
+                )
+            )
             exit(3)
 
     original_uid = None
@@ -653,10 +658,12 @@ def commandOpen(ui):
         try:
             original_uid = expandIssueUID(ui.get("--edit"))
         except Exception as e:
-            sys.stderr.write('{}: could find issue identified by {}\n'.format(
-                colorise(COLOR_ERROR, "error"),
-                colorise(COLOR_HASH, ui.get("--edit")),
-            ))
+            sys.stderr.write(
+                "{}: could find issue identified by {}\n".format(
+                    colorise(COLOR_ERROR, "error"),
+                    colorise(COLOR_HASH, ui.get("--edit")),
+                )
+            )
             exit(4)
 
     if issue.config.get_author_email() is None:
@@ -664,7 +671,7 @@ def commandOpen(ui):
             "{}: {} not configured\n".format(
                 colorise(COLOR_ERROR, "error"),
                 colorise_repr("white", "author.email"),
-            ),
+            )
         )
         exit(1)
     if issue.config.get_author_name() is None:
@@ -672,7 +679,7 @@ def commandOpen(ui):
             "{}: {} not configured\n".format(
                 colorise(COLOR_ERROR, "error"),
                 colorise_repr("white", "author.name"),
-            ),
+            )
         )
         exit(1)
 
@@ -2057,18 +2064,21 @@ def commandConfig(ui):
     if str(ui) == "list":
         try:
             config_data = issue.config.load(
-                config_path if explicit_config_path else None)
+                config_path if explicit_config_path else None
+            )
         except FileNotFoundError:
             if explicit_config_path:
-                sys.stderr.write("{}: config file does not exist: {}\n".format(
-                    colorise(COLOR_ERROR, "error"),
-                    colorise_repr(COLOR_BRANCH_NAME, config_path),
-                ))
+                sys.stderr.write(
+                    "{}: config file does not exist: {}\n".format(
+                        colorise(COLOR_ERROR, "error"),
+                        colorise_repr(COLOR_BRANCH_NAME, config_path),
+                    )
+                )
                 exit(1)
             else:
                 config_data = {}
 
-        def dump(config, prefix:str = None):
+        def dump(config, prefix: str = None):
             recurse_into = []
             for k, v in config.items():
                 if type(v) is dict:
@@ -2084,8 +2094,8 @@ def commandConfig(ui):
     elif str(ui) == "get":
         *section, key = ui.operands()
         value = issue.config.get(
-            key = key,
-            section = section,
+            key=key,
+            section=section,
         )
         if value is None:
             exit(2)
@@ -2106,15 +2116,17 @@ def commandConfig(ui):
         editor_position = ()
         while True:
             ret = subprocess.run(
-                args = (editor,) + editor_position + (tmp_path,),
+                args=(editor,) + editor_position + (tmp_path,),
             )
             if ret.returncode != 0:
-                sys.stderr.write("{}: editor {} returned a non-zero code {} for file {}\n".format(
-                    colorise(COLOR_ERROR, "error"),
-                    colorise_repr(COLOR_BRANCH_NAME, editor),
-                    colorise_repr(COLOR_BRANCH_NAME, ret.returncode),
-                    colorise_repr(COLOR_BRANCH_NAME, config_path),
-                ))
+                sys.stderr.write(
+                    "{}: editor {} returned a non-zero code {} for file {}\n".format(
+                        colorise(COLOR_ERROR, "error"),
+                        colorise_repr(COLOR_BRANCH_NAME, editor),
+                        colorise_repr(COLOR_BRANCH_NAME, ret.returncode),
+                        colorise_repr(COLOR_BRANCH_NAME, config_path),
+                    )
+                )
                 exit(2)
 
             try:
@@ -2122,14 +2134,18 @@ def commandConfig(ui):
                 shutil.copy(tmp_path, config_path)
                 break
             except tomllib.TOMLDecodeError as e:
-                sys.stderr.write("{}: edited configuration is invalid\n".format(
-                    colorise(COLOR_ERROR, "error"),
-                ))
-                input()
-                if editor in ("vi", "vim", "nvim",):
-                    editor_position = (
-                        f"+call cursor({e.lineno}, {e.colno})",
+                sys.stderr.write(
+                    "{}: edited configuration is invalid\n".format(
+                        colorise(COLOR_ERROR, "error"),
                     )
+                )
+                input()
+                if editor in (
+                    "vi",
+                    "vim",
+                    "nvim",
+                ):
+                    editor_position = (f"+call cursor({e.lineno}, {e.colno})",)
 
 
 def commandRemote(ui):
