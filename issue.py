@@ -11,6 +11,8 @@ import sys
 
 import unidecode
 
+from xdg_base_dirs import xdg_state_home
+
 try:
     import colored
 except ImportError:
