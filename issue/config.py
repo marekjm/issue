@@ -24,7 +24,8 @@ def system_path():
 # If an explicit path is given only load that file.
 # This is useful mostly when editing configuration.
 #
-def load(path : str = None) -> dict:
+_loaded = None
+def load(path : str = None, cache : bool = True) -> dict:
     paths_to_consider = (
         system_path(),
         global_path(),
@@ -42,6 +43,9 @@ def load(path : str = None) -> dict:
     config = {}
     for p in partial_configs:
         config.update(p)
+
+    # Cache loaded config.
+    _loaded = config
 
     return config
 
@@ -62,12 +66,18 @@ def load(path : str = None) -> dict:
 # By default the complete configuration is searched; use the `path' parameter to
 # set the file to be searched.
 #
-def get(key : str, section : tuple[str], *, path : str = None):
-    config = load(path=path)
+def get_from(*, key : str, section : tuple[str], config : dict):
     tmp = config
     for s in section:
         tmp = tmp.get(s, {})
     return tmp.get(key)
+
+def get_loaded(*, key : str, section : tuple[str]):
+    global _loaded
+    return get_from(key=key, section=section, config=_loaded)
+
+def get(key : str, section : tuple[str], *, path : str = None):
+    return get_from(key=key, section=section, config=load(path=path, cache=False))
 
 
 # Special-cased getters for the crucial values used by the program.
