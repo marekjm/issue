@@ -641,13 +641,11 @@ def commandOpen(ui):
         try:
             parent_uid = expandIssueUID(ui.get("--parent"))
         except Exception as e:
-            print(
-                '{error}: could not link issue identified by "{parent_uid}":'.format(
-                    colorise(COLOR_ERROR, "error"),
-                    colorise(COLOR_HASH, parent_uid),
-                ),
+            sys.stderr.write("{error}: could not link issue identified by {}: {}\n".format(
+                colorise(COLOR_ERROR, "error"),
+                colorise(COLOR_HASH, parent_uid),
                 e,
-            )
+            ))
             exit(1)
 
     original_uid = None
@@ -655,12 +653,10 @@ def commandOpen(ui):
         try:
             original_uid = expandIssueUID(ui.get("--edit"))
         except Exception as e:
-            print(
-                '{}: could find issue identified by "{}":'.format(
-                    colorise(COLOR_ERROR, "error"),
-                    colorise(COLOR_HASH, ui.get("--edit")),
-                ),
-            )
+            sys.stderr.write('{}: could find issue identified by {}\n'.format(
+                colorise(COLOR_ERROR, "error"),
+                colorise(COLOR_HASH, ui.get("--edit")),
+            ))
             exit(1)
 
     repo_config = issue.config.getConfig()
