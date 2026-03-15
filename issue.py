@@ -1362,11 +1362,15 @@ def commandSlug(ui):
         issue_sha1, limit=shortestUnique(issue.util.issues.ls())
     )
 
-    slug_format = issue.config.getConfig().get("slug.format.default", "")
+    default_slug_format = "{short_uid}-{slug}"
+    slug_format = issue.config.get(key="default", section=("slug", "format",)) or default_slug_format
     if slug_format.startswith("@"):
-        slug_format = issue.config.getConfig().get(
-            "slug.format.{0}".format(slug_format[1:]), ""
-        )
+        slug_format = issue.config.get(key=slug_format[1:], section=("slug", "format",))
+        if slug_format is None:
+            sys.stderr.write("{}: slug format {} (set as default) does not exist".format(
+                colorise(COLOR_ERROR, "error"),
+                colorise(COLOR_HASH, slug_format[1:]),
+            ))
 
     slug_parameters = issue_data.get("parameters", {})
     if "--param" in ui:
@@ -1378,11 +1382,12 @@ def commandSlug(ui):
     if "--format" in ui:
         slug_format = ui.get("--format")
     if "--use-format" in ui:
-        slug_format = issue.config.getConfig().get(
-            "slug.format.{0}".format(ui.get("--use-format")), ""
-        )
+        slug_format = issue.config.get(key=ui.get("--use-format"), section=("slug", "format",))
         if not slug_format:
-            print("fatal: undefined slug format: {0}".format(ui.get("--use-format")))
+            sys.stderr.write("{}: undefined slug format: {0}".format(
+                colorise(COLOR_ERROR, "error"),
+                colorise(COLOR_HASH, ui.get("--use-format")),
+            ))
             exit(1)
 
     if "--append" in ui:
