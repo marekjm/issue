@@ -632,7 +632,7 @@ def commandOpen(ui):
                 colorise(COLOR_NOTE, "note"),
                 t,
             ))
-            exit(1)
+            exit(2)
 
     milestones = [m[0] for m in ui.get("--milestone")] if "--milestone" in ui else []
 
@@ -646,7 +646,7 @@ def commandOpen(ui):
                 colorise(COLOR_HASH, parent_uid),
                 e,
             ))
-            exit(1)
+            exit(3)
 
     original_uid = None
     if "--edit" in ui:
@@ -657,7 +657,7 @@ def commandOpen(ui):
                 colorise(COLOR_ERROR, "error"),
                 colorise(COLOR_HASH, ui.get("--edit")),
             ))
-            exit(1)
+            exit(4)
 
     repo_config = issue.config.getConfig()
     if "author.email" not in repo_config:
