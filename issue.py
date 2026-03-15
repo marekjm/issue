@@ -3,11 +3,13 @@
 import datetime
 import json
 import os
+import pathlib
 import random
 import re
 import shutil
 import subprocess
 import sys
+import tomllib
 
 import unidecode
 
@@ -2077,65 +2079,98 @@ def commandShow(ui):
 
 
 def commandConfig(ui):
+    explicit_config_path = None
+    config_path = issue.config.local_path()
+    if "--file" in ui:
+        explicit_config_path = True
+        config_path = ui.get("--file")
+    elif "--global" in ui:
+        explicit_config_path = True
+        config_path = issue.config.global_path()
+    elif "--local" in ui:
+        explicit_config_path = True
+        config_path = issue.config.local_path()
+    elif "--system" in ui:
+        explicit_config_path = True
+        config_path = issue.config.system_path()
+
     ui = ui.down()
-    config_data = {}
-    config_path = os.path.expanduser(
-        ("~/.issueconfig.json" if "--global" in ui else "./.issue/config.json")
-    )
-    if not os.path.isfile(config_path):
-        config_data = {}
-    else:
-        with open(config_path, "r") as ifstream:
-            config_data = json.loads(ifstream.read())
+    if str(ui) == "list":
+        try:
+            config_data = issue.config.load(
+                config_path if explicit_config_path else None)
+        except FileNotFoundError:
+            if explicit_config_path:
+                sys.stderr.write("{}: config file does not exist: {}\n".format(
+                    colorise(COLOR_ERROR, "error"),
+                    colorise_repr(COLOR_BRANCH_NAME, config_path),
+                ))
+                exit(1)
+            else:
+                config_data = {}
 
-    if str(ui) == "get":
-        config_key = ui.operands()[0]
+        def dump(config, prefix:str = None):
+            recurse_into = []
+            for k, v in config.items():
+                if type(v) is dict:
+                    recurse_into.append((k, v))
+                    continue
+                key = f"{prefix}.{k}" if prefix else k
+                print(f"{key}={v}")
 
-        if ".." in config_key:
-            print("fatal: invalid key: double dot used")
-            exit(1)
-        if config_key.startswith(".") or config_key.endswith("."):
-            print("fatal: invalid key: starts or begins with dot")
-            exit(1)
+            for section, v in recurse_into:
+                dump(v, prefix=f"{prefix}.{section}" if prefix else section)
 
-        config_value = config_data[config_key]
-
-        print(
-            (
-                json.dumps({config_key: config_value})
-                if "--verbose" in ui
-                else (config_value if config_value is not None else "null")
-            )
+        dump(config_data)
+    elif str(ui) == "get":
+        *section, key = ui.operands()
+        value = issue.config.get(
+            key = key,
+            section = section,
         )
-    elif str(ui) == "set":
-        operands = ui.operands()
-        config_key = operands[0]
-        config_value = operands[1] if len(operands) == 2 else ""
-        if "--null" in ui:
-            config_value = None
+        if value is None:
+            exit(2)
+        print(value)
+    elif str(ui) == "edit":
+        editor = issue.config.get_editor()
 
-        if ".." in config_key:
-            print("fatal: invalid key: double dot used")
-            exit(1)
-        if config_key.startswith(".") or config_key.endswith("."):
-            print("fatal: invalid key: starts or begins with dot")
-            exit(1)
+        state_directory = xdg_state_home().joinpath("issue")
+        if not state_directory.exists():
+            state_directory.mkdir(parents=True)
 
-        if "--unset" in ui:
-            del config_data[config_key]
-        else:
-            config_data[config_key] = config_value
+        config_path = pathlib.Path(config_path)
+        tmp_path = state_directory.joinpath("config.toml")
 
-        with open(config_path, "w") as ofstream:
-            ofstream.write(json.dumps(config_data))
-    elif str(ui) == "dump":
-        print(
-            (
-                json.dumps(config_data)
-                if "--verbose" not in ui
-                else json.dumps(config_data, sort_keys=True, indent=2)
+        if config_path.exists():
+            config_path.copy(tmp_path)
+
+        editor_position = ()
+        while True:
+            ret = subprocess.run(
+                args = (editor,) + editor_position + (tmp_path,),
             )
-        )
+            if ret.returncode != 0:
+                sys.stderr.write("{}: editor {} returned a non-zero code {} for file {}\n".format(
+                    colorise(COLOR_ERROR, "error"),
+                    colorise_repr(COLOR_BRANCH_NAME, editor),
+                    colorise_repr(COLOR_BRANCH_NAME, ret.returncode),
+                    colorise_repr(COLOR_BRANCH_NAME, config_path),
+                ))
+                exit(2)
+
+            try:
+                issue.config.load(path=tmp_path)
+                shutil.copy(tmp_path, config_path)
+                break
+            except tomllib.TOMLDecodeError as e:
+                sys.stderr.write("{}: edited configuration is invalid\n".format(
+                    colorise(COLOR_ERROR, "error"),
+                ))
+                input()
+                if editor in ("vi", "vim", "nvim",):
+                    editor_position = (
+                        f"+call cursor({e.lineno}, {e.colno})",
+                    )
 
 
 def commandRemote(ui):

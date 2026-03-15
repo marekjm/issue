@@ -591,79 +591,61 @@
                 ]
             },
             "options": {
-                "global": [
+                "local": [
                     {
-                        "short": "g",
+                        "long": "file",
+                        "arguments": ["path:str"],
+                        "help": "use the file",
+                        "conflicts": [
+                              "--global"
+                            , "--local"
+                            , "--system"
+                        ]
+                    },
+                    {
                         "long": "global",
-                        "help": "operate on global configuration"
+                        "help": "use the global configuration file",
+                        "conflicts": [
+                              "--file"
+                            , "--local"
+                            , "--system"
+                        ]
+                    },
+                    {
+                        "long": "local",
+                        "help": "use the local configuration file",
+                        "conflicts": [
+                              "--file"
+                            , "--global"
+                            , "--system"
+                        ]
+                    },
+                    {
+                        "long": "system",
+                        "help": "use the system configuration file",
+                        "conflicts": [
+                              "--file"
+                            , "--global"
+                            , "--local"
+                        ]
                     }
                 ]
             },
             "commands": {
+                "list": {
+                    "doc": {
+                        "help": "list configured values"
+                    },
+                    "operands": {
+                        "no": [0, 0]
+                    }
+                },
                 "get": {
-                    "doc": {
-                        "help": "Obtain values set inside configuration file(s)",
-                        "usage": [
-                            "config [--global] get [--safe] <key>"
-                        ]
-                    },
-                    "options": {
-                        "local": [
-                            {
-                                "short": "s",
-                                "long": "safe",
-                                "help": "if the key is not present in the configuration, assume 'null' value instead of failing"
-                            }
-                        ]
-                    },
                     "operands": {
-                        "no": [1, 1],
-                        "help": {
-                            "names": ["key"]
-                        }
+                        "no": [2]
                     }
                 },
-                "set": {
-                    "doc": {
-                        "help": "Set values in configuration file(s)",
-                        "usage": [
-                            "config [--global] set [--null] <key> [<value>]"
-                        ]
-                    },
-                    "options": {
-                        "local": [
-                            {
-                                "short": "n",
-                                "long": "null",
-                                "help": "insert 'null' value"
-                            },
-                            {
-                                "short": "u",
-                                "long": "unset",
-                                "help": "remove value from config"
-                            }
-                        ]
-                    },
-                    "operands": {
-                        "no": [1, 2],
-                        "help": {
-                            "names": ["key", "value"]
-                        }
-                    }
-                },
-                "dump": {
-                    "doc": {
-                        "help": "Print configuration to standard output"
-                    },
-                    "options": {
-                        "local": [
-                            {
-                                "short": "v",
-                                "long": "verbose",
-                                "help": "generate human-readable JSON"
-                            }
-                        ]
-                    },
+                "edit": {
                     "operands": {
                         "no": [0, 0]
                     }
