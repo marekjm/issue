@@ -841,8 +841,8 @@ def commandOpen(ui):
             )
 
     issue_diff_sha1 = "{0}{1}{2}{3}".format(
-        repo_config["author.email"],
-        repo_config["author.name"],
+        issue.config.get_author_email(),
+        issue.config.get_author_name(),
         timestamp(),
         random.random(),
     )
@@ -1137,7 +1137,7 @@ def commandLs(ui):
         delta_mods_until = [s[0] for s in ui.get("--until")]
     if "--recent" in ui:
         delta_mods_since = (
-            issue.config.getConfig().get("default.time.recent", "1day").split(",")
+            (issue.config.get(key="recent", section=("default", "time",)) or "5days").split(",")
         )
 
     if "--since" in ui or "--recent" in ui:

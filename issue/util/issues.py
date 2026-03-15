@@ -198,16 +198,12 @@ def indexIssue(issue_sha1, *diffs):
         for td in issue_work_in_progress_time_deltas[1:]:
             issue_total_time_spent += td
 
-    repo_config = issue.config.getConfig()
-    if issue_work_started.get(repo_config["author.email"]) is not None:
+    author_email = issue.config.get_author_email()
+    if (work_started := issue_work_started.get(author_email)) is not None:
         if issue_total_time_spent is not None:
-            issue_total_time_spent += datetime.datetime.now() - issue_work_started.get(
-                repo_config["author.email"]
-            )
+            issue_total_time_spent += datetime.datetime.now() - work_started
         else:
-            issue_total_time_spent = datetime.datetime.now() - issue_work_started.get(
-                repo_config["author.email"]
-            )
+            issue_total_time_spent = datetime.datetime.now() - work_started
     if issue_total_time_spent is not None:
         issue_data["total_time_spent"] = str(issue_total_time_spent).rsplit(".", 1)[0]
 
