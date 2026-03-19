@@ -507,20 +507,19 @@ def get_next_release_pointer():
 
 
 def _store_release_diff_simple_named_action(release_name, action_name):
-    repo_config = issue.config.getConfig()
     release_differences = [
         {
             "action": action_name,
             "author": {
-                "author.email": repo_config["author.email"],
-                "author.name": repo_config["author.name"],
+                "author.email": issue.config.get_author_email(),
+                "author.name": issue.config.get_author_name(),
             },
             "timestamp": timestamp(),
         },
     ]
     release_diff_sha1 = "{0}{1}{2}{3}".format(
-        repo_config["author.email"],
-        repo_config["author.name"],
+        issue.config.get_author_email(),
+        issue.config.get_author_name(),
         timestamp(),
         random.random(),
     )
@@ -541,13 +540,12 @@ def store_release_diff_close(release_name):
 
 
 def store_release_diff(release_name, action, params=None):
-    repo_config = issue.config.getConfig()
     release_differences = [
         {
             "action": action,
             "author": {
-                "author.email": repo_config["author.email"],
-                "author.name": repo_config["author.name"],
+                "author.email": issue.config.get_author_email(),
+                "author.name": issue.config.get_author_name(),
             },
             "timestamp": timestamp(),
         },
@@ -555,8 +553,8 @@ def store_release_diff(release_name, action, params=None):
     if params is not None:
         release_differences[0]["params"] = params
     release_diff_sha1 = "{0}{1}{2}{3}".format(
-        repo_config["author.email"],
-        repo_config["author.name"],
+        issue.config.get_author_email(),
+        issue.config.get_author_name(),
         timestamp(),
         random.random(),
     )
@@ -755,15 +753,15 @@ def commandOpen(ui):
                     "text": message,
                 },
                 "author": {
-                    "author.email": repo_config["author.email"],
-                    "author.name": repo_config["author.name"],
+                    "author.email": issue.config.get_author_email(),
+                    "author.name": issue.config.get_author_name(),
                 },
                 "timestamp": timestamp(),
             },
         ]
         issue_diff_sha1 = "{0}{1}{2}{3}".format(
-            repo_config["author.email"],
-            repo_config["author.name"],
+            issue.config.get_author_email(),
+            issue.config.get_author_name(),
             timestamp(),
             random.random(),
         )
@@ -870,8 +868,8 @@ def commandOpen(ui):
             ]
 
             issue_diff_uid = "{0}{1}{2}{3}".format(
-                repo_config["author.email"],
-                repo_config["author.name"],
+                issue.config.get_author_email(),
+                issue.config.get_author_name(),
                 timestamp(),
                 random.random(),
             )
@@ -920,8 +918,8 @@ def commandOpen(ui):
                 ]
 
                 issue_diff_sha1 = "{0}{1}{2}{3}".format(
-                    repo_config["author.email"],
-                    repo_config["author.name"],
+                    issue.config.get_author_email(),
+                    issue.config.get_author_name(),
                     timestamp(),
                     random.random(),
                 )
@@ -952,7 +950,6 @@ def commandOpen(ui):
 
 
 def commandClose(ui):
-    repo_config = issue.config.getConfig()
     issue_sha1 = getLastIssue() if "--last" in ui else operands[0]
     issue_sha1 = expand_issue_uid_or_exir(issue_sha1)
     issue_data = issue.util.issues.getIssue(issue_sha1)
@@ -997,8 +994,8 @@ def commandClose(ui):
                 "reuse_git_timestamp": reuse_git_timestamp,
             },
             "author": {
-                "author.email": repo_config["author.email"],
-                "author.name": repo_config["author.name"],
+                "author.email": issue.config.get_author_email(),
+                "author.name": issue.config.get_author_name(),
             },
             "timestamp": timestamp(ts),
         },
@@ -1034,8 +1031,8 @@ def commandClose(ui):
         issue_differences[0]["params"]["git_timestamp"] = git_timestamp
 
     issue_diff_sha1 = "{0}{1}{2}{3}".format(
-        repo_config["author.email"],
-        repo_config["author.name"],
+        issue.config.get_author_email(),
+        issue.config.get_author_name(),
         timestamp(),
         random.random(),
     )
@@ -1582,8 +1579,6 @@ def commandTag(ui):
             print("fatal: aborting due to empty tag")
             exit(1)
 
-        repo_config = issue.config.getConfig()
-
         issue_differences = [
             {
                 "action": ("remove-tags" if "--remove" in ui else "push-tags"),
@@ -1591,16 +1586,16 @@ def commandTag(ui):
                     "tags": [issue_tag],
                 },
                 "author": {
-                    "author.email": repo_config["author.email"],
-                    "author.name": repo_config["author.name"],
+                    "author.email": issue.config.get_author_email(),
+                    "author.name": issue.config.get_author_name(),
                 },
                 "timestamp": timestamp(),
             }
         ]
 
         issue_diff_sha1 = "{0}{1}{2}{3}".format(
-            repo_config["author.email"],
-            repo_config["author.name"],
+            issue.config.get_author_email(),
+            issue.config.get_author_name(),
             timestamp(),
             random.random(),
         )
@@ -1635,14 +1630,12 @@ def commandParam(ui):
         print("fatal: aborting due to empty parameter key")
         exit(1)
 
-    repo_config = issue.config.getConfig()
-
     issue_differences = [
         {
             "params": {},
             "author": {
-                "author.email": repo_config["author.email"],
-                "author.name": repo_config["author.name"],
+                "author.email": issue.config.get_author_email(),
+                "author.name": issue.config.get_author_name(),
             },
             "timestamp": timestamp(),
         }
@@ -1658,8 +1651,8 @@ def commandParam(ui):
         ]
 
     issue_diff_sha1 = "{0}{1}{2}{3}".format(
-        repo_config["author.email"],
-        repo_config["author.name"],
+        issue.config.get_author_email(),
+        issue.config.get_author_name(),
         timestamp(),
         random.random(),
     )
@@ -2278,8 +2271,6 @@ def commandChain(ui):
         link_issue_sha1s[i] = expand_issue_uid_or_exir(link_issue_sha1)
 
     if str(ui) == "attach":
-        repo_config = issue.config.getConfig()
-
         for link_issue_sha1 in link_issue_sha1s:
             issue_differences = [
                 {
@@ -2288,16 +2279,16 @@ def commandChain(ui):
                         "sha1": [link_issue_sha1],
                     },
                     "author": {
-                        "author.email": repo_config["author.email"],
-                        "author.name": repo_config["author.name"],
+                        "author.email": issue.config.get_author_email(),
+                        "author.name": issue.config.get_author_name(),
                     },
                     "timestamp": timestamp(),
                 }
             ]
 
             issue_diff_sha1 = "{0}{1}{2}{3}".format(
-                repo_config["author.email"],
-                repo_config["author.name"],
+                issue.config.get_author_email(),
+                issue.config.get_author_name(),
                 timestamp(),
                 random.random(),
             )
@@ -2314,8 +2305,6 @@ def commandChain(ui):
             markLastIssue(issue_sha1)
             issue.util.issues.indexIssue(issue_sha1, issue_diff_sha1)
     elif str(ui) == "link":
-        repo_config = issue.config.getConfig()
-
         for link_issue_sha1 in link_issue_sha1s:
             issue_differences = [
                 {
@@ -2324,16 +2313,16 @@ def commandChain(ui):
                         "sha1": [link_issue_sha1],
                     },
                     "author": {
-                        "author.email": repo_config["author.email"],
-                        "author.name": repo_config["author.name"],
+                        "author.email": issue.config.get_author_email(),
+                        "author.name": issue.config.get_author_name(),
                     },
                     "timestamp": timestamp(),
                 }
             ]
 
             issue_diff_sha1 = "{0}{1}{2}{3}".format(
-                repo_config["author.email"],
-                repo_config["author.name"],
+                issue.config.get_author_email(),
+                issue.config.get_author_name(),
                 timestamp(),
                 random.random(),
             )
