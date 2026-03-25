@@ -81,7 +81,10 @@ def get_from(*, key: str, section: tuple[str], config: dict):
 
 
 def get(key: str, section: tuple[str], *, path: str = None):
-    return get_from(key=key, section=section, config=load(path=path, cache=False))
+    global _loaded
+    if _loaded is None:
+        load()
+    return get_from(key=key, section=section, config=_loaded)
 
 
 def get_non_cached(key: str, section: tuple[str], *, path: str = None):
