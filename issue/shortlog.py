@@ -46,7 +46,9 @@ def read() -> typing.List:
 
 
 def write(events_log: typing.List) -> None:
-    events_log_size = issue.config.get(key="size", section=("shortlog",)) or EVENTS_LOG_SIZE_DEFAULT
+    events_log_size = (
+        issue.config.get(key="size", section=("shortlog",)) or EVENTS_LOG_SIZE_DEFAULT
+    )
     dumped = json.dumps(events_log[-events_log_size:])
     with open(issue.util.paths.get_shortlog_path(), "w") as ofstream:
         ofstream.write(dumped)
