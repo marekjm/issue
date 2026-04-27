@@ -678,6 +678,15 @@ def commandOpen(ui):
         "author.name": issue.config.get_author_name(),
     }
 
+    explicit_time = None
+    if "-T" in ui:
+        explicit_time = datetime.datetime.strptime(ui.get("-T"), "%Y-%m-%dT%H:%M:%S")
+
+    # IMPORTANT! Validate all other options BEFORE the message.
+    # Why? Because the message may open an editor window, prompting the user for
+    # a potentially lengthy (and important) input. It is a good idea to only
+    # request the most expensive part of the information last, only after we
+    # know that all the cheap parts are ready.
     message_fmt = {
         "parent_message": "#",
     }
@@ -737,10 +746,6 @@ def commandOpen(ui):
         os.mkdir(os.path.join(issue_group_path, issue_sha1))
         os.mkdir(os.path.join(issue_group_path, issue_sha1, "comments"))
         os.mkdir(os.path.join(issue_group_path, issue_sha1, "diff"))
-
-    explicit_time = None
-    if "-T" in ui:
-        explicit_time = datetime.datetime.strptime(ui.get("-T"), "%Y-%m-%dT%H:%M:%S")
 
     # If the original UID is present it means that we are editing an issue, so all the
     # base diffs are not needed. Just create a new diff with "set-message" type and call
