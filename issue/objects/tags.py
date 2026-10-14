@@ -42,7 +42,8 @@ def make(tag_name: str, force: bool = False):
     os.mkdir(tag_path)
     os.mkdir(os.path.join(tag_path, "diff"))
 
-    repo_config = issue.config.getConfig()
+    author_email = issue.config.get_author_email()
+    author_name = issue.config.get_author_name()
 
     tag_differences = [
         {
@@ -51,8 +52,8 @@ def make(tag_name: str, force: bool = False):
                 "name": tag_name,
             },
             "author": {
-                "author.email": repo_config["author.email"],
-                "author.name": repo_config["author.name"],
+                "author.email": author_email,
+                "author.name": author_name,
             },
             "timestamp": issue.util.misc.timestamp(),
         },
@@ -60,8 +61,8 @@ def make(tag_name: str, force: bool = False):
 
     tag_diff_sha1 = "{0}{1}{2}{3}{4}".format(
         tag_name,
-        repo_config["author.email"],
-        repo_config["author.name"],
+        author_email,
+        author_name,
         issue.util.misc.timestamp(),
         random.random(),
     )
