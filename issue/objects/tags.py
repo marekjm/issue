@@ -65,7 +65,7 @@ def make(tag_name: str, force: bool = False):
                 'author.email': repo_config['author.email'],
                 'author.name': repo_config['author.name'],
             },
-            'timestamp': timestamp(),
+            'timestamp': issue.util.misc.timestamp(),
         })
 
     tag_diff_sha1 = '{0}{1}{2}{3}{4}'.format(
